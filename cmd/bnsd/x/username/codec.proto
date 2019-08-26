@@ -5,12 +5,45 @@ package username;
 import "codec.proto";
 import "gogoproto/gogo.proto";
 
+// Namespace represents a set of usernames. It contains a username suffix and
+// configuration details that apply to all usernames that belong to this
+// namespace.
+//
+// Namespace suffix is called label and it must be unique - no two namespaces
+// can use the same label. Together with the user name and a separator, a
+// namespace label creates a full username representation. The format is
+// <name>*<label>
+message Namespace {
+  weave.Metadata metadata = 1;
+  // Owner is a weave.Address that controls this namespace and all usernames
+  // that belong to this namespace.
+  bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // Public defines if anyone can register a username in this namespace. In a
+  // public namespace, everyone is allowed to register a new namespace. In a
+  // non-public namespace only the namespace owner can register a new username.
+  bool public = 3;
+}
+
+// RegisterNamespaceMsg is creating a new namespace. The owner is always set to
+// the main signer.
+message RegisterNamespaceMsg {
+  weave.Metadata metadata = 1;
+  // Label is the unique string that will be used as a suffix to all usernames
+  // registered within this namespace.
+  string label = 2;
+  // Public defines if anyone can register a username in this namespace. In a
+  // public namespace, everyone is allowed to register a new namespace. In a
+  // non-public namespace only the namespace owner can register a new username.
+  bool public = 3;
+}
+
 // Token model represents a username mapping to an address together with all
 // metadata.
 //
 // Each Token model is stored using the username as the key. This guarantee
-// that the name is unique. Username is a combination of a name and a domain.
-// The format is <name>*<domain>
+// that the name is unique. Username is a combination of a name and a namespace
+// label.
+// The format is <name>*<label>
 //
 // Each token points to a blockchain and an address on that blockchain. Both
 // blockchain ID and address are an arbitrary string as we do not want to limit
@@ -46,7 +79,10 @@ message BlockchainAddress {
 // to the main signer.
 message RegisterTokenMsg {
   weave.Metadata metadata = 1;
-  // Username is the unique name of the token, for example alice*iov
+  // Username is the unique name of the token, for example alice*iov.
+  //
+  // The namespace that this token is registered in must exist and the
+  // requester must be permitted to register a token there in order to succeed.
   string username = 2;
   // Targets is a blockchain address list that this token should point to.
   repeated BlockchainAddress targets = 3 [(gogoproto.nullable) = false];

@@ -14,6 +14,93 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
+func TestRegisterNamespaceHandler(t *testing.T) {
+	var (
+		aliceCond = weavetest.NewCondition()
+		bobbyCond = weavetest.NewCondition()
+	)
+	cases := map[string]struct {
+		Tx             weave.Tx
+		Auth           x.Authenticator
+		WantCheckErr   *errors.Error
+		WantDeliverErr *errors.Error
+	}{
+		"success": {
+			Tx: &weavetest.Tx{
+				Msg: &RegisterNamespaceMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					Label:    "evilcorp",
+					Public:   true,
+				},
+			},
+			Auth: &weavetest.Auth{Signer: bobbyCond},
+		},
+		"namespace with the same label cannot be registered twice": {
+			Tx: &weavetest.Tx{
+				Msg: &RegisterNamespaceMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					Label:    "iov",
+					Public:   true,
+				},
+			},
+			Auth:           &weavetest.Auth{Signer: bobbyCond},
+			WantCheckErr:   errors.ErrDuplicate,
+			WantDeliverErr: errors.ErrDuplicate,
+		},
+		"namespace label must pass validation rules check": {
+			Tx: &weavetest.Tx{
+				Msg: &RegisterNamespaceMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					Label:    "x", // Does not match gconf rules.
+					Public:   true,
+				},
+			},
+			Auth:           &weavetest.Auth{Signer: bobbyCond},
+			WantCheckErr:   errors.ErrInput,
+			WantDeliverErr: errors.ErrInput,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			db := store.MemStore()
+			migration.MustInitPkg(db, "username")
+
+			config := Configuration{
+				ValidUsernameName:  `[a-z0-9\-_.]{3,64}`,
+				ValidUsernameLabel: `[a-z0-9]{3,16}`,
+			}
+			if err := gconf.Save(db, "username", &config); err != nil {
+				t.Fatalf("cannot save configuration: %s", err)
+			}
+
+			namespaces := NewNamespaceBucket()
+
+			// Preregister a namespace for each test.
+			_, err := namespaces.Put(db, []byte("iov"), &Namespace{
+				Metadata: &weave.Metadata{Schema: 1},
+				Owner:    aliceCond.Address(),
+				Public:   true,
+			})
+			assert.Nil(t, err)
+
+			h := registerNamespaceHandler{
+				auth:       tc.Auth,
+				namespaces: namespaces,
+			}
+
+			cache := db.CacheWrap()
+			if _, err := h.Check(context.TODO(), cache, tc.Tx); !tc.WantCheckErr.Is(err) {
+				t.Fatalf("unexpected check error: %s", err)
+			}
+			cache.Discard()
+			if _, err := h.Deliver(context.TODO(), db, tc.Tx); !tc.WantDeliverErr.Is(err) {
+				t.Fatalf("unexpected deliver error: %s", err)
+			}
+		})
+	}
+}
+
 func TestRegisterTokenHandler(t *testing.T) {
 	var (
 		aliceCond = weavetest.NewCondition()
@@ -77,6 +164,62 @@ func TestRegisterTokenHandler(t *testing.T) {
 			WantCheckErr:   errors.ErrInput,
 			WantDeliverErr: errors.ErrInput,
 		},
+		"username must be registered": {
+			Tx: &weavetest.Tx{
+				Msg: &RegisterTokenMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "bobby*fakecorp",
+					Targets: []BlockchainAddress{
+						{BlockchainID: "bc_1", Address: "addr1"},
+					},
+				},
+			},
+			Auth:           &weavetest.Auth{Signer: bobbyCond},
+			WantCheckErr:   errors.ErrNotFound,
+			WantDeliverErr: errors.ErrNotFound,
+		},
+		"anyone can registerd in a public namespace": {
+			Tx: &weavetest.Tx{
+				Msg: &RegisterTokenMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "bobby*iov",
+					Targets: []BlockchainAddress{
+						{BlockchainID: "bc_1", Address: "addr1"},
+					},
+				},
+			},
+			Auth:           &weavetest.Auth{Signer: bobbyCond},
+			WantCheckErr:   nil,
+			WantDeliverErr: nil,
+		},
+		"not everyone can register in a private namespace": {
+			Tx: &weavetest.Tx{
+				Msg: &RegisterTokenMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "bobby*privatecorp",
+					Targets: []BlockchainAddress{
+						{BlockchainID: "bc_1", Address: "addr1"},
+					},
+				},
+			},
+			Auth:           &weavetest.Auth{Signer: bobbyCond},
+			WantCheckErr:   errors.ErrUnauthorized,
+			WantDeliverErr: errors.ErrUnauthorized,
+		},
+		"the namespace owner can register a username in a private namespace": {
+			Tx: &weavetest.Tx{
+				Msg: &RegisterTokenMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					Username: "alice*privatecorp",
+					Targets: []BlockchainAddress{
+						{BlockchainID: "bc_1", Address: "addr1"},
+					},
+				},
+			},
+			Auth:           &weavetest.Auth{Signer: aliceCond},
+			WantCheckErr:   nil,
+			WantDeliverErr: nil,
+		},
 	}
 
 	for testName, tc := range cases {
@@ -92,8 +235,23 @@ func TestRegisterTokenHandler(t *testing.T) {
 				t.Fatalf("cannot save configuration: %s", err)
 			}
 
-			b := NewTokenBucket()
-			_, err := b.Put(db, []byte("alice*iov"), &Token{
+			namespaces := NewNamespaceBucket()
+			// Preregister two namespaces.
+			_, err := namespaces.Put(db, []byte("iov"), &Namespace{
+				Metadata: &weave.Metadata{Schema: 1},
+				Owner:    aliceCond.Address(),
+				Public:   true,
+			})
+			assert.Nil(t, err)
+			_, err = namespaces.Put(db, []byte("privatecorp"), &Namespace{
+				Metadata: &weave.Metadata{Schema: 1},
+				Owner:    aliceCond.Address(),
+				Public:   false,
+			})
+			assert.Nil(t, err)
+
+			tokens := NewTokenBucket()
+			_, err = tokens.Put(db, []byte("alice*iov"), &Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
 					{BlockchainID: "unichain", Address: "some-unichain-address"},
@@ -103,8 +261,9 @@ func TestRegisterTokenHandler(t *testing.T) {
 			assert.Nil(t, err)
 
 			h := registerTokenHandler{
-				auth:   tc.Auth,
-				bucket: b,
+				auth:       tc.Auth,
+				tokens:     tokens,
+				namespaces: namespaces,
 			}
 
 			cache := db.CacheWrap()
@@ -181,8 +340,8 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "username")
 
-			b := NewTokenBucket()
-			_, err := b.Put(db, []byte("alice*iov"), &Token{
+			tokens := NewTokenBucket()
+			_, err := tokens.Put(db, []byte("alice*iov"), &Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
 					{BlockchainID: "unichain", Address: "some-unichain-address"},
@@ -193,7 +352,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 
 			h := transferTokenHandler{
 				auth:   tc.Auth,
-				bucket: b,
+				tokens: tokens,
 			}
 
 			cache := db.CacheWrap()
@@ -368,8 +527,8 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 				t.Fatalf("cannot save configuration: %s", err)
 			}
 
-			b := NewTokenBucket()
-			_, err := b.Put(db, []byte("alice*iov"), &Token{
+			tokens := NewTokenBucket()
+			_, err := tokens.Put(db, []byte("alice*iov"), &Token{
 				Metadata: &weave.Metadata{Schema: 1},
 				Targets: []BlockchainAddress{
 					{BlockchainID: "unichain", Address: "some-unicorn-address"},
@@ -380,7 +539,7 @@ func TestChangeTokenTargetHandler(t *testing.T) {
 
 			h := changeTokenTargetsHandler{
 				auth:   tc.Auth,
-				bucket: b,
+				tokens: tokens,
 			}
 
 			cache := db.CacheWrap()

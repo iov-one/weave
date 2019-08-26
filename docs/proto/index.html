@@ -245,6 +245,14 @@
                 </li>
               
                 <li>
+                  <a href="#username.Namespace"><span class="badge">M</span>Namespace</a>
+                </li>
+              
+                <li>
+                  <a href="#username.RegisterNamespaceMsg"><span class="badge">M</span>RegisterNamespaceMsg</a>
+                </li>
+              
+                <li>
                   <a href="#username.RegisterTokenMsg"><span class="badge">M</span>RegisterTokenMsg</a>
                 </li>
               
@@ -1685,6 +1693,84 @@ namespace label must match (a username is &lt;name&gt;*&lt;label&gt;) </p></td>
 
         
       
+        <h3 id="username.Namespace">Namespace</h3>
+        <p>Namespace represents a set of names. It contains a username suffix and</p><p>configuration details that apply to all usernames that belong to this</p><p>namespace.</p><p>Namespace suffix is called label and it must be unique. Together with the</p><p>user name and a separator it creates a full username address.  The format is</p><p><name>*<label></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>owner</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Owner is a weave.Address that controls this namespace and all usernames
+that belong to this namespace. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>public</td>
+                  <td><a href="#bool">bool</a></td>
+                  <td></td>
+                  <td><p>Public defines if anyone can register a username in this namespace. In a
+public namespace, everyone is allowed to register a new namespace. In a
+non-public namespace only the namespace owner can register a new username. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="username.RegisterNamespaceMsg">RegisterNamespaceMsg</h3>
+        <p>RegisterNamespaceMsg is creating a new namespace. The owner is always set to</p><p>the main signer.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>label</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Label is the unique string that will be used as a suffix to all usernames
+registered within this namespace. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>public</td>
+                  <td><a href="#bool">bool</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
         <h3 id="username.RegisterTokenMsg">RegisterTokenMsg</h3>
         <p>RegisterTokenMsg is creating a new username token. The owner is always set</p><p>to the main signer.</p>
 
@@ -1706,7 +1792,10 @@ namespace label must match (a username is &lt;name&gt;*&lt;label&gt;) </p></td>
                   <td>username</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p>Username is the unique name of the token, for example alice*iov </p></td>
+                  <td><p>Username is the unique name of the token, for example alice*iov.
+
+The namespace that this token is registered in must exist and the
+requester must be permitted to register a token there in order to succeed. </p></td>
                 </tr>
               
                 <tr>
@@ -1723,7 +1812,7 @@ namespace label must match (a username is &lt;name&gt;*&lt;label&gt;) </p></td>
         
       
         <h3 id="username.Token">Token</h3>
-        <p>Token model represents a username mapping to an address together with all</p><p>metadata.</p><p>Each Token model is stored using the username as the key. This guarantee</p><p>that the name is unique. Username is a combination of a name and a domain.</p><p>The format is <name>*<domain></p><p>Each token points to a blockchain and an address on that blockchain. Both</p><p>blockchain ID and address are an arbitrary string as we do not want to limit</p><p>ourselves to certain patterns.</p>
+        <p>Token model represents a username mapping to an address together with all</p><p>metadata.</p><p>Each Token model is stored using the username as the key. This guarantee</p><p>that the name is unique. Username is a combination of a name and a namespace</p><p>label.</p><p>The format is <name>*<label></p><p>Each token points to a blockchain and an address on that blockchain. Both</p><p>blockchain ID and address are an arbitrary string as we do not want to limit</p><p>ourselves to certain patterns.</p>
 
         
           <table class="field-table">

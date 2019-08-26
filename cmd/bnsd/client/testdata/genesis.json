@@ -55,6 +55,13 @@
         ]
       }
     ],
+    "namespace": [
+	    {
+		    "owner": "cond:admin/admin/0000000000000001",
+		    "label": "iov",
+		    "public": true
+	    }
+    ],
     "currencies": [
       {
         "ticker": "CASH",

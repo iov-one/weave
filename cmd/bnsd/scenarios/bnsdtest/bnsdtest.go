@@ -288,7 +288,14 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 			},
 		},
 		"username": usernames,
-		"msgfee":   msgfees,
+		"namespace": []interface{}{
+			dict{
+				"owner":  mustParseAddr(t, "seq:uname/admin/1"),
+				"label":  "iov",
+				"public": true,
+			},
+		},
+		"msgfee": msgfees,
 		"initialize_schema": []dict{
 			{"ver": 1, "pkg": "batch"},
 			{"ver": 1, "pkg": "cash"},

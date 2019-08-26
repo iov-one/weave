@@ -24,12 +24,149 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
+// Namespace represents a set of names. It contains a username suffix and
+// configuration details that apply to all usernames that belong to this
+// namespace.
+//
+// Namespace suffix is called label and it must be unique. Together with the
+// user name and a separator it creates a full username address.  The format is
+// <name>*<label>
+type Namespace struct {
+	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// Owner is a weave.Address that controls this namespace and all usernames
+	// that belong to this namespace.
+	Owner github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
+	// Public defines if anyone can register a username in this namespace. In a
+	// public namespace, everyone is allowed to register a new namespace. In a
+	// non-public namespace only the namespace owner can register a new username.
+	Public bool `protobuf:"varint,3,opt,name=public,proto3" json:"public,omitempty"`
+}
+
+func (m *Namespace) Reset()         { *m = Namespace{} }
+func (m *Namespace) String() string { return proto.CompactTextString(m) }
+func (*Namespace) ProtoMessage()    {}
+func (*Namespace) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5d21e3852038e86f, []int{0}
+}
+func (m *Namespace) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Namespace) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Namespace.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Namespace) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Namespace.Merge(m, src)
+}
+func (m *Namespace) XXX_Size() int {
+	return m.Size()
+}
+func (m *Namespace) XXX_DiscardUnknown() {
+	xxx_messageInfo_Namespace.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Namespace proto.InternalMessageInfo
+
+func (m *Namespace) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *Namespace) GetOwner() github_com_iov_one_weave.Address {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *Namespace) GetPublic() bool {
+	if m != nil {
+		return m.Public
+	}
+	return false
+}
+
+// RegisterNamespaceMsg is creating a new namespace. The owner is always set to
+// the main signer.
+type RegisterNamespaceMsg struct {
+	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// Label is the unique string that will be used as a suffix to all usernames
+	// registered within this namespace.
+	Label  string `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	Public bool   `protobuf:"varint,3,opt,name=public,proto3" json:"public,omitempty"`
+}
+
+func (m *RegisterNamespaceMsg) Reset()         { *m = RegisterNamespaceMsg{} }
+func (m *RegisterNamespaceMsg) String() string { return proto.CompactTextString(m) }
+func (*RegisterNamespaceMsg) ProtoMessage()    {}
+func (*RegisterNamespaceMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5d21e3852038e86f, []int{1}
+}
+func (m *RegisterNamespaceMsg) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RegisterNamespaceMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RegisterNamespaceMsg.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RegisterNamespaceMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisterNamespaceMsg.Merge(m, src)
+}
+func (m *RegisterNamespaceMsg) XXX_Size() int {
+	return m.Size()
+}
+func (m *RegisterNamespaceMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisterNamespaceMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RegisterNamespaceMsg proto.InternalMessageInfo
+
+func (m *RegisterNamespaceMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *RegisterNamespaceMsg) GetLabel() string {
+	if m != nil {
+		return m.Label
+	}
+	return ""
+}
+
+func (m *RegisterNamespaceMsg) GetPublic() bool {
+	if m != nil {
+		return m.Public
+	}
+	return false
+}
+
 // Token model represents a username mapping to an address together with all
 // metadata.
 //
 // Each Token model is stored using the username as the key. This guarantee
-// that the name is unique. Username is a combination of a name and a domain.
-// The format is <name>*<domain>
+// that the name is unique. Username is a combination of a name and a namespace
+// label.
+// The format is <name>*<label>
 //
 // Each token points to a blockchain and an address on that blockchain. Both
 // blockchain ID and address are an arbitrary string as we do not want to limit
@@ -48,7 +185,7 @@ func (m *Token) Reset()         { *m = Token{} }
 func (m *Token) String() string { return proto.CompactTextString(m) }
 func (*Token) ProtoMessage()    {}
 func (*Token) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5d21e3852038e86f, []int{0}
+	return fileDescriptor_5d21e3852038e86f, []int{2}
 }
 func (m *Token) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -119,7 +256,7 @@ func (m *BlockchainAddress) Reset()         { *m = BlockchainAddress{} }
 func (m *BlockchainAddress) String() string { return proto.CompactTextString(m) }
 func (*BlockchainAddress) ProtoMessage()    {}
 func (*BlockchainAddress) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5d21e3852038e86f, []int{1}
+	return fileDescriptor_5d21e3852038e86f, []int{3}
 }
 func (m *BlockchainAddress) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -166,7 +303,10 @@ func (m *BlockchainAddress) GetAddress() string {
 // to the main signer.
 type RegisterTokenMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	// Username is the unique name of the token, for example alice*iov
+	// Username is the unique name of the token, for example alice*iov.
+	//
+	// The namespace that this token is registered in must exist and the
+	// requester must be permitted to register a token there in order to succeed.
 	Username string `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	// Targets is a blockchain address list that this token should point to.
 	Targets []BlockchainAddress `protobuf:"bytes,3,rep,name=targets,proto3" json:"targets"`
@@ -176,7 +316,7 @@ func (m *RegisterTokenMsg) Reset()         { *m = RegisterTokenMsg{} }
 func (m *RegisterTokenMsg) String() string { return proto.CompactTextString(m) }
 func (*RegisterTokenMsg) ProtoMessage()    {}
 func (*RegisterTokenMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5d21e3852038e86f, []int{2}
+	return fileDescriptor_5d21e3852038e86f, []int{4}
 }
 func (m *RegisterTokenMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -241,7 +381,7 @@ func (m *TransferTokenMsg) Reset()         { *m = TransferTokenMsg{} }
 func (m *TransferTokenMsg) String() string { return proto.CompactTextString(m) }
 func (*TransferTokenMsg) ProtoMessage()    {}
 func (*TransferTokenMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5d21e3852038e86f, []int{3}
+	return fileDescriptor_5d21e3852038e86f, []int{5}
 }
 func (m *TransferTokenMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -306,7 +446,7 @@ func (m *ChangeTokenTargetsMsg) Reset()         { *m = ChangeTokenTargetsMsg{} }
 func (m *ChangeTokenTargetsMsg) String() string { return proto.CompactTextString(m) }
 func (*ChangeTokenTargetsMsg) ProtoMessage()    {}
 func (*ChangeTokenTargetsMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5d21e3852038e86f, []int{4}
+	return fileDescriptor_5d21e3852038e86f, []int{6}
 }
 func (m *ChangeTokenTargetsMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -376,7 +516,7 @@ func (m *Configuration) Reset()         { *m = Configuration{} }
 func (m *Configuration) String() string { return proto.CompactTextString(m) }
 func (*Configuration) ProtoMessage()    {}
 func (*Configuration) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5d21e3852038e86f, []int{5}
+	return fileDescriptor_5d21e3852038e86f, []int{7}
 }
 func (m *Configuration) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -444,7 +584,7 @@ func (m *UpdateConfigurationMsg) Reset()         { *m = UpdateConfigurationMsg{}
 func (m *UpdateConfigurationMsg) String() string { return proto.CompactTextString(m) }
 func (*UpdateConfigurationMsg) ProtoMessage()    {}
 func (*UpdateConfigurationMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5d21e3852038e86f, []int{6}
+	return fileDescriptor_5d21e3852038e86f, []int{8}
 }
 func (m *UpdateConfigurationMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -488,6 +628,8 @@ func (m *UpdateConfigurationMsg) GetPatch() *Configuration {
 }
 
 func init() {
+	proto.RegisterType((*Namespace)(nil), "username.Namespace")
+	proto.RegisterType((*RegisterNamespaceMsg)(nil), "username.RegisterNamespaceMsg")
 	proto.RegisterType((*Token)(nil), "username.Token")
 	proto.RegisterType((*BlockchainAddress)(nil), "username.BlockchainAddress")
 	proto.RegisterType((*RegisterTokenMsg)(nil), "username.RegisterTokenMsg")
@@ -500,38 +642,129 @@ func init() {
 func init() { proto.RegisterFile("cmd/bnsd/x/username/codec.proto", fileDescriptor_5d21e3852038e86f) }
 
 var fileDescriptor_5d21e3852038e86f = []byte{
-	// 492 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x54, 0xbf, 0x6f, 0xd3, 0x40,
-	0x14, 0xce, 0x25, 0x0d, 0x4d, 0x5f, 0x52, 0x91, 0x9a, 0x02, 0x56, 0x90, 0x9c, 0xc8, 0x62, 0x88,
-	0x84, 0x6a, 0xa3, 0x20, 0x16, 0x98, 0xea, 0xb2, 0x54, 0xa2, 0x20, 0x59, 0xe9, 0x1c, 0x5d, 0x7c,
-	0xaf, 0x8e, 0xd5, 0xe4, 0x2e, 0xb2, 0x2f, 0x31, 0x7f, 0x06, 0x23, 0x13, 0x13, 0x2b, 0xff, 0x47,
-	0xc7, 0x8e, 0x88, 0x21, 0x42, 0xc9, 0x7f, 0xc1, 0x84, 0x7c, 0xfe, 0x91, 0x06, 0x26, 0x4b, 0x74,
-	0xbb, 0x7b, 0xf7, 0xbe, 0xef, 0xbe, 0xef, 0x7b, 0x67, 0x43, 0xd7, 0x9b, 0x31, 0x7b, 0xcc, 0x23,
-	0x66, 0x7f, 0xb2, 0x17, 0x11, 0x86, 0x9c, 0xce, 0xd0, 0xf6, 0x04, 0x43, 0xcf, 0x9a, 0x87, 0x42,
-	0x0a, 0xad, 0x91, 0x57, 0x3b, 0xcd, 0x3b, 0xe5, 0xce, 0xb1, 0x2f, 0x7c, 0xa1, 0x96, 0x76, 0xb2,
-	0x4a, 0xab, 0xe6, 0x77, 0x02, 0xf5, 0xa1, 0xb8, 0x46, 0xae, 0xbd, 0x80, 0xc6, 0x0c, 0x25, 0x65,
-	0x54, 0x52, 0x9d, 0xf4, 0x48, 0xbf, 0x39, 0x78, 0x68, 0xc5, 0x48, 0x97, 0x68, 0x5d, 0x64, 0x65,
-	0xb7, 0x68, 0xd0, 0xde, 0xc2, 0xbe, 0xa4, 0xa1, 0x8f, 0x32, 0xd2, 0xab, 0xbd, 0x5a, 0xbf, 0x39,
-	0x78, 0x66, 0xe5, 0xb7, 0x5a, 0xce, 0x54, 0x78, 0xd7, 0xde, 0x84, 0x06, 0xfc, 0x94, 0xb1, 0x10,
-	0xa3, 0xc8, 0xd9, 0xbb, 0x59, 0x75, 0x2b, 0x6e, 0x8e, 0xd0, 0xde, 0x40, 0x5d, 0xc4, 0x1c, 0x43,
-	0xbd, 0xd6, 0x23, 0xfd, 0x96, 0xf3, 0xfc, 0xf7, 0xaa, 0xdb, 0xf3, 0x03, 0x39, 0x59, 0x8c, 0x2d,
-	0x4f, 0xcc, 0xec, 0x40, 0x2c, 0x4f, 0x04, 0x47, 0x3b, 0xbd, 0x3c, 0xe3, 0x70, 0x53, 0x88, 0xc9,
-	0xe0, 0xe8, 0x1f, 0x7e, 0xed, 0x35, 0x1c, 0x8e, 0x8b, 0xe2, 0x28, 0x60, 0x4a, 0xff, 0x81, 0xd3,
-	0x5e, 0xaf, 0xba, 0xad, 0x6d, 0xf7, 0xf9, 0x3b, 0xb7, 0xb5, 0x6d, 0x3b, 0x67, 0x9a, 0x0e, 0xfb,
-	0x34, 0x65, 0xd0, 0xab, 0x09, 0xc0, 0xcd, 0xb7, 0xe6, 0x17, 0x02, 0x6d, 0x17, 0xfd, 0x20, 0x92,
-	0x18, 0xaa, 0x74, 0x2e, 0x22, 0xbf, 0x5c, 0x40, 0x1d, 0x28, 0xc6, 0x90, 0x91, 0x17, 0xfb, 0xbb,
-	0xe1, 0xd5, 0xca, 0x86, 0x67, 0x7e, 0x25, 0xd0, 0x1e, 0x86, 0x94, 0x47, 0x57, 0xf7, 0x21, 0xed,
-	0x14, 0x0e, 0x38, 0xc6, 0xa3, 0xf2, 0xe3, 0x69, 0x70, 0x8c, 0x3f, 0xaa, 0x09, 0x7d, 0x23, 0xf0,
-	0xf8, 0x6c, 0x42, 0xb9, 0x8f, 0x4a, 0xde, 0x30, 0xd5, 0xfd, 0x5f, 0x55, 0x3a, 0xd0, 0x4c, 0x54,
-	0x96, 0x0e, 0x11, 0x38, 0xc6, 0x99, 0x1e, 0xf3, 0x27, 0x81, 0xc3, 0x33, 0xc1, 0xaf, 0x02, 0x7f,
-	0x11, 0x52, 0x19, 0x88, 0x92, 0x1f, 0x40, 0xf1, 0x86, 0xab, 0xa5, 0xdf, 0xb0, 0x66, 0xc1, 0xa3,
-	0x25, 0x9d, 0x06, 0x6c, 0x94, 0x0b, 0x1e, 0x29, 0x97, 0x35, 0xe5, 0xf2, 0x48, 0x1d, 0x5d, 0x66,
-	0x27, 0x1f, 0x12, 0xbb, 0x2f, 0xe1, 0xf8, 0xaf, 0xfe, 0x29, 0x1d, 0xe3, 0x54, 0xdf, 0x53, 0x00,
-	0x6d, 0x07, 0xf0, 0x3e, 0x39, 0x31, 0x25, 0x3c, 0xb9, 0x9c, 0x33, 0x2a, 0x71, 0xc7, 0x61, 0xe9,
-	0x19, 0x9c, 0x40, 0x7d, 0x4e, 0xa5, 0x37, 0x51, 0x26, 0x9b, 0x83, 0xa7, 0xdb, 0x84, 0x77, 0x78,
-	0xdd, 0xb4, 0xcb, 0xd1, 0x6f, 0xd6, 0x06, 0xb9, 0x5d, 0x1b, 0xe4, 0xd7, 0xda, 0x20, 0x9f, 0x37,
-	0x46, 0xe5, 0x76, 0x63, 0x54, 0x7e, 0x6c, 0x8c, 0xca, 0xf8, 0x81, 0xfa, 0xd9, 0xbc, 0xfa, 0x13,
-	0x00, 0x00, 0xff, 0xff, 0x48, 0xb8, 0x85, 0xc2, 0xbc, 0x04, 0x00, 0x00,
+	// 539 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x94, 0xbf, 0x6f, 0xd3, 0x40,
+	0x14, 0xc7, 0x73, 0x4d, 0xd3, 0x26, 0x2f, 0xa9, 0x48, 0x4d, 0x28, 0x56, 0x90, 0x9c, 0xc8, 0x62,
+	0x88, 0x84, 0x6a, 0xa3, 0x20, 0x16, 0x98, 0xea, 0xb2, 0x54, 0xa2, 0x20, 0x59, 0xe9, 0x1c, 0x9d,
+	0x7d, 0xaf, 0x8e, 0xd5, 0xe4, 0x2e, 0xd8, 0x97, 0x84, 0x3f, 0x82, 0x81, 0x91, 0x89, 0x89, 0x95,
+	0xff, 0xa3, 0x63, 0x47, 0xc4, 0x10, 0xa1, 0xe4, 0xbf, 0x60, 0x42, 0x39, 0xdb, 0x49, 0x03, 0x62,
+	0xb0, 0x04, 0xdd, 0xfc, 0x7e, 0xde, 0xe7, 0x7d, 0x9f, 0xef, 0xa0, 0xe5, 0x8f, 0x98, 0xed, 0xf1,
+	0x98, 0xd9, 0xef, 0xed, 0x49, 0x8c, 0x11, 0xa7, 0x23, 0xb4, 0x7d, 0xc1, 0xd0, 0xb7, 0xc6, 0x91,
+	0x90, 0x42, 0x2b, 0x67, 0xde, 0x66, 0xf5, 0x96, 0xbb, 0xd9, 0x08, 0x44, 0x20, 0xd4, 0xa7, 0xbd,
+	0xfa, 0x4a, 0xbc, 0xe6, 0x07, 0x02, 0x95, 0x37, 0x74, 0x84, 0xf1, 0x98, 0xfa, 0xa8, 0x3d, 0x81,
+	0xf2, 0x08, 0x25, 0x65, 0x54, 0x52, 0x9d, 0xb4, 0x49, 0xa7, 0xda, 0xbd, 0x67, 0xcd, 0x90, 0x4e,
+	0xd1, 0x3a, 0x4f, 0xdd, 0xee, 0x3a, 0x41, 0x7b, 0x01, 0x25, 0x31, 0xe3, 0x18, 0xe9, 0x3b, 0x6d,
+	0xd2, 0xa9, 0x39, 0x8f, 0x7f, 0xce, 0x5b, 0xed, 0x20, 0x94, 0x83, 0x89, 0x67, 0xf9, 0x62, 0x64,
+	0x87, 0x62, 0x7a, 0x2c, 0x38, 0xda, 0x49, 0xfd, 0x09, 0x63, 0x11, 0xc6, 0xb1, 0x9b, 0x94, 0x68,
+	0x47, 0xb0, 0x37, 0x9e, 0x78, 0xc3, 0xd0, 0xd7, 0x8b, 0x6d, 0xd2, 0x29, 0xbb, 0xa9, 0x65, 0xbe,
+	0x83, 0x86, 0x8b, 0x41, 0x18, 0x4b, 0x8c, 0xd6, 0x54, 0xe7, 0x71, 0x90, 0x0f, 0xac, 0x01, 0xa5,
+	0x21, 0xf5, 0x70, 0xa8, 0xc0, 0x2a, 0x6e, 0x62, 0xfc, 0xf5, 0xc8, 0xaf, 0x04, 0x4a, 0x3d, 0x71,
+	0x85, 0x3c, 0xdf, 0x21, 0x2f, 0x61, 0x5f, 0xd2, 0x28, 0x40, 0x19, 0xeb, 0x3b, 0xed, 0x62, 0xa7,
+	0xda, 0x7d, 0x64, 0x65, 0xba, 0x5b, 0xce, 0x50, 0xf8, 0x57, 0xfe, 0x80, 0x86, 0x3c, 0x1d, 0xdb,
+	0xd9, 0xbd, 0x9e, 0xb7, 0x0a, 0x6e, 0x56, 0xb1, 0x91, 0xae, 0x98, 0x5b, 0x3a, 0x93, 0xc1, 0xe1,
+	0x1f, 0xfd, 0xb5, 0xe7, 0x70, 0xe0, 0xad, 0x9d, 0xfd, 0x90, 0x29, 0xfe, 0x8a, 0x53, 0x5f, 0xcc,
+	0x5b, 0xb5, 0x4d, 0xf6, 0xd9, 0x2b, 0xb7, 0xb6, 0x49, 0x3b, 0x63, 0x9a, 0x0e, 0xfb, 0x34, 0xe9,
+	0x90, 0x6a, 0x95, 0x99, 0xe6, 0x27, 0x02, 0xf5, 0x6c, 0x13, 0x4a, 0x9d, 0xdc, 0x5b, 0x68, 0xc2,
+	0xfa, 0x47, 0x4c, 0x9b, 0xaf, 0xed, 0xdb, 0xe2, 0x15, 0xf3, 0x8a, 0x67, 0x7e, 0x26, 0x50, 0xef,
+	0x45, 0x94, 0xc7, 0x97, 0xff, 0x03, 0xed, 0x04, 0x2a, 0x1c, 0x67, 0xfd, 0xfc, 0xeb, 0x29, 0x73,
+	0x9c, 0xbd, 0x55, 0x1b, 0xfa, 0x42, 0xe0, 0xc1, 0xe9, 0x80, 0xf2, 0x00, 0x15, 0x5e, 0x2f, 0xe1,
+	0xfe, 0xa7, 0x94, 0x0e, 0x54, 0x57, 0x94, 0xb9, 0x45, 0x04, 0x8e, 0xb3, 0x94, 0xc7, 0xfc, 0x4e,
+	0xe0, 0xe0, 0x54, 0xf0, 0xcb, 0x30, 0x98, 0x44, 0x54, 0x86, 0x82, 0xdf, 0xdd, 0xf5, 0xb7, 0xe0,
+	0xfe, 0x94, 0x0e, 0x43, 0xd6, 0xcf, 0x80, 0xfb, 0x6a, 0xca, 0xa2, 0x9a, 0xf2, 0x50, 0x85, 0x2e,
+	0xd2, 0xc8, 0xea, 0x19, 0xd0, 0x9e, 0x42, 0xe3, 0xb7, 0xfc, 0xe4, 0x82, 0xef, 0xaa, 0x02, 0x6d,
+	0xab, 0xe0, 0xf5, 0x2a, 0x62, 0x4a, 0x38, 0xba, 0x18, 0x33, 0x2a, 0x71, 0x6b, 0xc2, 0xdc, 0x3b,
+	0x38, 0x86, 0xd2, 0x98, 0x4a, 0x7f, 0xa0, 0x86, 0xac, 0x76, 0x1f, 0x6e, 0x14, 0xde, 0xea, 0xeb,
+	0x26, 0x59, 0x8e, 0x7e, 0xbd, 0x30, 0xc8, 0xcd, 0xc2, 0x20, 0x3f, 0x16, 0x06, 0xf9, 0xb8, 0x34,
+	0x0a, 0x37, 0x4b, 0xa3, 0xf0, 0x6d, 0x69, 0x14, 0xbc, 0x3d, 0xf5, 0xdc, 0x3e, 0xfb, 0x15, 0x00,
+	0x00, 0xff, 0xff, 0x07, 0xdd, 0x9c, 0xff, 0xbe, 0x05, 0x00, 0x00,
+}
+
+func (m *Namespace) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Namespace) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n1, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n1
+	}
+	if len(m.Owner) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Owner)))
+		i += copy(dAtA[i:], m.Owner)
+	}
+	if m.Public {
+		dAtA[i] = 0x18
+		i++
+		if m.Public {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	return i, nil
+}
+
+func (m *RegisterNamespaceMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RegisterNamespaceMsg) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n2, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n2
+	}
+	if len(m.Label) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Label)))
+		i += copy(dAtA[i:], m.Label)
+	}
+	if m.Public {
+		dAtA[i] = 0x18
+		i++
+		if m.Public {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	return i, nil
 }
 
 func (m *Token) Marshal() (dAtA []byte, err error) {
@@ -553,11 +786,11 @@ func (m *Token) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
-		n1, err := m.Metadata.MarshalTo(dAtA[i:])
+		n3, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n1
+		i += n3
 	}
 	if len(m.Targets) > 0 {
 		for _, msg := range m.Targets {
@@ -629,11 +862,11 @@ func (m *RegisterTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
-		n2, err := m.Metadata.MarshalTo(dAtA[i:])
+		n4, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n2
+		i += n4
 	}
 	if len(m.Username) > 0 {
 		dAtA[i] = 0x12
@@ -675,11 +908,11 @@ func (m *TransferTokenMsg) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
-		n3, err := m.Metadata.MarshalTo(dAtA[i:])
+		n5, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n3
+		i += n5
 	}
 	if len(m.Username) > 0 {
 		dAtA[i] = 0x12
@@ -715,11 +948,11 @@ func (m *ChangeTokenTargetsMsg) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
-		n4, err := m.Metadata.MarshalTo(dAtA[i:])
+		n6, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n4
+		i += n6
 	}
 	if len(m.Username) > 0 {
 		dAtA[i] = 0x12
@@ -761,11 +994,11 @@ func (m *Configuration) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
-		n5, err := m.Metadata.MarshalTo(dAtA[i:])
+		n7, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n5
+		i += n7
 	}
 	if len(m.Owner) > 0 {
 		dAtA[i] = 0x12
@@ -807,21 +1040,21 @@ func (m *UpdateConfigurationMsg) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
-		n6, err := m.Metadata.MarshalTo(dAtA[i:])
+		n8, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n6
+		i += n8
 	}
 	if m.Patch != nil {
 		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Patch.Size()))
-		n7, err := m.Patch.MarshalTo(dAtA[i:])
+		n9, err := m.Patch.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n7
+		i += n9
 	}
 	return i, nil
 }
@@ -835,6 +1068,46 @@ func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return offset + 1
 }
+func (m *Namespace) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Owner)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if m.Public {
+		n += 2
+	}
+	return n
+}
+
+func (m *RegisterNamespaceMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Label)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if m.Public {
+		n += 2
+	}
+	return n
+}
+
 func (m *Token) Size() (n int) {
 	if m == nil {
 		return 0
@@ -996,6 +1269,290 @@ func sovCodec(x uint64) (n int) {
 }
 func sozCodec(x uint64) (n int) {
 	return sovCodec(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *Namespace) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Namespace: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Namespace: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Owner = append(m.Owner[:0], dAtA[iNdEx:postIndex]...)
+			if m.Owner == nil {
+				m.Owner = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Public", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Public = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RegisterNamespaceMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RegisterNamespaceMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RegisterNamespaceMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Label", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Label = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Public", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Public = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *Token) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)

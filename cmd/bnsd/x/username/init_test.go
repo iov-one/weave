@@ -17,10 +17,22 @@ func TestGenesisInitializer(t *testing.T) {
 		"conf": {
 			"username": {
 				"valid_username_name": "^[a-z0-9\\-_.]{3,64}$",
-				"valid_username_label": "^iov$",
+				"valid_username_label": "^[a-z0-9]{3,16}$",
 				"owner": "cond:foo/bar/000000000000000001"
 			}
 		},
+		"namespace": [
+			{
+				"label": "iov",
+				"owner": "seq:test/daniel/7",
+				"public": true
+			},
+			{
+				"label": "privcorp",
+				"owner": "seq:test/charlie/1",
+				"public": false
+			}
+		],
 		"username": [
 			{
 				"username": "alice*iov",
@@ -31,7 +43,7 @@ func TestGenesisInitializer(t *testing.T) {
 				]
 			},
 			{
-				"username": "charlie*iov",
+				"username": "charlie*privcorp",
 				"owner": "seq:test/charlie/1",
 				"targets": [
 					{"blockchain_id": "block_1", "address": "1"}
@@ -54,9 +66,17 @@ func TestGenesisInitializer(t *testing.T) {
 		t.Fatalf("cannot load genesis: %s", err)
 	}
 
-	b := NewTokenBucket()
+	namespaces := NewNamespaceBucket()
+	var iov Namespace
+	if err := namespaces.One(db, []byte("iov"), &iov); err != nil {
+		t.Fatalf("cannot get iov from the database: %s", err)
+	}
+	assert.Equal(t, iov.Owner, weave.NewCondition("test", "daniel", weavetest.SequenceID(7)).Address())
+	assert.Equal(t, iov.Public, true)
+
+	tokens := NewTokenBucket()
 	var alice Token
-	if err := b.One(db, []byte("alice*iov"), &alice); err != nil {
+	if err := tokens.One(db, []byte("alice*iov"), &alice); err != nil {
 		t.Fatalf("cannot get alice from the database: %s", err)
 	}
 	assert.Equal(t, alice.Owner, weave.NewCondition("test", "alice", weavetest.SequenceID(1)).Address())
@@ -66,7 +86,7 @@ func TestGenesisInitializer(t *testing.T) {
 	assert.Equal(t, alice.Targets[1].Address, "2")
 
 	var charlie Token
-	if err := b.One(db, []byte("charlie*iov"), &charlie); err != nil {
+	if err := tokens.One(db, []byte("charlie*privcorp"), &charlie); err != nil {
 		t.Fatalf("cannot get charlie from the database: %s", err)
 	}
 	assert.Equal(t, charlie.Owner, weave.NewCondition("test", "charlie", weavetest.SequenceID(1)).Address())

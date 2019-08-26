@@ -10,6 +10,22 @@ func init() {
 	migration.MustRegister(1, &RegisterTokenMsg{}, migration.NoModification)
 	migration.MustRegister(1, &TransferTokenMsg{}, migration.NoModification)
 	migration.MustRegister(1, &ChangeTokenTargetsMsg{}, migration.NoModification)
+	migration.MustRegister(1, &RegisterNamespaceMsg{}, migration.NoModification)
+}
+
+var _ weave.Msg = (*RegisterNamespaceMsg)(nil)
+
+func (m *RegisterNamespaceMsg) Validate() error {
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
+	if len(m.Label) == 0 {
+		errs = errors.AppendField(errs, "Label", errors.ErrEmpty)
+	}
+	return errs
+}
+
+func (RegisterNamespaceMsg) Path() string {
+	return "username/register_namespace"
 }
 
 var _ weave.Msg = (*RegisterTokenMsg)(nil)

@@ -1,6 +1,7 @@
 package username
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -11,7 +12,23 @@ import (
 )
 
 func init() {
+	migration.MustRegister(1, &Namespace{}, migration.NoModification)
 	migration.MustRegister(1, &Token{}, migration.NoModification)
+}
+
+func (ns *Namespace) Validate() error {
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", ns.Metadata.Validate())
+	errs = errors.AppendField(errs, "Owner", ns.Owner.Validate())
+	return errs
+}
+
+func (ns *Namespace) Copy() orm.CloneableData {
+	return &Namespace{
+		Metadata: ns.Metadata.Copy(),
+		Owner:    ns.Owner.Clone(),
+		Public:   ns.Public,
+	}
 }
 
 func (ba *BlockchainAddress) Validate() error {
@@ -38,18 +55,12 @@ func (ba *BlockchainAddress) Clone() BlockchainAddress {
 	}
 }
 
-// Validate ensures the payment channel is valid.
 func (t *Token) Validate() error {
-	if err := t.Metadata.Validate(); err != nil {
-		return errors.Wrap(err, "metadata")
-	}
-	if err := validateTargets(t.Targets); err != nil {
-		return errors.Wrap(err, "targets")
-	}
-	if err := t.Owner.Validate(); err != nil {
-		return errors.Wrap(err, "owner")
-	}
-	return nil
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", t.Metadata.Validate())
+	errs = errors.AppendField(errs, "Targets", validateTargets(t.Targets))
+	errs = errors.AppendField(errs, "Owner", t.Owner.Validate())
+	return errs
 }
 
 func (t *Token) Copy() orm.CloneableData {
@@ -65,53 +76,53 @@ func (t *Token) Copy() orm.CloneableData {
 	}
 }
 
-// NewTokenBucket returns a ModelBucket instance limited to interacting with a
-// Token model only.
-// Only a valid Username instance should be used as a key. Alternatively tokens can
-// be queried by owner.
+// NewTokenBucket returns a ModelBucket instance limited to interacting with
+// the Token model only.
+// Only a valid username (<name>*<label>) should be used as a key.
 func NewTokenBucket() orm.ModelBucket {
 	b := orm.NewModelBucket("tokens", &Token{}, orm.WithIndex("owner", idxOwner, false))
+	return migration.NewModelBucket("username", b)
+}
+
+// NewNamespaceBucket returns a ModelBucket instance limited to interacting
+// with the Namespace model only.
+// Only a valid namespace label should be used as a key.
+func NewNamespaceBucket() orm.ModelBucket {
+	b := orm.NewModelBucket("namespaces", &Namespace{})
 	return migration.NewModelBucket("username", b)
 }
 
 // RegisterQuery expose tokens bucket to queries.
 func RegisterQuery(qr weave.QueryRouter) {
 	NewTokenBucket().Register("usernames", qr)
+	NewNamespaceBucket().Register("namespaces", qr)
 }
 
+// idxOwner returns the owner value for given orm Object representing a Token
+// instance.
 func idxOwner(obj orm.Object) ([]byte, error) {
-	swp, err := getToken(obj)
-	if err != nil {
-		return nil, err
-	}
-	return swp.Owner, nil
-}
-
-func getToken(obj orm.Object) (*Token, error) {
 	if obj == nil {
-		return nil, errors.Wrap(errors.ErrHuman, "Cannot take index of nil")
+		return nil, errors.Wrap(errors.ErrHuman, "cannot take index of nil instance")
 	}
-	esc, ok := obj.Value().(*Token)
+	t, ok := obj.Value().(*Token)
 	if !ok {
-		return nil, errors.Wrap(errors.ErrHuman, "Can only take index of username")
+		return nil, errors.Wrap(errors.ErrHuman, "can only take index of a Token instance")
 	}
-	return esc, nil
+	return t.Owner, nil
 }
 
 // validateTargets returns an error if given list of blockchain addresses is
 // not a valid target state. This function ensures the business logic is
 // respected.
 func validateTargets(targets []BlockchainAddress) error {
+	var errs error
 	for i, t := range targets {
-		if err := t.Validate(); err != nil {
-			return errors.Wrapf(err, "target #%d", i)
-		}
+		errs = errors.AppendField(errs, fmt.Sprint(i), t.Validate())
 	}
 	if dups := duplicatedBlockchains(targets); len(dups) != 0 {
-		return errors.Wrapf(errors.ErrDuplicate, "blokchain ID used more than once: %s",
-			strings.Join(dups, ", "))
+		errs = errors.Append(errs, errors.Wrapf(errors.ErrDuplicate, "blokchain ID used more than once: %s", strings.Join(dups, ", ")))
 	}
-	return nil
+	return errs
 }
 
 // duplicatedBlockchains returns the list of blockchain IDs that were used more

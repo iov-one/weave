@@ -8,6 +8,38 @@ import (
 	"github.com/iov-one/weave/weavetest"
 )
 
+func TestRegisterNamespaceMsgValidate(t *testing.T) {
+	cases := map[string]struct {
+		Msg  weave.Msg
+		Want *errors.Error
+	}{
+		"valid message": {
+			Msg: &RegisterNamespaceMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Label:    "evilcorp",
+				Public:   true,
+			},
+			Want: nil,
+		},
+		"label must be provided": {
+			Msg: &RegisterNamespaceMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Label:    "",
+				Public:   true,
+			},
+			Want: errors.ErrEmpty,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			if err := tc.Msg.Validate(); !tc.Want.Is(err) {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
 func TestRegisterTokenMsgValidate(t *testing.T) {
 	cases := map[string]struct {
 		Msg  weave.Msg

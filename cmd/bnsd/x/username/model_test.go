@@ -12,6 +12,43 @@ import (
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
+func TestNamespaceValidation(t *testing.T) {
+	cases := map[string]struct {
+		Namespace Namespace
+		WantErr   *errors.Error
+	}{
+		"success": {
+			Namespace: Namespace{
+				Metadata: &weave.Metadata{Schema: 1},
+				Owner:    weavetest.NewCondition().Address(),
+				Public:   true,
+			},
+			WantErr: nil,
+		},
+		"metadata is required": {
+			Namespace: Namespace{
+				Owner:  weavetest.NewCondition().Address(),
+				Public: true,
+			},
+			WantErr: errors.ErrMetadata,
+		},
+		"owner is required": {
+			Namespace: Namespace{
+				Metadata: &weave.Metadata{Schema: 1},
+				Owner:    nil,
+				Public:   true,
+			},
+			WantErr: errors.ErrEmpty,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			assert.IsErr(t, tc.WantErr, tc.Namespace.Validate())
+		})
+	}
+}
+
 func TestBlockchainAddressValidation(t *testing.T) {
 	cases := map[string]struct {
 		BA      BlockchainAddress

@@ -48,6 +48,10 @@ func validateRegexp(rx string) error {
 // validateUsername returns an error if given username string in form
 // <name>*<label> does not match valid username criteria. Valid username
 // criteria is a mixture of hardcoded and dynamic rules.
+//
+// This function does not validate any additional business logic requirements,
+// for example it does not check if a namespace with given label is registered
+// of if a username is already registered.
 func validateUsername(username string, c *Configuration) error {
 	if len(username) == 0 {
 		// For backwards compatibility ErrInput is returned instead of
@@ -81,6 +85,20 @@ func validateUsername(username string, c *Configuration) error {
 	}
 
 	return errs
+}
+
+// validateNsLabel returns an error if given namespace label string does not
+// match valid namespace label criteria.
+//
+// This function does not validate any additional business logic requirements,
+// for example it does not check if a namespace with given label is registered.
+func validateNsLabel(label string, c *Configuration) error {
+	if ok, err := regexp.MatchString(c.ValidUsernameLabel, label); err != nil {
+		return errors.Field("ValidUsernameLabel", err, "invalid validation rule")
+	} else if !ok {
+		return errors.Field("Label", errors.ErrInput, "%q does not match %q", label, c.ValidUsernameLabel)
+	}
+	return nil
 }
 
 func loadConf(db gconf.Store) (*Configuration, error) {

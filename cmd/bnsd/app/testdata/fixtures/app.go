@@ -140,6 +140,13 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 				"admin_threshold":      1,
 			},
 		},
+		"namespace": []interface{}{
+			dict{
+				"label":  "iov",
+				"owner":  "seq:uname/admin/1",
+				"public": true,
+			},
+		},
 		"distribution": []interface{}{
 			dict{
 				"admin": "seq:multisig/usage/1",
