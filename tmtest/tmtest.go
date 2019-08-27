@@ -21,6 +21,7 @@ import (
 // TestReporter is the minimal subset of testing.TB needed to run these test helpers
 type TestReporter interface {
 	assert.Tester
+	Skip(...interface{})
 	Skipf(string, ...interface{})
 	Logf(string, ...interface{})
 }
@@ -38,7 +39,7 @@ func RunTendermint(ctx context.Context, t TestReporter, home string) (cleanup fu
 	tmpath, err := exec.LookPath("tendermint")
 	if err != nil {
 		if os.Getenv("FORCE_TM_TEST") != "1" {
-			t.Skipf("Tendermint binary not found. Set FORCE_TM_TEST=1 to fail this test.")
+			t.Skip("Tendermint binary not found. Set FORCE_TM_TEST=1 to fail this test.")
 		} else {
 			t.Fatalf("Tendermint binary not found. Do not set FORCE_TM_TEST=1 to skip this test.")
 		}
@@ -87,7 +88,7 @@ func RunTendermint(ctx context.Context, t TestReporter, home string) (cleanup fu
 }
 
 // RunApp is like RunTendermint, just executes the application executable, assuming a prepared home directory
-func RunApp(ctx context.Context, t TestReporter, appName string, home string) (cleanup func()) {
+func RunApp(ctx context.Context, t TestReporter, appName, home string) (cleanup func()) {
 	t.Helper()
 
 	appPath, err := exec.LookPath(appName)
