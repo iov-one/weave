@@ -16,6 +16,7 @@ package orm
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 	"sort"
 
@@ -57,7 +58,7 @@ type Bucket interface {
 type bucket struct {
 	name   string
 	prefix []byte
-	proto  Cloneable
+	model  reflect.Type
 	// index is a list of indexes sorted by
 	indexes namedIndexes
 }
@@ -87,7 +88,7 @@ func (n namedIndexes) Has(name string) bool {
 }
 
 // NewBucket creates a bucket to store data
-func NewBucket(name string, proto Cloneable) Bucket {
+func NewBucket(name string, emptyModel Model) Bucket {
 	if !isBucketName(name) {
 		panic(fmt.Sprintf("Illegal bucket: %s", name))
 	}
@@ -95,7 +96,7 @@ func NewBucket(name string, proto Cloneable) Bucket {
 	return bucket{
 		name:   name,
 		prefix: append([]byte(name), ':'),
-		proto:  proto,
+		model:  reflect.TypeOf(emptyModel).Elem(),
 	}
 }
 
@@ -174,19 +175,15 @@ func (b bucket) Get(db weave.ReadOnlyKVStore, key []byte) (Object, error) {
 // It is exposed mainly as a test helper, but can work for
 // any code that wants to parse
 func (b bucket) Parse(key, value []byte) (Object, error) {
-	obj := b.proto.Clone()
-	if err := obj.Value().Unmarshal(value); err != nil {
+	entity := reflect.New(b.model).Interface().(Model)
+	if err := entity.Unmarshal(value); err != nil {
 		// If the deserialization fails, this is due to corrupted data
 		// or more likely, wrong protobuf declaration being used.
 		// We can safely use the string representation of the original
 		// error as it carries no relevant information.
 		return nil, errors.Wrap(errors.ErrState, err.Error())
 	}
-
-	// TODO - ensure the value is migrated to the latest version
-
-	obj.SetKey(key)
-	return obj, nil
+	return &SimpleObj{key: key, value: entity}, nil
 }
 
 // Save will write a model, it must be of the same type as proto

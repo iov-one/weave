@@ -28,14 +28,6 @@ func (s *Set) Validate() error {
 	return errs
 }
 
-// Copy makes a new set with the same coins
-func (s *Set) Copy() orm.CloneableData {
-	return &Set{
-		Metadata: s.Metadata.Copy(),
-		Coins:    XCoins(s).Clone(),
-	}
-}
-
 // SetCoins allows us to modify the Set
 func (s *Set) SetCoins(coins []*coin.Coin) {
 	s.Coins = coins
@@ -127,7 +119,7 @@ var _ WalletBucket = Bucket{}
 // NewBucket initializes a cash.Bucket with default name
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: migration.NewBucket("cash", BucketName, NewWallet(nil)),
+		Bucket: migration.NewBucket("cash", BucketName, &Set{}),
 	}
 }
 

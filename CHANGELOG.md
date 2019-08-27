@@ -2,6 +2,14 @@
 
 ## HEAD
 
+Breaking changes
+
+- `orm` package was updated to no longer rely on `Clone` and `Copy` methods.
+  Models no longer must implement `orm.Cloneable`. Models must implement
+  `orm.Model` interface, which is a subset of `orm.Cloneable`.
+  When creating a new bucket instance a model instance must be provided instead
+  of `orm.SimpleObj`.
+
 ## 0.21.0
 - `x/batch`: increase maximum number of messages to 15
 - `cmd/bnscli`: a new command `mnemonic` was added for generating a random

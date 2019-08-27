@@ -12,11 +12,9 @@ import (
 )
 
 func TestBucketName(t *testing.T) {
-	obj := NewSimpleObj(nil, &Counter{})
-
 	assert.Panics(t, func() {
 		// An invalid bucket name must crash.
-		NewBucket("l33t", obj)
+		NewBucket("l33t", &Counter{})
 	})
 }
 
@@ -28,7 +26,7 @@ func TestBucketNameCollision(t *testing.T) {
 	assert.Nil(t, counter.Validate())
 	o1 := NewSimpleObj(nil, counter)
 	o1.SetKey([]byte(objkey))
-	b1 := NewBucket(bucketName, o1)
+	b1 := NewBucket(bucketName, counter)
 
 	multiref := &MultiRef{
 		Refs: [][]byte{
@@ -38,7 +36,7 @@ func TestBucketNameCollision(t *testing.T) {
 	assert.Nil(t, multiref.Validate())
 	o2 := NewSimpleObj(nil, multiref)
 	o2.SetKey([]byte(objkey))
-	b2 := NewBucket(bucketName, o2)
+	b2 := NewBucket(bucketName, multiref)
 
 	db := store.MemStore()
 	assert.Nil(t, b1.Save(db, o1))
@@ -67,7 +65,7 @@ func TestBucketCannotSaveInvalid(t *testing.T) {
 
 	o := NewSimpleObj(nil, counter)
 	o.SetKey([]byte("mykey"))
-	b := NewBucket("mybucket", o)
+	b := NewBucket("mybucket", counter)
 
 	db := store.MemStore()
 	if err := b.Save(db, o); !errors.ErrState.Is(err) {
@@ -81,7 +79,7 @@ func TestBucketGetSave(t *testing.T) {
 
 	o := NewSimpleObj(nil, counter)
 	o.SetKey([]byte("mykey"))
-	b := NewBucket("mybucket", o)
+	b := NewBucket("mybucket", counter)
 
 	db := store.MemStore()
 	if err := b.Save(db, o); err != nil {
@@ -122,8 +120,8 @@ func TestBucketGetSave(t *testing.T) {
 
 // Make sure we have independent sequences.
 func TestBucketSequence(t *testing.T) {
-	b1 := NewBucket("aaa", NewSimpleObj(nil, &Counter{}))
-	b2 := NewBucket("bbb", NewSimpleObj(nil, &Counter{}))
+	b1 := NewBucket("aaa", &Counter{})
+	b2 := NewBucket("bbb", &Counter{})
 
 	db := store.MemStore()
 
@@ -169,7 +167,7 @@ func bc(i int64) []byte {
 func TestBucketSecondaryIndex(t *testing.T) {
 	const uniq, mini = "uniq", "mini"
 
-	bucket := NewBucket("special", NewSimpleObj(nil, new(Counter))).
+	bucket := NewBucket("special", &Counter{}).
 		WithIndex(uniq, count, true).
 		WithIndex(mini, countByte, false)
 
@@ -298,7 +296,7 @@ func TestBucketQuery(t *testing.T) {
 	const uiPath = "/special/uniq"
 
 	// create a bucket with secondary index
-	bucket := NewBucket("spec", NewSimpleObj(nil, new(Counter))).
+	bucket := NewBucket("spec", &Counter{}).
 		WithIndex(uniq, count, true).
 		WithIndex(mini, countByte, false)
 
@@ -451,7 +449,7 @@ func TestBucketIndexDeterministic(t *testing.T) {
 	// Same as above, note there are two indexes. We can check the save
 	// order.
 	const uniq, mini = "uniq", "mini"
-	bucket := NewBucket("special", NewSimpleObj(nil, new(Counter))).
+	bucket := NewBucket("special", &Counter{}).
 		WithIndex(uniq, count, true).
 		WithIndex(mini, countByte, false)
 

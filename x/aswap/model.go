@@ -35,19 +35,6 @@ func (s *Swap) Validate() error {
 	return errs
 }
 
-// Copy makes a new swap
-func (s *Swap) Copy() orm.CloneableData {
-	return &Swap{
-		Metadata:     s.Metadata.Copy(),
-		PreimageHash: s.PreimageHash,
-		Source:       s.Source,
-		Destination:  s.Destination,
-		Timeout:      s.Timeout,
-		Memo:         s.Memo,
-		Address:      s.Address.Clone(),
-	}
-}
-
 // AsSwap extracts a *Swap value or nil from the object
 // Must be called on a Bucket result that is an *Swap,
 // will panic on bad type.

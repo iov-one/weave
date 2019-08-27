@@ -22,7 +22,7 @@ var (
 	blockNow = time.Now().UTC()
 	Timeout  = weave.AsUnixTime(blockNow.Add(2 * time.Hour))
 
-	zeroBucket = orm.NewBucket("zero", nil)
+	zeroBucket = orm.NewBucket("zero", &Escrow{})
 )
 
 // rawBucket returns a raw escrow bucket. This exist for the legacy setup of
@@ -30,7 +30,7 @@ var (
 // ModelBucket. This bucket must not be used outside of tests as it does not
 // provide indexes or migrations. It can be used only to access the data.
 func rawBucket() orm.Bucket {
-	return orm.NewBucket("esc", orm.NewSimpleObj(nil, &Escrow{}))
+	return orm.NewBucket("esc", &Escrow{})
 }
 
 // TestHandler runs a number of scenario of tx to make

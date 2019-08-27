@@ -35,19 +35,6 @@ func (e *Escrow) Validate() error {
 	return errs
 }
 
-// Copy makes a new set with the same coins
-func (e *Escrow) Copy() orm.CloneableData {
-	return &Escrow{
-		Metadata:    e.Metadata.Copy(),
-		Source:      e.Source,
-		Arbiter:     e.Arbiter,
-		Destination: e.Destination,
-		Timeout:     e.Timeout,
-		Memo:        e.Memo,
-		Address:     e.Address.Clone(),
-	}
-}
-
 // AsEscrow extracts an *Escrow value or nil from the object
 // Must be called on a Bucket result that is an *Escrow,
 // will panic on bad type.
