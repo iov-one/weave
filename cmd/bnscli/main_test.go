@@ -19,6 +19,9 @@ const privKeyHex = "d34c1970ae90acf3405f2d99dcaca16d0c7db379f4beafcfdf667b9d69ce
 // addr is the hex address of the account that corresponds to privKeyHex
 const addr = "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
 
+// appName is the name of the application
+const appName = "bnsd"
+
 func TestMain(m *testing.M) {
 	code := runTestMain(m)
 	os.Exit(code)
@@ -34,7 +37,7 @@ func runTestMain(m *testing.M) int {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	tmtest.RunBnsd(ctx, t, home)
+	tmtest.RunApp(ctx, t, appName, home)
 	tmtest.RunTendermint(ctx, t, home)
 
 	return m.Run()
@@ -61,7 +64,7 @@ func (mockAsserter) Logf(format string, args ...interface{}) {
 	fmt.Printf(format, args...)
 	fmt.Println("")
 }
-func (m mockAsserter) Skip(args ...interface{}) {
-	m.Log(args...)
+func (m mockAsserter) Skipf(format string, args ...interface{}) {
+	m.Logf(format, args...)
 	os.Exit(0)
 }
