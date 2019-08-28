@@ -43,7 +43,7 @@ Make sure to collect enough signatures before submitting the transaction.
 	bnsClient := client.NewClient(client.NewHTTPConnection(*tmAddrFl))
 
 	resp := bnsClient.BroadcastTx(tx)
-	if resp.IsError(); err != nil {
+	if err := resp.IsError(); err != nil {
 		return fmt.Errorf("cannot broadcast transaction: %s", err)
 	}
 
