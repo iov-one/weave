@@ -4,6 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/orm"
 )
 
 // FeeDecorator implements a decorator that for each processed transaction
@@ -13,7 +14,7 @@ import (
 // Additional fee is attached to only those transaction results that represent
 // a success.
 type FeeDecorator struct {
-	bucket *MsgFeeBucket
+	bucket orm.ModelBucket
 }
 
 var _ weave.Decorator = (*FeeDecorator)(nil)
@@ -66,15 +67,20 @@ func (d *FeeDecorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.
 	return res, nil
 }
 
-// txFee returns the fee value for a given transaction as configured in the store.
-func txFee(bucket *MsgFeeBucket, store weave.KVStore, tx weave.Tx) (*coin.Coin, error) {
+// txFee returns the fee value for a given transaction as configured in the
+// store. This function returns nil fee value if none was set.
+func txFee(fees orm.ModelBucket, store weave.KVStore, tx weave.Tx) (*coin.Coin, error) {
 	msg, err := tx.GetMsg()
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot get message")
 	}
-	fee, err := bucket.MessageFee(store, msg.Path())
-	if err != nil {
+	var fee MsgFee
+	switch err := fees.One(store, []byte(msg.Path()), &fee); {
+	case err == nil:
+		return &fee.Fee, nil
+	case errors.ErrNotFound.Is(err):
+		return nil, nil
+	default:
 		return nil, errors.Wrap(err, "cannot get fee")
 	}
-	return fee, nil
 }

@@ -7,6 +7,7 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	github_com_iov_one_weave "github.com/iov-one/weave"
 	weave "github.com/iov-one/weave"
 	coin "github.com/iov-one/weave/coin"
 	io "io"
@@ -86,27 +87,218 @@ func (m *MsgFee) GetFee() coin.Coin {
 	return coin.Coin{}
 }
 
+// SetMsgFeeMsg set given fee for a specified message path. This message sets a
+// new fee of overwrites an existing one. Fee must not be less than zero. Use
+// zero value coin to unset a fee.
+type SetMsgFeeMsg struct {
+	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	MsgPath  string          `protobuf:"bytes,2,opt,name=msg_path,json=msgPath,proto3" json:"msg_path,omitempty"`
+	Fee      coin.Coin       `protobuf:"bytes,3,opt,name=fee,proto3" json:"fee"`
+}
+
+func (m *SetMsgFeeMsg) Reset()         { *m = SetMsgFeeMsg{} }
+func (m *SetMsgFeeMsg) String() string { return proto.CompactTextString(m) }
+func (*SetMsgFeeMsg) ProtoMessage()    {}
+func (*SetMsgFeeMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef6e9ad0e6ca0f39, []int{1}
+}
+func (m *SetMsgFeeMsg) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SetMsgFeeMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SetMsgFeeMsg.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SetMsgFeeMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetMsgFeeMsg.Merge(m, src)
+}
+func (m *SetMsgFeeMsg) XXX_Size() int {
+	return m.Size()
+}
+func (m *SetMsgFeeMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetMsgFeeMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetMsgFeeMsg proto.InternalMessageInfo
+
+func (m *SetMsgFeeMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *SetMsgFeeMsg) GetMsgPath() string {
+	if m != nil {
+		return m.MsgPath
+	}
+	return ""
+}
+
+func (m *SetMsgFeeMsg) GetFee() coin.Coin {
+	if m != nil {
+		return m.Fee
+	}
+	return coin.Coin{}
+}
+
+type Configuration struct {
+	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// Owner is present to implement gconf.OwnedConfig interface
+	// This defines the Address that is allowed to update the Configuration object and is
+	// needed to make use of gconf.NewUpdateConfigurationHandler
+	Owner github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
+	// FeeAdmin is an address that is allowed to change the fee.
+	FeeAdmin github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=fee_admin,json=feeAdmin,proto3,casttype=github.com/iov-one/weave.Address" json:"fee_admin,omitempty"`
+}
+
+func (m *Configuration) Reset()         { *m = Configuration{} }
+func (m *Configuration) String() string { return proto.CompactTextString(m) }
+func (*Configuration) ProtoMessage()    {}
+func (*Configuration) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef6e9ad0e6ca0f39, []int{2}
+}
+func (m *Configuration) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Configuration) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Configuration.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Configuration) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Configuration.Merge(m, src)
+}
+func (m *Configuration) XXX_Size() int {
+	return m.Size()
+}
+func (m *Configuration) XXX_DiscardUnknown() {
+	xxx_messageInfo_Configuration.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Configuration proto.InternalMessageInfo
+
+func (m *Configuration) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *Configuration) GetOwner() github_com_iov_one_weave.Address {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *Configuration) GetFeeAdmin() github_com_iov_one_weave.Address {
+	if m != nil {
+		return m.FeeAdmin
+	}
+	return nil
+}
+
+type UpdateConfigurationMsg struct {
+	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Patch    *Configuration  `protobuf:"bytes,2,opt,name=patch,proto3" json:"patch,omitempty"`
+}
+
+func (m *UpdateConfigurationMsg) Reset()         { *m = UpdateConfigurationMsg{} }
+func (m *UpdateConfigurationMsg) String() string { return proto.CompactTextString(m) }
+func (*UpdateConfigurationMsg) ProtoMessage()    {}
+func (*UpdateConfigurationMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef6e9ad0e6ca0f39, []int{3}
+}
+func (m *UpdateConfigurationMsg) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateConfigurationMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateConfigurationMsg.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateConfigurationMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateConfigurationMsg.Merge(m, src)
+}
+func (m *UpdateConfigurationMsg) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateConfigurationMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateConfigurationMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateConfigurationMsg proto.InternalMessageInfo
+
+func (m *UpdateConfigurationMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *UpdateConfigurationMsg) GetPatch() *Configuration {
+	if m != nil {
+		return m.Patch
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*MsgFee)(nil), "msgfee.MsgFee")
+	proto.RegisterType((*SetMsgFeeMsg)(nil), "msgfee.SetMsgFeeMsg")
+	proto.RegisterType((*Configuration)(nil), "msgfee.Configuration")
+	proto.RegisterType((*UpdateConfigurationMsg)(nil), "msgfee.UpdateConfigurationMsg")
 }
 
 func init() { proto.RegisterFile("x/msgfee/codec.proto", fileDescriptor_ef6e9ad0e6ca0f39) }
 
 var fileDescriptor_ef6e9ad0e6ca0f39 = []byte{
-	// 207 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xa9, 0xd0, 0xcf, 0x2d,
-	0x4e, 0x4f, 0x4b, 0x4d, 0xd5, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9,
-	0x17, 0x62, 0x83, 0x88, 0x49, 0x71, 0x23, 0x09, 0x4a, 0x09, 0x24, 0xe7, 0x67, 0xe6, 0x21, 0x2b,
-	0x93, 0x12, 0x49, 0xcf, 0x4f, 0xcf, 0x07, 0x33, 0xf5, 0x41, 0x2c, 0x88, 0xa8, 0x52, 0x09, 0x17,
-	0x9b, 0x6f, 0x71, 0xba, 0x5b, 0x6a, 0xaa, 0x90, 0x36, 0x17, 0x47, 0x6e, 0x6a, 0x49, 0x62, 0x4a,
-	0x62, 0x49, 0xa2, 0x04, 0xa3, 0x02, 0xa3, 0x06, 0xb7, 0x11, 0xbf, 0x5e, 0x79, 0x6a, 0x62, 0x59,
-	0xaa, 0x9e, 0x2f, 0x54, 0x38, 0x08, 0xae, 0x40, 0x48, 0x92, 0x8b, 0x23, 0xb7, 0x38, 0x3d, 0xbe,
-	0x20, 0xb1, 0x24, 0x43, 0x82, 0x49, 0x81, 0x51, 0x83, 0x33, 0x88, 0x3d, 0xb7, 0x38, 0x3d, 0x20,
-	0xb1, 0x24, 0x43, 0x48, 0x89, 0x8b, 0x39, 0x2d, 0x35, 0x55, 0x82, 0x19, 0x6c, 0x04, 0x97, 0x1e,
-	0xc8, 0x1d, 0x7a, 0xce, 0xf9, 0x99, 0x79, 0x4e, 0x2c, 0x27, 0xee, 0xc9, 0x33, 0x04, 0x81, 0x24,
-	0x9d, 0x24, 0x4e, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x09,
-	0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96, 0x63, 0xb8, 0xf1, 0x58, 0x8e, 0x21, 0x89, 0x0d, 0xec, 0x2c,
-	0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0x7b, 0xf2, 0x6b, 0xda, 0xeb, 0x00, 0x00, 0x00,
+	// 344 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x92, 0xc1, 0x4e, 0xfa, 0x40,
+	0x10, 0xc6, 0xbb, 0x7f, 0xfe, 0x20, 0x2c, 0x18, 0x4d, 0x83, 0xa6, 0x72, 0x28, 0xa4, 0xf1, 0x40,
+	0x42, 0xdc, 0x26, 0x78, 0xf3, 0x06, 0x24, 0xde, 0x48, 0x4c, 0x8d, 0x67, 0xb2, 0xb4, 0xd3, 0x65,
+	0x0f, 0xdd, 0x6d, 0xba, 0x0b, 0x18, 0x9f, 0xc2, 0xf7, 0xf1, 0x05, 0x38, 0x72, 0xf4, 0x44, 0x0c,
+	0xbc, 0x85, 0x27, 0xd3, 0xae, 0x31, 0x70, 0x93, 0x8b, 0xb7, 0xc9, 0xb7, 0xdf, 0x37, 0xbf, 0xd9,
+	0xc9, 0xe0, 0xe6, 0xb3, 0x9f, 0x28, 0x16, 0x03, 0xf8, 0xa1, 0x8c, 0x20, 0x24, 0x69, 0x26, 0xb5,
+	0xb4, 0x2b, 0x46, 0x6b, 0xd5, 0xf7, 0xc4, 0xd6, 0x79, 0x28, 0xb9, 0xd8, 0xb7, 0xb5, 0x9a, 0x4c,
+	0x32, 0x59, 0x94, 0x7e, 0x5e, 0x19, 0xd5, 0xd3, 0xb8, 0x32, 0x56, 0xec, 0x1e, 0xc0, 0xee, 0xe1,
+	0x6a, 0x02, 0x9a, 0x46, 0x54, 0x53, 0x07, 0x75, 0x50, 0xb7, 0xde, 0x3f, 0x23, 0x4b, 0xa0, 0x0b,
+	0x20, 0xe3, 0x6f, 0x39, 0xf8, 0x31, 0xd8, 0x57, 0xb8, 0x9a, 0x28, 0x36, 0x49, 0xa9, 0x9e, 0x39,
+	0xff, 0x3a, 0xa8, 0x5b, 0x0b, 0x4e, 0x12, 0xc5, 0x1e, 0xa8, 0x9e, 0xd9, 0x1e, 0x2e, 0xc5, 0x00,
+	0x4e, 0xa9, 0x68, 0x81, 0x49, 0x3e, 0x07, 0x19, 0x49, 0x2e, 0x86, 0xff, 0x57, 0x9b, 0xb6, 0x15,
+	0xe4, 0x8f, 0xde, 0x0b, 0x6e, 0x3c, 0x82, 0x36, 0xe0, 0xb1, 0x62, 0x7f, 0xca, 0x7e, 0x43, 0xf8,
+	0x74, 0x24, 0x45, 0xcc, 0xd9, 0x3c, 0xa3, 0x9a, 0x4b, 0x71, 0x1c, 0xfd, 0x0e, 0x97, 0xe5, 0x52,
+	0x40, 0x56, 0xa0, 0x1b, 0xc3, 0xeb, 0xcf, 0x4d, 0xbb, 0xc3, 0xb8, 0x9e, 0xcd, 0xa7, 0x24, 0x94,
+	0x89, 0xcf, 0xe5, 0xe2, 0x46, 0x0a, 0xf0, 0x4d, 0x7e, 0x10, 0x45, 0x19, 0x28, 0x15, 0x98, 0x88,
+	0x3d, 0xc0, 0xb5, 0x18, 0x60, 0x42, 0xa3, 0x84, 0x8b, 0x62, 0xc8, 0xdf, 0xe6, 0xab, 0x31, 0xc0,
+	0x20, 0x4f, 0x79, 0x19, 0xbe, 0x7c, 0x4a, 0x23, 0xaa, 0xe1, 0xe0, 0x0b, 0x47, 0xef, 0xb0, 0x87,
+	0xcb, 0x29, 0xd5, 0xa1, 0x59, 0x60, 0xbd, 0x7f, 0x41, 0xcc, 0x0d, 0x91, 0x83, 0xae, 0x81, 0xf1,
+	0x0c, 0x9d, 0xd5, 0xd6, 0x45, 0xeb, 0xad, 0x8b, 0x3e, 0xb6, 0x2e, 0x7a, 0xdd, 0xb9, 0xd6, 0x7a,
+	0xe7, 0x5a, 0xef, 0x3b, 0xd7, 0x9a, 0x56, 0x8a, 0x23, 0xba, 0xfd, 0x0a, 0x00, 0x00, 0xff, 0xff,
+	0xf3, 0x47, 0xe8, 0xaf, 0x99, 0x02, 0x00, 0x00,
 }
 
 func (m *MsgFee) Marshal() (dAtA []byte, err error) {
@@ -151,6 +343,126 @@ func (m *MsgFee) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *SetMsgFeeMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetMsgFeeMsg) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n3, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n3
+	}
+	if len(m.MsgPath) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.MsgPath)))
+		i += copy(dAtA[i:], m.MsgPath)
+	}
+	dAtA[i] = 0x1a
+	i++
+	i = encodeVarintCodec(dAtA, i, uint64(m.Fee.Size()))
+	n4, err := m.Fee.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
+	}
+	i += n4
+	return i, nil
+}
+
+func (m *Configuration) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Configuration) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n5, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n5
+	}
+	if len(m.Owner) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Owner)))
+		i += copy(dAtA[i:], m.Owner)
+	}
+	if len(m.FeeAdmin) > 0 {
+		dAtA[i] = 0x1a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.FeeAdmin)))
+		i += copy(dAtA[i:], m.FeeAdmin)
+	}
+	return i, nil
+}
+
+func (m *UpdateConfigurationMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UpdateConfigurationMsg) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n6, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n6
+	}
+	if m.Patch != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Patch.Size()))
+		n7, err := m.Patch.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n7
+	}
+	return i, nil
+}
+
 func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -176,6 +488,63 @@ func (m *MsgFee) Size() (n int) {
 	}
 	l = m.Fee.Size()
 	n += 1 + l + sovCodec(uint64(l))
+	return n
+}
+
+func (m *SetMsgFeeMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.MsgPath)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = m.Fee.Size()
+	n += 1 + l + sovCodec(uint64(l))
+	return n
+}
+
+func (m *Configuration) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Owner)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.FeeAdmin)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+
+func (m *UpdateConfigurationMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if m.Patch != nil {
+		l = m.Patch.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
 	return n
 }
 
@@ -319,6 +688,442 @@ func (m *MsgFee) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.Fee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SetMsgFeeMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetMsgFeeMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetMsgFeeMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MsgPath", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MsgPath = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Fee", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Fee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Configuration) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Configuration: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Configuration: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Owner = append(m.Owner[:0], dAtA[iNdEx:postIndex]...)
+			if m.Owner == nil {
+				m.Owner = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FeeAdmin", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FeeAdmin = append(m.FeeAdmin[:0], dAtA[iNdEx:postIndex]...)
+			if m.FeeAdmin == nil {
+				m.FeeAdmin = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *UpdateConfigurationMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UpdateConfigurationMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UpdateConfigurationMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Patch", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Patch == nil {
+				m.Patch = &Configuration{}
+			}
+			if err := m.Patch.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

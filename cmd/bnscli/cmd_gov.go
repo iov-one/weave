@@ -17,6 +17,7 @@ import (
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/gov"
+	"github.com/iov-one/weave/x/msgfee"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/validators"
 )
@@ -83,6 +84,10 @@ transaction (ie signatures) are being dropped.
 		option.Option = &bnsd.ProposalOptions_CurrencyCreateMsg{
 			CurrencyCreateMsg: msg,
 		}
+	case *msgfee.SetMsgFeeMsg:
+		option.Option = &bnsd.ProposalOptions_MsgfeeSetMsgFeeMsg{
+			MsgfeeSetMsgFeeMsg: msg,
+		}
 	case *bnsd.ExecuteBatchMsg:
 		msgs, err := msg.MsgList()
 		if err != nil {
@@ -91,6 +96,10 @@ transaction (ie signatures) are being dropped.
 		var messages []bnsd.ExecuteProposalBatchMsg_Union
 		for _, m := range msgs {
 			switch m := m.(type) {
+			case *msgfee.SetMsgFeeMsg:
+				option.Option = &bnsd.ProposalOptions_MsgfeeSetMsgFeeMsg{
+					MsgfeeSetMsgFeeMsg: m,
+				}
 			case *cash.SendMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
 					Sum: &bnsd.ExecuteProposalBatchMsg_Union_SendMsg{

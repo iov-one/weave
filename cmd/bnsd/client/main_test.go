@@ -14,6 +14,7 @@ import (
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/msgfee"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
@@ -93,6 +94,10 @@ func initGenesis(filename string, addr weave.Address) error {
 			"cash": cash.Configuration{
 				CollectorAddress: weave.NewAddress([]byte("fake-collector-address")),
 				MinimalFee:       coin.Coin{}, // no fee
+			},
+			"msgfee": msgfee.Configuration{
+				Owner:    weave.Condition("seq:admin/admin/1").Address(),
+				FeeAdmin: weave.Condition("seq:admin/admin/1").Address(),
 			},
 			"migration": migration.Configuration{
 				Admin: weave.Condition("multisig/usage/0000000000000001").Address(),

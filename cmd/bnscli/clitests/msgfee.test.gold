@@ -1,0 +1,14 @@
+{
+	"Sum": {
+		"MsgfeeSetMsgFeeMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"msg_path": "test/message",
+			"fee": {
+				"whole": 4,
+				"ticker": "IOV"
+			}
+		}
+	}
+}

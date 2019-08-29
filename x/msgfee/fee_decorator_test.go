@@ -116,8 +116,8 @@ func TestFeeDecorator(t *testing.T) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "msgfee")
 
-			for _, f := range tc.InitFees {
-				if i, err := bucket.Create(db, &f); err != nil {
+			for i, f := range tc.InitFees {
+				if _, err := bucket.Put(db, []byte(f.MsgPath), &f); err != nil {
 					t.Fatalf("cannot create #%d transaction fee: %s", i, err)
 				}
 			}
@@ -167,12 +167,9 @@ func BenchmarkFeeDecorator(b *testing.B) {
 			db := store.MemStore()
 			migration.MustInitPkg(db, "msgfee")
 			bucket := NewMsgFeeBucket()
-			obj, err := bucket.Create(db, &fee)
+			_, err := bucket.Put(db, []byte(fee.MsgPath), &fee)
 			if err != nil {
 				b.Fatalf("cannot create object: %s", err)
-			}
-			if err := bucket.Save(db, obj); err != nil {
-				b.Fatalf("cannot save object: %s", err)
 			}
 			ctx := context.Background()
 			next := &weavetest.Handler{}
