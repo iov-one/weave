@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/iov-one/weave/weavetest/assert"
@@ -59,15 +60,29 @@ func RunTendermint(ctx context.Context, t TestReporter, home string) (cleanup fu
 
 	// Return a cleanup function, that will wait for the tendermint to stop.
 	// We also auto-kill when the context is Done
+	done := make(chan struct{})
+
+	var once sync.Once
 	cleanup = func() {
-		t.Logf("tendermint cleanup called")
-		_ = cmd.Process.Kill()
-		_ = cmd.Wait()
+		once.Do(func() {
+			t.Logf("tendermint cleanup called")
+			_ = cmd.Process.Kill()
+			_ = cmd.Wait()
+			close(done)
+		})
+
+		// Block until the tendermint server process is gone.
+		<-done
 	}
+
 	go func() {
-		<-ctx.Done()
-		cleanup()
+		select {
+		case <-ctx.Done():
+			cleanup()
+		case <-done:
+		}
 	}()
+
 	return cleanup
 }
 
