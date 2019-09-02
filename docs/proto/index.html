@@ -1321,7 +1321,9 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td>multisig</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td>repeated</td>
-                  <td><p>ID of a multisig contract. </p></td>
+                  <td><p>ID of a multisig contract.
+empty array results in multisig being ignored, basically the same behaviour
+as if it never got supplied. </p></td>
                 </tr>
               
                 <tr>
@@ -1625,8 +1627,8 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
                   <td>valid_username_name</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p>Valid username name defines a regular expression that every valid
-username part name must match (a username is &lt;name&gt;*&lt;label&gt;) </p></td>
+                  <td><p>Valid username name defines a regular expression that every valid username
+part name must match (a username is &lt;name&gt;*&lt;label&gt;) </p></td>
                 </tr>
               
                 <tr>

@@ -364,8 +364,8 @@ type Configuration struct {
 	// This defines the Address that is allowed to update the Configuration object and is
 	// needed to make use of gconf.NewUpdateConfigurationHandler
 	Owner github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
-	// Valid username name defines a regular expression that every valid
-	// username part name must match (a username is <name>*<label>)
+	// Valid username name defines a regular expression that every valid username
+	// part name must match (a username is <name>*<label>)
 	ValidUsernameName string `protobuf:"bytes,3,opt,name=valid_username_name,json=validUsernameName,proto3" json:"valid_username_name,omitempty"`
 	// Valid username label defines a regular expression that every valid
 	// namespace label must match (a username is <name>*<label>)
