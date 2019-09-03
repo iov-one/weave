@@ -20,10 +20,6 @@ func (m *VersionedIDRef) SetVersion(v uint32) {
 	m.Version = v
 }
 
-func (m VersionedIDRef) Copy() CloneableData {
-	return &VersionedIDRef{ID: m.ID, Version: m.Version}
-}
-
 // NextVersion returns a new VersionedIDRef with the same ID as current but version +1.
 func (m VersionedIDRef) NextVersion() (VersionedIDRef, error) {
 	if m.Version == math.MaxUint32 {

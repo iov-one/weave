@@ -19,7 +19,6 @@ import (
 type Model interface {
 	weave.Persistent
 	Validate() error
-	Copy() CloneableData
 }
 
 // ModelSlicePtr represents a pointer to a slice of models. Think of it as
@@ -75,7 +74,7 @@ type ModelBucket interface {
 // a bucket instance. Final implementation should operate directly on the
 // KVStore instead.
 func NewModelBucket(name string, m Model, opts ...ModelBucketOption) ModelBucket {
-	b := NewBucket(name, NewSimpleObj(nil, m))
+	b := NewBucket(name, m)
 
 	tp := reflect.TypeOf(m)
 	if tp.Kind() == reflect.Ptr {

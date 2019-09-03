@@ -54,7 +54,7 @@ func NewSchemaBucket() *SchemaBucket {
 	// can insert entities without schema version being registered. It
 	// cannot use migration implementation bucket because it would cause
 	// circular dependency on itself.
-	b := orm.NewBucket("schema", orm.NewSimpleObj(nil, &Schema{}))
+	b := orm.NewBucket("schema", &Schema{})
 	return &SchemaBucket{Bucket: b}
 }
 

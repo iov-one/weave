@@ -12,7 +12,7 @@ import (
 )
 
 func TestIDGenBucket(t *testing.T) {
-	bucketImpl := NewBucket("any", NewSimpleObj(nil, &Counter{}))
+	bucketImpl := NewBucket("any", &Counter{})
 
 	specs := map[string]struct {
 		bucket IDGenBucket

@@ -29,7 +29,7 @@ var _ orm.Bucket = (*Bucket)(nil)
 // Package name is used to track schema version. Bucket name is the namespace
 // for the stored entity. Model is the type of the entity this bucket is
 // maintaining.
-func NewBucket(packageName string, bucketName string, model orm.Cloneable) Bucket {
+func NewBucket(packageName string, bucketName string, model orm.Model) Bucket {
 	return Bucket{
 		Bucket:      orm.NewBucket(bucketName, model),
 		packageName: packageName,

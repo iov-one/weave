@@ -52,20 +52,6 @@ func (pc *PaymentChannel) Validate() error {
 	return errs
 }
 
-// Copy returns a deep copy of this PaymentChannel.
-func (pc PaymentChannel) Copy() orm.CloneableData {
-	return &PaymentChannel{
-		Metadata:     pc.Metadata.Copy(),
-		Source:       pc.Source.Clone(),
-		SourcePubkey: pc.SourcePubkey,
-		Destination:  pc.Destination.Clone(),
-		Total:        pc.Total.Clone(),
-		Timeout:      pc.Timeout,
-		Memo:         pc.Memo,
-		Transferred:  pc.Transferred.Clone(),
-	}
-}
-
 // NewPaymentChannelBucket returns a bucket for storing PaymentChannel state.
 func NewPaymentChannelBucket() orm.ModelBucket {
 	b := orm.NewModelBucket("paychan", &PaymentChannel{},
@@ -76,6 +62,5 @@ func NewPaymentChannelBucket() orm.ModelBucket {
 var paymentChannelSeq = orm.NewSequence("paychan", "id")
 
 func newPaymentChannelObjectBucket() orm.Bucket {
-	obj := orm.NewSimpleObj(nil, &PaymentChannel{})
-	return orm.NewBucket("paychan", obj)
+	return orm.NewBucket("paychan", &PaymentChannel{})
 }

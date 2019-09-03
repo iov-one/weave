@@ -49,23 +49,6 @@ func (c *Contract) Validate() error {
 	return errs
 }
 
-func (c *Contract) Copy() orm.CloneableData {
-	ps := make([]*Participant, 0, len(c.Participants))
-	for _, p := range c.Participants {
-		ps = append(ps, &Participant{
-			Signature: p.Signature.Clone(),
-			Weight:    p.Weight,
-		})
-	}
-	return &Contract{
-		Metadata:            c.Metadata.Copy(),
-		Participants:        ps,
-		ActivationThreshold: c.ActivationThreshold,
-		AdminThreshold:      c.AdminThreshold,
-		Address:             c.Address.Clone(),
-	}
-}
-
 func NewContractBucket() orm.ModelBucket {
 	b := orm.NewModelBucket("contracts", &Contract{},
 		orm.WithIDSequence(contractSeq),

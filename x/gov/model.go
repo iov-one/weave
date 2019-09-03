@@ -9,7 +9,6 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
-	"github.com/iov-one/weave/orm"
 )
 
 const maxElectors = 2000
@@ -58,16 +57,6 @@ func (m Electorate) Validate() error {
 	}
 	errs = errors.AppendField(errs, "Admin", m.Admin.Validate())
 	return errs
-}
-
-func (m Electorate) Copy() orm.CloneableData {
-	p := make([]Elector, 0, len(m.Electors))
-	copy(p, m.Electors)
-	return &Electorate{
-		Title:    m.Title,
-		Electors: p,
-		Version:  m.Version,
-	}
 }
 
 // Weight return the weight for the given address is in the electors list and an ok flag which
@@ -140,14 +129,6 @@ func (m ElectionRule) Validate() error {
 	return nil
 }
 
-func (m ElectionRule) Copy() orm.CloneableData {
-	return &ElectionRule{
-		Title:        m.Title,
-		VotingPeriod: m.VotingPeriod,
-		Threshold:    m.Threshold,
-	}
-}
-
 func (m Fraction) Validate() error {
 	if m.Numerator == 0 {
 		return errors.Wrap(errors.ErrInput, "numerator must not be 0")
@@ -212,25 +193,6 @@ func (m *Proposal) Validate() error {
 		return errors.Wrap(err, "electorate reference")
 	}
 	return m.VoteState.Validate()
-}
-
-func (m Proposal) Copy() orm.CloneableData {
-	optionCopy := append([]byte{}, m.RawOption...)
-	return &Proposal{
-		Metadata:        m.Metadata.Copy(),
-		Title:           m.Title,
-		RawOption:       optionCopy,
-		Description:     m.Description,
-		ElectionRuleRef: orm.VersionedIDRef{ID: m.ElectionRuleRef.ID, Version: m.ElectionRuleRef.Version},
-		ElectorateRef:   orm.VersionedIDRef{ID: m.ElectorateRef.ID, Version: m.ElectorateRef.Version},
-		VotingStartTime: m.VotingStartTime,
-		VotingEndTime:   m.VotingEndTime,
-		SubmissionTime:  m.SubmissionTime,
-		Author:          m.Author,
-		VoteState:       m.VoteState,
-		Status:          m.Status,
-		Result:          m.Result,
-	}
 }
 
 // CountVote updates the intermediate tally result by adding the new vote weight.
@@ -305,15 +267,6 @@ func (r *Resolution) Validate() error {
 	return nil
 }
 
-func (r Resolution) Copy() orm.CloneableData {
-	return &Resolution{
-		Metadata:      r.Metadata.Copy(),
-		ProposalID:    r.ProposalID,
-		ElectorateRef: r.ElectorateRef,
-		Resolution:    r.Resolution,
-	}
-}
-
 func NewTallyResult(quorum *Fraction, threshold Fraction, totalElectorateWeight uint64) TallyResult {
 	return TallyResult{
 		Quorum:                quorum,
@@ -383,11 +336,4 @@ func (m Vote) Validate() error {
 		errs = errors.AppendField(errs, "Voted", errors.ErrInput)
 	}
 	return errs
-}
-
-func (m Vote) Copy() orm.CloneableData {
-	return &Vote{
-		Elector: m.Elector,
-		Voted:   m.Voted,
-	}
 }

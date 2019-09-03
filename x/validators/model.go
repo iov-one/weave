@@ -52,20 +52,6 @@ func AsAccounts(a WeaveAccounts) *Accounts {
 	}
 }
 
-// Copy makes new accounts object with the same addresses
-func (m *Accounts) Copy() orm.CloneableData {
-	addrSlice := make([][]byte, len(m.Addresses))
-	for k, v := range m.Addresses {
-		addr := make([]byte, len(v))
-		copy(addr, v)
-		addrSlice[k] = addr
-	}
-	return &Accounts{
-		Metadata:  m.Metadata.Copy(),
-		Addresses: addrSlice,
-	}
-}
-
 func (m *Accounts) Validate() error {
 	var errs error
 	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
@@ -78,11 +64,8 @@ type AccountBucket struct {
 }
 
 func NewAccountBucket() *AccountBucket {
-	obj := orm.NewSimpleObj([]byte(accountListKey), &Accounts{
-		Metadata: &weave.Metadata{Schema: 1},
-	})
 	return &AccountBucket{
-		Bucket: migration.NewBucket("validators", bucketName, obj),
+		Bucket: migration.NewBucket("validators", bucketName, &Accounts{}),
 	}
 }
 

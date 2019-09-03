@@ -25,16 +25,6 @@ func (t *TaskResult) Validate() error {
 
 const maxInfoSize = 10240
 
-func (t *TaskResult) Copy() orm.CloneableData {
-	return &TaskResult{
-		Metadata:   t.Metadata.Copy(),
-		Successful: t.Successful,
-		Info:       t.Info,
-		ExecTime:   t.ExecTime,
-		ExecHeight: t.ExecHeight,
-	}
-}
-
 // NewTaskResultBucket returns a bucket for storing Task results.
 func NewTaskResultBucket() orm.ModelBucket {
 	b := orm.NewModelBucket("trs", &TaskResult{})

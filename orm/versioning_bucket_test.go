@@ -43,7 +43,7 @@ func TestVersionedIDSerialization(t *testing.T) {
 }
 
 func TestGetLatestVersion(t *testing.T) {
-	bucketImpl := NewBucket("any", NewSimpleObj(nil, &VersionedIDRef{}))
+	bucketImpl := NewBucket("any", &VersionedIDRef{})
 	idGenBucket := WithSeqIDGenerator(bucketImpl, "id")
 	versionedBucket := WithVersioning(idGenBucket)
 	db := store.MemStore()
@@ -76,7 +76,7 @@ func TestGetLatestVersion(t *testing.T) {
 }
 
 func TestCreateWithVersioning(t *testing.T) {
-	bucketImpl := NewBucket("any", NewSimpleObj(nil, &VersionedIDRef{}))
+	bucketImpl := NewBucket("any", &VersionedIDRef{})
 	idGenBucket := WithSeqIDGenerator(bucketImpl, "id")
 	versionedBucket := WithVersioning(idGenBucket)
 
@@ -105,7 +105,7 @@ func TestCreateWithVersioning(t *testing.T) {
 }
 
 func TestCreateWithIDWithVersioning(t *testing.T) {
-	bucketImpl := NewBucket("any", NewSimpleObj(nil, &VersionedIDRef{}))
+	bucketImpl := NewBucket("any", &VersionedIDRef{})
 	idGenBucket := WithSeqIDGenerator(bucketImpl, "id")
 	versionedBucket := WithVersioning(idGenBucket)
 
@@ -147,7 +147,7 @@ func TestCreateWithIDWithVersioning(t *testing.T) {
 }
 
 func TestUpdateWithVersioning(t *testing.T) {
-	bucketImpl := NewBucket("any", NewSimpleObj(nil, &VersionedIDRef{}))
+	bucketImpl := NewBucket("any", &VersionedIDRef{})
 	idGenBucket := WithSeqIDGenerator(bucketImpl, "id")
 	versionedBucket := WithVersioning(idGenBucket)
 
@@ -235,7 +235,7 @@ func TestUpdateWithVersioning(t *testing.T) {
 }
 
 func TestDeleteWithVersioning(t *testing.T) {
-	bucketImpl := NewBucket("any", NewSimpleObj(nil, &VersionedIDRef{}))
+	bucketImpl := NewBucket("any", &VersionedIDRef{})
 	idGenBucket := WithSeqIDGenerator(bucketImpl, "id")
 	versionedBucket := WithVersioning(idGenBucket)
 
@@ -303,7 +303,7 @@ func TestDeleteWithVersioning(t *testing.T) {
 }
 
 func TestVersioningExists(t *testing.T) {
-	bucketImpl := NewBucket("any", NewSimpleObj(nil, &VersionedIDRef{}))
+	bucketImpl := NewBucket("any", &VersionedIDRef{})
 	idGenBucket := WithSeqIDGenerator(bucketImpl, "id")
 	versionedBucket := WithVersioning(idGenBucket)
 

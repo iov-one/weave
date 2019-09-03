@@ -28,7 +28,7 @@ func TestSchemaVersionedBucket(t *testing.T) {
 	ensureSchemaVersion(t, db, thisPkgName, 1)
 
 	b := &MyModelBucket{
-		Bucket: NewBucket(thisPkgName, "mymodel", orm.NewSimpleObj(nil, &MyModel{})),
+		Bucket: NewBucket(thisPkgName, "mymodel", &MyModel{}),
 	}
 
 	// Use custom register instead of the global one to avoid pollution

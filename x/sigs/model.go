@@ -32,15 +32,6 @@ func (u *UserData) Validate() error {
 	return errs
 }
 
-// Copy makes a new UserData with the same coins
-func (u *UserData) Copy() orm.CloneableData {
-	return &UserData{
-		Metadata: u.Metadata.Copy(),
-		Sequence: u.Sequence,
-		Pubkey:   u.Pubkey,
-	}
-}
-
 // CheckAndIncrementSequence implements check and increment operation.
 // If current sequence value is the same as given expected value then it is
 // incremented. Otherwise an error is returned.
@@ -108,7 +99,7 @@ type Bucket struct {
 // NewBucket creates the proper bucket for this extension
 func NewBucket() Bucket {
 	return Bucket{
-		Bucket: migration.NewBucket("sigs", BucketName, NewUser(nil)),
+		Bucket: migration.NewBucket("sigs", BucketName, &UserData{}),
 	}
 }
 

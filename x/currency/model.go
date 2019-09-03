@@ -36,13 +36,6 @@ func (t *TokenInfo) Validate() error {
 	return errs
 }
 
-func (t *TokenInfo) Copy() orm.CloneableData {
-	return &TokenInfo{
-		Metadata: t.Metadata.Copy(),
-		Name:     t.Name,
-	}
-}
-
 // TokenInfoBucket stores TokenInfo instances, using ticker name (currency
 // symbol) as the key.
 type TokenInfoBucket struct {
@@ -51,7 +44,7 @@ type TokenInfoBucket struct {
 
 func NewTokenInfoBucket() *TokenInfoBucket {
 	return &TokenInfoBucket{
-		Bucket: migration.NewBucket("currency", "tokeninfo", orm.NewSimpleObj(nil, &TokenInfo{})),
+		Bucket: migration.NewBucket("currency", "tokeninfo", &TokenInfo{}),
 	}
 }
 

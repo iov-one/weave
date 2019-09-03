@@ -80,22 +80,6 @@ const (
 	maxWeight = math.MaxInt32 / (maxDestinations + 1)
 )
 
-func (rev *Revenue) Copy() orm.CloneableData {
-	cpy := &Revenue{
-		Metadata:     rev.Metadata.Copy(),
-		Admin:        rev.Admin.Clone(),
-		Destinations: make([]*Destination, len(rev.Destinations)),
-		Address:      rev.Address.Clone(),
-	}
-	for i := range rev.Destinations {
-		cpy.Destinations[i] = &Destination{
-			Address: rev.Destinations[i].Address.Clone(),
-			Weight:  rev.Destinations[i].Weight,
-		}
-	}
-	return cpy
-}
-
 // NewRevenueBucket returns a bucket for managing revenues state.
 func NewRevenueBucket() orm.ModelBucket {
 	b := orm.NewModelBucket("revenue", &Revenue{},

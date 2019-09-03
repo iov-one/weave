@@ -1,24 +1,24 @@
 package orm
 
 import (
+	"reflect"
+
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x"
 )
 
-var _ Object = (*SimpleObj)(nil)
-var _ Cloneable = (*SimpleObj)(nil)
 var _ x.Validater = (*SimpleObj)(nil)
 
 // SimpleObj wraps a key and a value together
 // It can be used as a template for type-safe objects
 type SimpleObj struct {
 	key   []byte
-	value CloneableData
+	value Model
 }
 
 // NewSimpleObj will combine a key and value into an object
-func NewSimpleObj(key []byte, value CloneableData) *SimpleObj {
+func NewSimpleObj(key []byte, value Model) *SimpleObj {
 	return &SimpleObj{
 		key:   key,
 		value: value,
@@ -39,12 +39,12 @@ func (o SimpleObj) Key() []byte {
 // And delegates to the value validator if present
 func (o SimpleObj) Validate() error {
 	if len(o.key) == 0 {
-		return errors.Wrap(errors.ErrEmpty, "missing key")
+		return errors.Field("Key", errors.ErrEmpty, "missing key")
 	}
 	if o.value == nil {
-		return errors.Wrap(errors.ErrEmpty, "missing value")
+		return errors.Field("Value", errors.ErrEmpty, "missing value")
 	}
-	return o.value.Validate()
+	return errors.Field("Value", o.value.Validate(), "invalid value")
 }
 
 // SetKey may be used to update a simple obj key
@@ -54,8 +54,9 @@ func (o *SimpleObj) SetKey(key []byte) {
 
 // Clone will make a copy of this object
 func (o *SimpleObj) Clone() Object {
+	cpy := reflect.New(reflect.TypeOf(o.value).Elem()).Interface().(Model)
 	res := &SimpleObj{
-		value: o.value.Copy(),
+		value: cpy,
 	}
 	// only copy key if non-nil
 	if len(o.key) > 0 {
