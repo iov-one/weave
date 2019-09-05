@@ -21,3 +21,9 @@ message VersionedIDRef {
   // Document version, starting with 1.
   uint32 version = 5;
 }
+
+// CounterWithID could be used for sequence, but mainly just for test
+message CounterWithID {
+  bytes id = 1 [(gogoproto.customname) = "ID"];
+  int64 count = 2;
+}
