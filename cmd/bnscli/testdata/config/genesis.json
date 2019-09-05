@@ -29,6 +29,10 @@
         "collector_address": "seq:dist/revenue/1",
         "minimal_fee": "0.1 IOV"
       },
+      "msgfee": {
+        "owner": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0",
+        "fee_admin": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
+      },
       "migration": {
         "admin": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
       },
