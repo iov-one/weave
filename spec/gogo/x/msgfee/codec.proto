@@ -13,3 +13,27 @@ message MsgFee {
   string msg_path = 2;
   coin.Coin fee = 3 [(gogoproto.nullable) = false];
 }
+
+// SetMsgFeeMsg set given fee for a specified message path. This message sets a
+// new fee of overwrites an existing one. Fee must not be less than zero. Use
+// zero value coin to unset a fee.
+message SetMsgFeeMsg {
+  weave.Metadata metadata = 1;
+  string msg_path = 2;
+  coin.Coin fee = 3 [(gogoproto.nullable) = false];
+}
+
+message Configuration {
+  weave.Metadata metadata = 1;
+  // Owner is present to implement gconf.OwnedConfig interface
+  // This defines the Address that is allowed to update the Configuration object and is
+  // needed to make use of gconf.NewUpdateConfigurationHandler
+  bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // FeeAdmin is an address that is allowed to change the fee.
+  bytes fee_admin = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+}
+
+message UpdateConfigurationMsg {
+  weave.Metadata metadata = 1;
+  Configuration patch = 2;
+}

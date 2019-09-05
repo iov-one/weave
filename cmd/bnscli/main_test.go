@@ -37,8 +37,11 @@ func runTestMain(m *testing.M) int {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	tmtest.RunApp(ctx, t, appName, home)
-	tmtest.RunTendermint(ctx, t, home)
+	appCleanup := tmtest.RunApp(ctx, t, appName, home)
+	tmCleanup := tmtest.RunTendermint(ctx, t, home)
+
+	defer appCleanup()
+	defer tmCleanup()
 
 	return m.Run()
 }

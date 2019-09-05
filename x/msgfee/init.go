@@ -6,6 +6,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/gconf"
 )
 
 // Initializer fulfils the Initializer interface to load data from the genesis
@@ -36,9 +37,14 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 		if err := fee.Validate(); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("fee #%d is invalid", i))
 		}
-		if _, err := bucket.Create(kv, &fee); err != nil {
+		if _, err := bucket.Put(kv, []byte(fee.MsgPath), &fee); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("cannot store #%d fee", i))
 		}
 	}
+
+	if err := gconf.InitConfig(kv, opts, "msgfee", &Configuration{}); err != nil {
+		return errors.Wrap(err, "init config")
+	}
+
 	return nil
 }

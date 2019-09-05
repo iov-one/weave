@@ -88,6 +88,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	aswap.RegisterRoutes(r, authFn, ctrl)
 	gov.RegisterRoutes(r, authFn, decodeProposalOptions, proposalOptionsExecutor(ctrl), scheduler)
 	username.RegisterRoutes(r, authFn)
+	msgfee.RegisterRoutes(r, authFn)
 	return r
 }
 

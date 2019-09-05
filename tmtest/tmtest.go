@@ -76,14 +76,6 @@ func RunTendermint(ctx context.Context, t TestReporter, home string) (cleanup fu
 		<-done
 	}
 
-	go func() {
-		select {
-		case <-ctx.Done():
-			cleanup()
-		case <-done:
-		}
-	}()
-
 	return cleanup
 }
 
@@ -121,10 +113,7 @@ func RunApp(ctx context.Context, t TestReporter, appName, home string) (cleanup 
 		_ = cmd.Process.Kill()
 		_ = cmd.Wait()
 	}
-	go func() {
-		<-ctx.Done()
-		cleanup()
-	}()
+
 	return cleanup
 }
 

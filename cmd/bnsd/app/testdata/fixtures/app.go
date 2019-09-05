@@ -14,6 +14,7 @@ import (
 	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/msgfee"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -85,6 +86,10 @@ func appStateGenesis(keyAddress weave.Address) []byte {
 			"cash": cash.Configuration{
 				CollectorAddress: mustParseAddr("seq:dist/revenue/1"),
 				MinimalFee:       coin.NewCoin(0, 10000, "FRNK"),
+			},
+			"msgfee": msgfee.Configuration{
+				Owner:    mustParseAddr("seq:admin/admin/1"),
+				FeeAdmin: mustParseAddr("seq:admin/admin/1"),
 			},
 			"migration": migration.Configuration{
 				Admin: mustParseAddr("seq:multisig/usage/1"),

@@ -253,7 +253,11 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 				MinimalFee:       env.AntiSpamFee,
 			},
 			"migration": dict{
-				"admin": "seq:multisig/usage/1",
+				"admin": mustParseAddr(t, "seq:admin/admin/1"),
+			},
+			"msgfee": dict{
+				"owner":     mustParseAddr(t, "seq:admin/admin/1"),
+				"fee_admin": mustParseAddr(t, "seq:fee/admin/1"),
 			},
 			"username": username.Configuration{
 				ValidUsernameName:  `^[a-z0-9\-_.]{3,64}$`,

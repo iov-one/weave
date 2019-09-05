@@ -12,6 +12,7 @@ import (
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
+	"github.com/iov-one/weave/x/msgfee"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/validators"
 )
@@ -141,6 +142,12 @@ original transactions (ie signatures) are being dropped.
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
 				Sum: &bnsd.ExecuteBatchMsg_Union_DistributionResetMsg{
 					DistributionResetMsg: msg,
+				},
+			})
+		case *msgfee.SetMsgFeeMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_MsgfeeSetMsgFeeMsg{
+					MsgfeeSetMsgFeeMsg: msg,
 				},
 			})
 

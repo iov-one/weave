@@ -22,7 +22,12 @@ func TestGenesis(t *testing.T) {
 			"msg_path": "a/b",
 			"fee": {"whole": 2, "fractional": 0, "ticker": "ETH"}
 		}
-	]
+	],
+	"conf": {
+		"msgfee": {
+			"fee_admin": "seq:foo/bar/1"
+		}
+	}
 }
 	`
 	var opts weave.Options
@@ -38,19 +43,19 @@ func TestGenesis(t *testing.T) {
 	}
 
 	bucket := NewMsgFeeBucket()
-	fee, err := bucket.MessageFee(db, "foo/bar")
-	if err != nil {
+	var fee MsgFee
+	if err := bucket.One(db, []byte("foo/bar"), &fee); err != nil {
 		t.Fatalf("cannot fetch fee: %s", err)
 	}
-	if !fee.Equals(coin.NewCoin(1, 2, "DOGE")) {
+	if !fee.Fee.Equals(coin.NewCoin(1, 2, "DOGE")) {
 		t.Fatalf("got an unexpected fee value: %s", fee)
 	}
 
-	fee, err = bucket.MessageFee(db, "a/b")
-	if err != nil {
+	if err := bucket.One(db, []byte("a/b"), &fee); err != nil {
+		t.Fatalf("cannot fetch fee: %s", err)
 		t.Fatalf("cannot fetch fee: %s", err)
 	}
-	if !fee.Equals(coin.NewCoin(2, 0, "ETH")) {
+	if !fee.Fee.Equals(coin.NewCoin(2, 0, "ETH")) {
 		t.Fatalf("got an unexpected fee value: %s", fee)
 	}
 }
