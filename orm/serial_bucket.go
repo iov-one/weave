@@ -8,17 +8,11 @@ import (
 )
 
 // SerialModel is implemented by any entity that can be stored using SerialModelBucket.
-//
-// This is the same interface as CloneableData. Using the right type names
-// provides an easier to read API.
-//
-// SerialModel stores both the Key and the Value.
 // GetID/SetID are used to store and access the Key.
 // The ID is always set to nil before serializing and storing the Value.
 type SerialModel interface {
 	weave.Persistent
 	Validate() error
-	Copy() CloneableData
 	GetID() []byte
 	SetID([]byte) error
 }
