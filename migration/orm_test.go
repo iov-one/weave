@@ -595,12 +595,16 @@ func TestSchemaVersionedSerialModelBucketPrefixScan(t *testing.T) {
 
 	var m MySerialModel
 	err = iter.LoadNext(&m)
+	assert.Nil(t, err)
 	assertMySerialModelState(t, &m, 2, models[0].Cnt+1)
 	err = iter.LoadNext(&m)
+	assert.Nil(t, err)
 	assertMySerialModelState(t, &m, 2, models[1].Cnt+1)
 	err = iter.LoadNext(&m)
+	assert.Nil(t, err)
 	assertMySerialModelState(t, &m, 2, models[2].Cnt+1)
 	err = iter.LoadNext(&m)
+	assert.Nil(t, err)
 	assertMySerialModelState(t, &m, 2, models[3].Cnt+1)
 
 	iter.Release()
@@ -610,12 +614,16 @@ func TestSchemaVersionedSerialModelBucketPrefixScan(t *testing.T) {
 	assert.Nil(t, err)
 
 	err = iter.LoadNext(&m)
+	assert.Nil(t, err)
 	assertMySerialModelState(t, &m, 2, models[3].Cnt+1)
 	err = iter.LoadNext(&m)
+	assert.Nil(t, err)
 	assertMySerialModelState(t, &m, 2, models[2].Cnt+1)
 	err = iter.LoadNext(&m)
+	assert.Nil(t, err)
 	assertMySerialModelState(t, &m, 2, models[1].Cnt+1)
 	err = iter.LoadNext(&m)
+	assert.Nil(t, err)
 	assertMySerialModelState(t, &m, 2, models[0].Cnt+1)
 
 	iter.Release()
