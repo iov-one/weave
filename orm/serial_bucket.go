@@ -40,7 +40,7 @@ type SerialModelBucket interface {
 	// The function returns a (possibly empty) iterator, which can
 	// load each SerialModel as it arrives.
 	// If reverse is true, iterates in descending order (highest value first),
-	// otherwise, it iterates in
+	// otherwise, it iterates in ascending order.
 	PrefixScan(db weave.ReadOnlyKVStore, prefix []byte, reverse bool) (SerialModelIterator, error)
 
 	// ByIndex returns all objects that secondary index with given name and
@@ -55,13 +55,14 @@ type SerialModelBucket interface {
 	// in order of their count. Or easily find the lowest or highest count.
 	IndexScan(db weave.ReadOnlyKVStore, indexName string, prefix []byte, reverse bool) (SerialModelIterator, error)
 
-	// Put saves given SerialModel in the database. Before inserting into
+	// Create saves given SerialModel in the database. Before inserting into
 	// database, SerialModel is validated using its Validate method.
-	// If the key is nil or zero length then a sequence generator is used
-	// to create a unique key value.
-	// Using a key that already exists in the database cause the value to
-	// be overwritten.
-	Put(db weave.KVStore, m SerialModel) error
+	// ID field must be unset so auto incremented ID is generated.
+	Create(db weave.KVStore, m SerialModel) error
+
+	// Upsert creates given SerialModel in the database or upserts of given SerialModel
+	// with given ID exists. ID field must be set.
+	Upsert(db weave.KVStore, m SerialModel) error
 
 	// Delete removes an entity with given primary key from the database.
 	// It returns ErrNotFound if an entity with given key does not exist.
@@ -316,6 +317,70 @@ func (smb *serialModelBucket) Put(db weave.KVStore, m SerialModel) error {
 	obj := NewSimpleObj(key, m)
 	if err := smb.b.Save(db, obj); err != nil {
 		return errors.Wrap(err, "cannot store in the database")
+	}
+	// after serialization, return original/generated key on SerialModel
+	if err := m.SetID(key); err != nil {
+		return errors.Wrap(err, "cannot set ID")
+	}
+	return nil
+}
+
+func (smb *serialModelBucket) Create(db weave.KVStore, m SerialModel) error {
+	mTp := reflect.TypeOf(m)
+	if mTp.Kind() != reflect.Ptr {
+		return errors.Wrap(errors.ErrType, "serialmodel destination must be a pointer")
+	}
+	if smb.model != mTp.Elem() {
+		return errors.Wrapf(errors.ErrType, "cannot store %T type in this bucket", m)
+	}
+
+	if err := m.Validate(); err != nil {
+		return errors.Wrap(err, "invalid serialmodel")
+	}
+
+	key := m.GetID()
+	if len(key) != 0 {
+		return errors.Wrap(errors.ErrModel, "ID must be unset")
+	}
+
+	var err error
+	key, err = smb.idSeq.NextVal(db)
+	if err != nil {
+		return errors.Wrap(err, "ID sequence")
+	}
+
+	obj := NewSimpleObj(key, m)
+	if err := smb.b.Save(db, obj); err != nil {
+		return errors.Wrap(err, "cannot create in the database")
+	}
+	// after serialization, return original/generated key on SerialModel
+	if err := m.SetID(key); err != nil {
+		return errors.Wrap(err, "cannot set ID")
+	}
+	return nil
+}
+
+func (smb *serialModelBucket) Upsert(db weave.KVStore, m SerialModel) error {
+	mTp := reflect.TypeOf(m)
+	if mTp.Kind() != reflect.Ptr {
+		return errors.Wrap(errors.ErrType, "serialmodel destination must be a pointer")
+	}
+	if smb.model != mTp.Elem() {
+		return errors.Wrapf(errors.ErrType, "cannot store %T type in this bucket", m)
+	}
+
+	if err := m.Validate(); err != nil {
+		return errors.Wrap(err, "invalid serialmodel")
+	}
+
+	key := m.GetID()
+	if len(key) == 0 {
+		return errors.Wrap(errors.ErrModel, "ID must be set")
+	}
+
+	obj := NewSimpleObj(key, m)
+	if err := smb.b.Save(db, obj); err != nil {
+		return errors.Wrap(err, "cannot update in the database")
 	}
 	// after serialization, return original/generated key on SerialModel
 	if err := m.SetID(key); err != nil {

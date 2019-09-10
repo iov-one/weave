@@ -17,7 +17,7 @@ func TestSerialModelBucket(t *testing.T) {
 	b := NewSerialModelBucket("cnts", &CounterWithID{})
 
 	key1 := []byte("c1")
-	err := b.Put(db, &CounterWithID{ID: key1, Count: 1})
+	err := b.Upsert(db, &CounterWithID{ID: key1, Count: 1})
 	assert.Nil(t, err)
 
 	var c1 CounterWithID
@@ -35,40 +35,78 @@ func TestSerialModelBucket(t *testing.T) {
 		t.Fatalf("unexpected error for an unknown model get: %s", err)
 	}
 }
-
-func TestSerialModelBucketPutSequence(t *testing.T) {
+func TestSerialModelBucketCreateSequence(t *testing.T) {
 	db := store.MemStore()
 
 	b := NewSerialModelBucket("cnts", &CounterWithID{})
 
-	// Using a nil key should cause the sequence ID to be used.
-	cnt := CounterWithID{Count: 111}
+	// Using a key so should throw error
+	cnt := CounterWithID{ID: weavetest.SequenceID(1), Count: 111}
+	if err := b.Create(db, &cnt); !errors.ErrModel.Is(err) {
+		t.Fatalf("want a model error, got %+v", err)
+	}
+
+	// Create model and save
+	cnt = CounterWithID{Count: 111}
 	assert.Nil(t, cnt.GetID())
-	err := b.Put(db, &cnt)
+	err := b.Create(db, &cnt)
 	assert.Nil(t, err)
 	assert.Equal(t, cnt.GetID(), weavetest.SequenceID(1))
 
-	// Inserting an entity with a key provided must not modify the ID
-	// generation counter.
-	err = b.Put(db, &CounterWithID{ID: []byte("mycnt"), Count: 12345})
+	var loaded CounterWithID
+	// Ensure values retrived from db are valid
+	err = b.One(db, weavetest.SequenceID(1), &loaded)
+	assert.Nil(t, err)
+	assert.Equal(t, weavetest.SequenceID(1), loaded.GetID())
+	assert.Equal(t, int64(111), loaded.Count)
+
+	// Create new model and save
+	cnt = CounterWithID{Count: 222}
+	err = b.Create(db, &cnt)
+	assert.Nil(t, err)
+	assert.Equal(t, cnt.GetID(), weavetest.SequenceID(2))
+
+	// Ensure values retrived from db are valid and ID is incremented
+	err = b.One(db, weavetest.SequenceID(2), &loaded)
+	assert.Nil(t, err)
+	assert.Equal(t, weavetest.SequenceID(2), loaded.GetID())
+	assert.Equal(t, int64(222), loaded.Count)
+}
+
+func TestSerialModelBucketUpsertSequence(t *testing.T) {
+	db := store.MemStore()
+
+	b := NewSerialModelBucket("cnts", &CounterWithID{})
+
+	// Using a nil key should throw error
+	cnt := CounterWithID{Count: 111}
+	assert.Nil(t, cnt.GetID())
+	if err := b.Upsert(db, &cnt); !errors.ErrModel.Is(err) {
+		t.Fatalf("want a model error, got %+v", err)
+	}
+
+	// Using a key should not throw error
+	cnt = CounterWithID{ID: weavetest.SequenceID(1), Count: 111}
+	err := b.Upsert(db, &cnt)
 	assert.Nil(t, err)
 
-	cnt2 := CounterWithID{Count: 222}
-	err = b.Put(db, &cnt2)
+	// Get from db and compare
+	var loaded CounterWithID
+	err = b.One(db, weavetest.SequenceID(1), &loaded)
 	assert.Nil(t, err)
-	assert.Equal(t, cnt2.GetID(), weavetest.SequenceID(2))
+	assert.Equal(t, weavetest.SequenceID(1), loaded.GetID())
+	assert.Equal(t, int64(111), loaded.Count)
 
-	var c1 CounterWithID
-	err = b.One(db, weavetest.SequenceID(1), &c1)
+	// Overwrite saved model
+	cnt = CounterWithID{ID: weavetest.SequenceID(1), Count: 333}
+	err = b.Upsert(db, &cnt)
 	assert.Nil(t, err)
-	assert.Equal(t, weavetest.SequenceID(1), c1.GetID())
-	assert.Equal(t, int64(111), c1.Count)
 
-	var c2 CounterWithID
-	err = b.One(db, weavetest.SequenceID(2), &c2)
+	// Get from db and compare
+	err = b.One(db, weavetest.SequenceID(1), &loaded)
 	assert.Nil(t, err)
-	assert.Equal(t, weavetest.SequenceID(2), c2.GetID())
-	assert.Equal(t, int64(222), c2.Count)
+	assert.Equal(t, weavetest.SequenceID(1), loaded.GetID())
+	assert.Equal(t, int64(333), loaded.Count)
 }
 
 func TestSerialModelBucketPrefixScan(t *testing.T) {
@@ -85,7 +123,7 @@ func TestSerialModelBucketPrefixScan(t *testing.T) {
 
 	for i := range cnts {
 		// make sure we point to value in array, so this ID gets set
-		err := b.Put(db, &cnts[i])
+		err := b.Create(db, &cnts[i])
 		assert.Nil(t, err)
 	}
 
@@ -137,7 +175,7 @@ func TestSerialModelBucketIndexScanUnique(t *testing.T) {
 	}
 	for i := range cnts {
 		// make sure we point to value in array, so this ID gets set
-		err := b.Put(db, &cnts[i])
+		err := b.Create(db, &cnts[i])
 		assert.Nil(t, err)
 	}
 
@@ -189,7 +227,7 @@ func TestSerialModelBucketIndexScanMulti(t *testing.T) {
 	}
 	for i := range cnts {
 		// make sure we point to value in array, so this ID gets set
-		err := b.Put(db, &cnts[i])
+		err := b.Create(db, &cnts[i])
 		assert.Nil(t, err)
 	}
 
@@ -302,13 +340,13 @@ func TestSerialModelBucketByIndex(t *testing.T) {
 			}
 			b := NewSerialModelBucket("cnts", &CounterWithID{}, WithIndexSerial("value", indexByBigValue, false))
 
-			err := b.Put(db, &CounterWithID{Count: 1001})
+			err := b.Create(db, &CounterWithID{Count: 1001})
 			assert.Nil(t, err)
-			err = b.Put(db, &CounterWithID{Count: 2001})
+			err = b.Create(db, &CounterWithID{Count: 2001})
 			assert.Nil(t, err)
-			err = b.Put(db, &CounterWithID{Count: 4001})
+			err = b.Create(db, &CounterWithID{Count: 4001})
 			assert.Nil(t, err)
-			err = b.Put(db, &CounterWithID{Count: 4002})
+			err = b.Create(db, &CounterWithID{Count: 4002})
 			assert.Nil(t, err)
 
 			var dest []CounterWithID
@@ -331,16 +369,26 @@ func TestSerialModelBucketByIndex(t *testing.T) {
 // BadCounter implements Model but is different type than the model
 type BadCounter struct {
 	CounterWithID
+	ID     []byte
 	Random int
 }
 
 var _ Model = (*BadCounter)(nil)
 
-func TestSerialModelBucketPutWrongModelType(t *testing.T) {
+func TestSerialModelBucketCreateWrongModelType(t *testing.T) {
 	db := store.MemStore()
 	b := NewSerialModelBucket("cnts", &CounterWithID{})
 
-	if err := b.Put(db, &BadCounter{CounterWithID: CounterWithID{Count: 5}, Random: 77}); !errors.ErrType.Is(err) {
+	if err := b.Create(db, &BadCounter{CounterWithID: CounterWithID{Count: 5}, Random: 77}); !errors.ErrType.Is(err) {
+		t.Fatalf("unexpected error when trying to store wrong model type value: %s", err)
+	}
+}
+
+func TestSerialModelBucketUpsertWrongModelType(t *testing.T) {
+	db := store.MemStore()
+	b := NewSerialModelBucket("cnts", &CounterWithID{})
+
+	if err := b.Upsert(db, &BadCounter{ID: weavetest.SequenceID(1), CounterWithID: CounterWithID{Count: 5}, Random: 77}); !errors.ErrType.Is(err) {
 		t.Fatalf("unexpected error when trying to store wrong model type value: %s", err)
 	}
 }
@@ -349,7 +397,7 @@ func TestSerialModelBucketOneWrongModelType(t *testing.T) {
 	db := store.MemStore()
 	b := NewSerialModelBucket("cnts", &CounterWithID{})
 
-	err := b.Put(db, &CounterWithID{ID: []byte("counter"), Count: 1})
+	err := b.Upsert(db, &CounterWithID{ID: []byte("counter"), Count: 1})
 	assert.Nil(t, err)
 
 	var bad BadCounter
@@ -365,7 +413,7 @@ func TestSerialModelBucketByIndexWrongModelType(t *testing.T) {
 	}
 	b := NewSerialModelBucket("cnts", &CounterWithID{}, WithIndexSerial("x", indexer, false))
 
-	err := b.Put(db, &CounterWithID{ID: []byte("counter"), Count: 1})
+	err := b.Upsert(db, &CounterWithID{ID: []byte("counter"), Count: 1})
 	assert.Nil(t, err)
 
 	var bads []BadCounter
@@ -388,7 +436,7 @@ func TestSerialModelBucketHas(t *testing.T) {
 	db := store.MemStore()
 	b := NewSerialModelBucket("cnts", &CounterWithID{})
 
-	err := b.Put(db, &CounterWithID{ID: []byte("counter"), Count: 1})
+	err := b.Upsert(db, &CounterWithID{ID: []byte("counter"), Count: 1})
 	assert.Nil(t, err)
 
 	err = b.Has(db, []byte("counter"))

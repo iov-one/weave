@@ -167,7 +167,7 @@ func (m *ModelBucket) migrate(db weave.ReadOnlyKVStore, model orm.Model) error {
 	return migrate(m.migrations, m.schema, m.packageName, db, model)
 }
 
-// SerialModelBucket implements the orm.ModelBucket interface and provides the same
+// SerialModelBucket implements the orm.SerialModelBucket interface and provides the same
 // functionality with additional model schema migration.
 type SerialModelBucket struct {
 	b           orm.SerialModelBucket
@@ -279,11 +279,18 @@ func (smb *SerialModelBucket) IndexScan(db weave.ReadOnlyKVStore, indexName stri
 	return &migrationIterator{iter: iter, smb: smb, db: db}, nil
 }
 
-func (smb *SerialModelBucket) Put(db weave.KVStore, model orm.SerialModel) error {
+func (smb *SerialModelBucket) Create(db weave.KVStore, model orm.SerialModel) error {
 	if err := smb.migrate(db, model); err != nil {
 		return errors.Wrap(err, "migrate")
 	}
-	return smb.b.Put(db, model)
+	return smb.b.Create(db, model)
+}
+
+func (smb *SerialModelBucket) Upsert(db weave.KVStore, model orm.SerialModel) error {
+	if err := smb.migrate(db, model); err != nil {
+		return errors.Wrap(err, "migrate")
+	}
+	return smb.b.Upsert(db, model)
 }
 
 func (smb *SerialModelBucket) Delete(db weave.KVStore, key []byte) error {

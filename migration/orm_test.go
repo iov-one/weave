@@ -371,7 +371,7 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 		ID:       m1ID,
 		Cnt:      1,
 	}
-	err := b1.Put(db, &m1)
+	err := b1.Upsert(db, &m1)
 	assert.Nil(t, err)
 
 	var res MySerialModel
@@ -395,7 +395,7 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 		ID:       m2ID,
 		Cnt:      11,
 	}
-	err = b1.Put(db, &m2)
+	err = b1.Upsert(db, &m2)
 	assert.Nil(t, err)
 	if err := b1.One(db, m2.ID, &res); err != nil {
 		t.Fatalf("cannot fetch the second model: %s", err)
@@ -475,7 +475,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 		ID:       mID,
 		Cnt:      1,
 	}
-	err := b1.Put(db, &m)
+	err := b1.Upsert(db, &m)
 	assert.Nil(t, err)
 
 	var mres MySerialModel
@@ -495,7 +495,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 	}
 
 	// Save MySerialModel with external reference
-	err = b2.Put(db, &mwr)
+	err = b2.Upsert(db, &mwr)
 	assert.Nil(t, err)
 
 	var mwres MySerialModelWithRef
@@ -582,7 +582,7 @@ func TestSchemaVersionedSerialModelBucketPrefixScan(t *testing.T) {
 
 	// Save models
 	for i := range models {
-		err := b.Put(db, &models[i])
+		err := b.Create(db, &models[i])
 		assert.Nil(t, err)
 	}
 
@@ -672,7 +672,7 @@ func TestSchemaVersionedSerialModelBucketIndexScanUnique(t *testing.T) {
 
 	// Save models
 	for i := range models {
-		err := b.Put(db, &models[i])
+		err := b.Create(db, &models[i])
 		assert.Nil(t, err)
 	}
 
@@ -790,7 +790,7 @@ func TestSchemaVersionedSerialModelBucketIndexScanMulti(t *testing.T) {
 
 	// Save models
 	for i := range models {
-		err := b.Put(db, &models[i])
+		err := b.Create(db, &models[i])
 		assert.Nil(t, err)
 	}
 
