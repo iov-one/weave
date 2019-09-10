@@ -365,17 +365,30 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 	// from the application during tests.
 	b1.useRegister(reg)
 
-	m1ID := weavetest.SequenceID(1)
 	m1 := MySerialModel{
 		Metadata: &weave.Metadata{Schema: 1},
-		ID:       m1ID,
 		Cnt:      1,
 	}
-	err := b1.Upsert(db, &m1)
+	// Test Create
+	err := b1.Create(db, &m1)
 	assert.Nil(t, err)
 
 	var res MySerialModel
-	if err := b1.One(db, m1.ID, &res); err != nil {
+	if err = b1.One(db, weavetest.SequenceID(1), &res); err != nil {
+		t.Fatalf("cannot fetch the first model: %s", err)
+	}
+	assertMySerialModelState(t, &res, 1, 1)
+
+	// Test Upsert
+	m1ID := weavetest.SequenceID(1)
+	m1 = MySerialModel{
+		Metadata: &weave.Metadata{Schema: 1},
+		Cnt:      1,
+	}
+	err = b1.Create(db, &m1)
+	assert.Nil(t, err)
+
+	if err = b1.One(db, weavetest.SequenceID(1), &res); err != nil {
 		t.Fatalf("cannot fetch the first model: %s", err)
 	}
 	assertMySerialModelState(t, &res, 1, 1)
@@ -383,7 +396,7 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 	// Bumping a schema should unlock saving entities with higher schema version.
 	ensureSchemaVersion(t, db, thisPkgName, 2)
 
-	if err := b1.One(db, m1.ID, &res); err != nil {
+	if err = b1.One(db, m1.ID, &res); err != nil {
 		t.Fatalf("cannot fetch the first model: %s", err)
 	}
 	// Schema migration callback must update the model.
@@ -397,7 +410,7 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 	}
 	err = b1.Upsert(db, &m2)
 	assert.Nil(t, err)
-	if err := b1.One(db, m2.ID, &res); err != nil {
+	if err = b1.One(db, m2.ID, &res); err != nil {
 		t.Fatalf("cannot fetch the second model: %s", err)
 	}
 	// This model was stored with the second schema version so it must not
@@ -406,7 +419,7 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 
 	// ByIndex must support destination being slice of pointers.
 	var setv []MySerialModel
-	if err := b1.ByIndex(db, "const", []byte("all"), &setv); err != nil {
+	if err = b1.ByIndex(db, "const", []byte("all"), &setv); err != nil {
 		t.Fatalf("cannot query by index: %s", err)
 	}
 	wantv := []MySerialModel{
@@ -415,6 +428,21 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 	}
 	assert.Equal(t, wantv, setv)
 
+	// Test Has
+	err = b1.Has(db, m1ID)
+	assert.Nil(t, err)
+
+	if err = b1.Has(db, []byte{111}); !errors.ErrNotFound.Is(err) {
+		t.Fatal(err)
+	}
+
+	// Test Delete
+	err = b1.Delete(db, m1ID)
+	assert.Nil(t, err)
+
+	if err = b1.Has(db, m1ID); !errors.ErrNotFound.Is(err) {
+		t.Fatalf("cannot delete: %s", err)
+	}
 }
 
 // TestSchemaVersionedSerialModelBucketRefID tests if external ID
