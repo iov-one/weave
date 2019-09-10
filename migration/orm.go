@@ -190,11 +190,10 @@ type migrationIterator struct {
 var _ orm.SerialModelIterator = (*migrationIterator)(nil)
 
 func (i *migrationIterator) LoadNext(dest orm.SerialModel) error {
-	err := i.iter.LoadNext(dest)
-	if errors.ErrIteratorDone.Is(err) {
+	if err := i.iter.LoadNext(dest); err != nil {
 		return err
 	}
-	if err = i.smb.migrate(i.db, dest); err != nil {
+	if err := i.smb.migrate(i.db, dest); err != nil {
 		return errors.Wrapf(err, "migrate %d model", dest)
 	}
 	return nil
