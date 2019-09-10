@@ -287,44 +287,6 @@ func (smb *serialModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string
 
 }
 
-func (smb *serialModelBucket) Put(db weave.KVStore, m SerialModel) error {
-	mTp := reflect.TypeOf(m)
-	if mTp.Kind() != reflect.Ptr {
-		return errors.Wrap(errors.ErrType, "serialmodel destination must be a pointer")
-	}
-	if smb.model != mTp.Elem() {
-		return errors.Wrapf(errors.ErrType, "cannot store %T type in this bucket", m)
-	}
-
-	if err := m.Validate(); err != nil {
-		return errors.Wrap(err, "invalid serialmodel")
-	}
-
-	key := m.GetID()
-	if len(key) == 0 {
-		var err error
-		key, err = smb.idSeq.NextVal(db)
-		if err != nil {
-			return errors.Wrap(err, "ID sequence")
-		}
-	} else {
-		// always nil out the key before saving the value
-		if err := m.SetID(nil); err != nil {
-			return errors.Wrap(err, "cannot set ID")
-		}
-	}
-
-	obj := NewSimpleObj(key, m)
-	if err := smb.b.Save(db, obj); err != nil {
-		return errors.Wrap(err, "cannot store in the database")
-	}
-	// after serialization, return original/generated key on SerialModel
-	if err := m.SetID(key); err != nil {
-		return errors.Wrap(err, "cannot set ID")
-	}
-	return nil
-}
-
 func (smb *serialModelBucket) Create(db weave.KVStore, m SerialModel) error {
 	mTp := reflect.TypeOf(m)
 	if mTp.Kind() != reflect.Ptr {
