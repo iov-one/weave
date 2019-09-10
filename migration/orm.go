@@ -219,7 +219,7 @@ func NewSerialModelBucket(packageName string, model orm.SerialModel, bucket orm.
 }
 
 func (smb *SerialModelBucket) Register(name string, r weave.QueryRouter) {
-	smb.Register(name, r)
+	smb.b.Register(name, r)
 }
 
 func (smb *SerialModelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest orm.SerialModel) error {

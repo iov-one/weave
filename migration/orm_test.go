@@ -549,7 +549,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 	assertMySerialModelWithRefState(t, &mwres, 2, 4)
 
 	// Check if m1 ID and MySerialModelWithRefs external ID matches
-	if bytes.Compare(mwres.MySerialModelID, mres.ID) != 0 {
+	if !bytes.Equal(mwres.MySerialModelID, mres.ID) {
 		t.Fatalf("id %d does not match reference id %d", mwres.MySerialModelID, mres.ID)
 	}
 
@@ -730,6 +730,7 @@ func TestSchemaVersionedSerialModelBucketIndexScanUnique(t *testing.T) {
 	assert.Equal(t, MySerialModel{Metadata: &weave.Metadata{Schema: 2}, ID: weavetest.SequenceID(2), Cnt: 6}, loaded)
 
 	err = iter.LoadNext(&loaded)
+	assert.Nil(t, err)
 	// should get third-lowest value
 	assert.Equal(t, MySerialModel{Metadata: &weave.Metadata{Schema: 2}, ID: weavetest.SequenceID(3), Cnt: 11}, loaded)
 
