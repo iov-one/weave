@@ -550,30 +550,22 @@ func TestSchemaVersionedSerialModelBucketPrefixScan(t *testing.T) {
 	// Initialize schema
 	ensureSchemaVersion(t, db, thisPkgName, 1)
 
-	// Initalize models
-	m1ID := weavetest.SequenceID(1)
-	m2ID := weavetest.SequenceID(2)
-	m3ID := weavetest.SequenceID(3)
 	models := []MySerialModel{
 		MySerialModel{
 			Metadata: &weave.Metadata{Schema: 1},
-			ID:       m1ID,
 			Cnt:      1,
 		},
 		MySerialModel{
 			Metadata: &weave.Metadata{Schema: 1},
-			ID:       m2ID,
 			Cnt:      5,
 		},
 		MySerialModel{
 			Metadata: &weave.Metadata{Schema: 1},
-			ID:       m3ID,
 			Cnt:      10,
 		},
 		MySerialModel{
 			Metadata: &weave.Metadata{Schema: 1},
-			// ID must be Sequence(4)
-			Cnt: 15,
+			Cnt:      15,
 		},
 	}
 
@@ -586,19 +578,34 @@ func TestSchemaVersionedSerialModelBucketPrefixScan(t *testing.T) {
 	// migrate
 	ensureSchemaVersion(t, db, thisPkgName, 2)
 
-	// check
-	iter, err := b.PrefixScan(db, nil, true)
+	// prefix scan
+	iter, err := b.PrefixScan(db, nil, false)
 	assert.Nil(t, err)
 
 	var m MySerialModel
-	iter.LoadNext(&m)
-	assertMySerialModelState(t, &m, 2, models[0].Cnt)
-	iter.LoadNext(&m)
-	assertMySerialModelState(t, &m, 2, models[1].Cnt)
-	iter.LoadNext(&m)
-	assertMySerialModelState(t, &m, 2, models[2].Cnt)
-	iter.LoadNext(&m)
-	assertMySerialModelState(t, &m, 2, models[3].Cnt)
+	err = iter.LoadNext(&m)
+	assertMySerialModelState(t, &m, 2, models[0].Cnt+1)
+	err = iter.LoadNext(&m)
+	assertMySerialModelState(t, &m, 2, models[1].Cnt+1)
+	err = iter.LoadNext(&m)
+	assertMySerialModelState(t, &m, 2, models[2].Cnt+1)
+	err = iter.LoadNext(&m)
+	assertMySerialModelState(t, &m, 2, models[3].Cnt+1)
+
+	iter.Release()
+
+	// reverse prefix scan
+	iter, err = b.PrefixScan(db, nil, true)
+	assert.Nil(t, err)
+
+	err = iter.LoadNext(&m)
+	assertMySerialModelState(t, &m, 2, models[3].Cnt+1)
+	err = iter.LoadNext(&m)
+	assertMySerialModelState(t, &m, 2, models[2].Cnt+1)
+	err = iter.LoadNext(&m)
+	assertMySerialModelState(t, &m, 2, models[1].Cnt+1)
+	err = iter.LoadNext(&m)
+	assertMySerialModelState(t, &m, 2, models[0].Cnt+1)
 
 	iter.Release()
 }
