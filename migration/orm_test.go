@@ -2,6 +2,7 @@ package migration
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"testing"
 
@@ -254,6 +255,16 @@ type MySerialModel struct {
 	Cnt      int
 
 	err error
+}
+
+func lexographicCountIndex(obj orm.Object) ([]byte, error) {
+	c, ok := obj.Value().(*MySerialModel)
+	if !ok {
+		return nil, errors.Wrapf(errors.ErrType, "%T", obj.Value())
+	}
+	res := make([]byte, 8)
+	binary.BigEndian.PutUint64(res, uint64(c.Cnt))
+	return res, nil
 }
 
 func (m *MySerialModel) GetMetadata() *weave.Metadata {
@@ -606,6 +617,116 @@ func TestSchemaVersionedSerialModelBucketPrefixScan(t *testing.T) {
 	assertMySerialModelState(t, &m, 2, models[1].Cnt+1)
 	err = iter.LoadNext(&m)
 	assertMySerialModelState(t, &m, 2, models[0].Cnt+1)
+
+	iter.Release()
+}
+
+func TestSchemaVersionedSerialModelBucketIndexScan(t *testing.T) {
+	// Initialize register
+	const thisPkgName = "testpkg"
+
+	reg := newRegister()
+
+	// Register MySerialModel versions
+	reg.MustRegister(1, &MySerialModel{}, NoModification)
+	reg.MustRegister(2, &MySerialModel{}, func(db weave.ReadOnlyKVStore, m Migratable) error {
+		msg := m.(*MySerialModel)
+		msg.Cnt++
+		return msg.err
+	})
+
+	// Initialize bucket
+	b := NewSerialModelBucket(
+		thisPkgName,
+		&MySerialModel{},
+		orm.NewSerialModelBucket("mysmodel", &MySerialModel{},
+			orm.WithIndexSerial("counter", lexographicCountIndex, true)),
+	)
+
+	b.useRegister(reg)
+
+	// Initialize db
+	db := store.MemStore()
+
+	// Initialize schema
+	ensureSchemaVersion(t, db, thisPkgName, 1)
+
+	models := []MySerialModel{
+		MySerialModel{
+			Metadata: &weave.Metadata{Schema: 1},
+			Cnt:      1,
+		},
+		MySerialModel{
+			Metadata: &weave.Metadata{Schema: 1},
+			Cnt:      5,
+		},
+		MySerialModel{
+			Metadata: &weave.Metadata{Schema: 1},
+			Cnt:      10,
+		},
+		MySerialModel{
+			Metadata: &weave.Metadata{Schema: 1},
+			Cnt:      15,
+		},
+	}
+
+	// Save models
+	for i := range models {
+		err := b.Put(db, &models[i])
+		assert.Nil(t, err)
+	}
+
+	// Bump schema version
+	ensureSchemaVersion(t, db, thisPkgName, 2)
+
+	var loaded MySerialModel
+	iter, err := b.IndexScan(db, "counter", nil, false)
+	assert.Nil(t, err)
+
+	err = iter.LoadNext(&loaded)
+	assert.Nil(t, err)
+	// should get lowest value
+	assert.Equal(t, MySerialModel{Metadata: &weave.Metadata{Schema: 2}, ID: weavetest.SequenceID(1), Cnt: 2}, loaded)
+
+	err = iter.LoadNext(&loaded)
+	assert.Nil(t, err)
+	// should get second-lowest value
+	assert.Equal(t, MySerialModel{Metadata: &weave.Metadata{Schema: 2}, ID: weavetest.SequenceID(2), Cnt: 6}, loaded)
+
+	err = iter.LoadNext(&loaded)
+	// should get third-lowest value
+	assert.Equal(t, MySerialModel{Metadata: &weave.Metadata{Schema: 2}, ID: weavetest.SequenceID(3), Cnt: 11}, loaded)
+
+	err = iter.LoadNext(&loaded)
+	assert.Nil(t, err)
+	// should get highest value
+	assert.Equal(t, MySerialModel{Metadata: &weave.Metadata{Schema: 2}, ID: weavetest.SequenceID(4), Cnt: 16}, loaded)
+
+	iter.Release()
+
+	// validate reverse also works
+	iter, err = b.IndexScan(db, "counter", nil, true)
+	assert.Nil(t, err)
+
+	err = iter.LoadNext(&loaded)
+	assert.Nil(t, err)
+	// should get highest value
+	assert.Equal(t, MySerialModel{Metadata: &weave.Metadata{Schema: 2}, ID: weavetest.SequenceID(4), Cnt: 16}, loaded)
+
+	err = iter.LoadNext(&loaded)
+	assert.Nil(t, err)
+	// should get second-highest value
+	assert.Equal(t, MySerialModel{Metadata: &weave.Metadata{Schema: 2}, ID: weavetest.SequenceID(3), Cnt: 11}, loaded)
+
+	err = iter.LoadNext(&loaded)
+	assert.Nil(t, err)
+	// should get third-highest value
+	assert.Equal(t, MySerialModel{Metadata: &weave.Metadata{Schema: 2}, ID: weavetest.SequenceID(2), Cnt: 6}, loaded)
+
+	err = iter.LoadNext(&loaded)
+	assert.Nil(t, err)
+	// should get lowest value
+	assert.Equal(t, MySerialModel{Metadata: &weave.Metadata{Schema: 2}, ID: weavetest.SequenceID(1), Cnt: 2}, loaded)
 
 	iter.Release()
 }

@@ -276,21 +276,7 @@ func (smb *SerialModelBucket) IndexScan(db weave.ReadOnlyKVStore, indexName stri
 		return nil, err
 	}
 
-	var model orm.SerialModel
-	// Migrate models
-	for err = nil; err != nil; err = iter.LoadNext(model) {
-		if err := smb.migrate(db, model); err != nil {
-			return nil, errors.Wrapf(err, "migrate %d model", model)
-		}
-	}
-	iter.Release()
-
-	// Return new iterator
-	iter, err = smb.b.IndexScan(db, indexName, prefix, reverse)
-	if err != nil {
-		return nil, err
-	}
-	return iter, nil
+	return &migrationIterator{iter: iter, smb: smb, db: db}, nil
 }
 
 func (smb *SerialModelBucket) Put(db weave.KVStore, model orm.SerialModel) error {
