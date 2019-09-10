@@ -345,9 +345,9 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 
 	b1 := NewSerialModelBucket(
 		thisPkgName,
+		&MySerialModel{},
 		orm.NewSerialModelBucket("mysmodel", &MySerialModel{},
-			orm.WithIndexSerial("const", func(orm.Object) ([]byte, error) { return []byte("all"), nil }, false),
-		),
+			orm.WithIndexSerial("const", func(orm.Object) ([]byte, error) { return []byte("all"), nil }, false)),
 	)
 
 	// Use custom register instead of the global one to avoid pollution
@@ -433,6 +433,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 	// Initilize MySerialModel bucket
 	b1 := NewSerialModelBucket(
 		thisPkgName,
+		&MySerialModel{},
 		orm.NewSerialModelBucket("mysmodel", &MySerialModel{},
 			orm.WithIndexSerial("const", func(orm.Object) ([]byte, error) { return []byte("all"), nil }, false),
 		),
@@ -441,6 +442,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 	// Initilize MySerialModelWithRef bucket
 	b2 := NewSerialModelBucket(
 		thisPkgName,
+		&MySerialModel{},
 		orm.NewSerialModelBucket("mysmodelr", &MySerialModelWithRef{},
 			orm.WithIndexSerial("const", func(orm.Object) ([]byte, error) { return []byte("all"), nil }, false),
 		),
@@ -536,8 +538,11 @@ func TestSchemaVersionedSerialModelBucketPrefixScan(t *testing.T) {
 	// Initialize bucket
 	b := NewSerialModelBucket(
 		thisPkgName,
+		&MySerialModel{},
 		orm.NewSerialModelBucket("mysmodel", &MySerialModel{}),
 	)
+
+	b.useRegister(reg)
 
 	// Initialize db
 	db := store.MemStore()
@@ -582,19 +587,20 @@ func TestSchemaVersionedSerialModelBucketPrefixScan(t *testing.T) {
 	ensureSchemaVersion(t, db, thisPkgName, 2)
 
 	// check
-	iter, err := b.PrefixScan(db, []byte{0}, false)
-	defer iter.Release()
+	iter, err := b.PrefixScan(db, nil, true)
 	assert.Nil(t, err)
 
 	var m MySerialModel
 	iter.LoadNext(&m)
-	assertMySerialModelState(t, &m, 2, 2)
+	assertMySerialModelState(t, &m, 2, models[0].Cnt)
 	iter.LoadNext(&m)
-	assertMySerialModelState(t, &m, 2, 6)
+	assertMySerialModelState(t, &m, 2, models[1].Cnt)
 	iter.LoadNext(&m)
-	assertMySerialModelState(t, &m, 2, 11)
+	assertMySerialModelState(t, &m, 2, models[2].Cnt)
 	iter.LoadNext(&m)
-	assertMySerialModelState(t, &m, 2, 16)
+	assertMySerialModelState(t, &m, 2, models[3].Cnt)
+
+	iter.Release()
 }
 
 func assertMySerialModelState(t testing.TB, m *MySerialModel, wantSchemaVersion uint32, wantCnt int) {

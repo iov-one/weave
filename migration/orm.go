@@ -174,21 +174,27 @@ type SerialModelBucket struct {
 	packageName string
 	schema      *SchemaBucket
 	migrations  *register
+	model       reflect.Type
 }
 
 var _ orm.SerialModelBucket = (*SerialModelBucket)(nil)
 
-func NewSerialModelBucket(packageName string, b orm.SerialModelBucket) *SerialModelBucket {
+func NewSerialModelBucket(packageName string, model orm.SerialModel, bucket orm.SerialModelBucket) *SerialModelBucket {
+	tp := reflect.TypeOf(model)
+	if tp.Kind() == reflect.Ptr {
+		tp = tp.Elem()
+	}
 	return &SerialModelBucket{
-		b:           b,
+		b:           bucket,
 		packageName: packageName,
 		schema:      NewSchemaBucket(),
 		migrations:  reg,
+		model:       tp,
 	}
 }
 
 func (smb *SerialModelBucket) Register(name string, r weave.QueryRouter) {
-	smb.b.Register(name, r)
+	smb.Register(name, r)
 }
 
 func (smb *SerialModelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest orm.SerialModel) error {
@@ -235,19 +241,18 @@ func (smb *SerialModelBucket) PrefixScan(db weave.ReadOnlyKVStore, prefix []byte
 		return nil, err
 	}
 
-	var model *orm.SerialModel
-	typ := reflect.TypeOf(model).Elem()
-	entity := reflect.New(typ).Interface().(orm.SerialModel)
-	// Migrate models
-	err = iter.LoadNext(entity)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot load iterator")
-	}
-	for err = iter.LoadNext(entity); err != nil; err = iter.LoadNext(entity) {
+	entity := reflect.New(smb.model).Interface().(orm.SerialModel)
+
+	for err = iter.LoadNext(entity); err == nil; err = iter.LoadNext(entity) {
 		if err := smb.migrate(db, entity); err != nil {
 			return nil, errors.Wrapf(err, "migrate %d model", entity)
 		}
+		err = iter.LoadNext(entity)
 	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot load iterator")
+	}
+
 	iter.Release()
 
 	// Return new iterator. TODO cache

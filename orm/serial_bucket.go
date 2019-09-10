@@ -90,10 +90,10 @@ func NewSerialModelBucket(name string, m SerialModel, opts ...SerialModelBucketO
 	}
 
 	smb := &serialModelBucket{
-		b:           b,
-		idSeq:       b.Sequence("id"),
-		SerialModel: tp,
-		bucketName:  name,
+		b:          b,
+		idSeq:      b.Sequence("id"),
+		model:      tp,
+		bucketName: name,
 	}
 	for _, fn := range opts {
 		fn(smb)
@@ -141,10 +141,10 @@ type serialModelBucket struct {
 	bucketName string
 	indices    []indexInfo
 
-	// SerialModel is referencing the structure type. Event if the structure
+	// model is referencing the structure type. Event if the structure
 	// pointer is implementing SerialModel interface, this variable references
 	// the structure directly and not the structure's pointer type.
-	SerialModel reflect.Type
+	model reflect.Type
 }
 
 func (smb *serialModelBucket) Register(name string, r weave.QueryRouter) {
@@ -262,8 +262,8 @@ func (smb *serialModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string
 	if sliceOfPointers {
 		allowed = allowed.Elem()
 	}
-	if smb.SerialModel != allowed {
-		return errors.Wrapf(errors.ErrType, "this bucket operates on %s serialmodel and cannot return %s", smb.SerialModel, allowed)
+	if smb.model != allowed {
+		return errors.Wrapf(errors.ErrType, "this bucket operates on %s serialmodel and cannot return %s", smb.model, allowed)
 	}
 
 	for _, obj := range objs {
@@ -291,7 +291,7 @@ func (smb *serialModelBucket) Put(db weave.KVStore, m SerialModel) error {
 	if mTp.Kind() != reflect.Ptr {
 		return errors.Wrap(errors.ErrType, "serialmodel destination must be a pointer")
 	}
-	if smb.SerialModel != mTp.Elem() {
+	if smb.model != mTp.Elem() {
 		return errors.Wrapf(errors.ErrType, "cannot store %T type in this bucket", m)
 	}
 
