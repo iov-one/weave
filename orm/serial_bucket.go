@@ -65,7 +65,7 @@ type SerialModelBucket interface {
 	Upsert(db weave.KVStore, m SerialModel) error
 
 	// Delete removes an entity with given primary key from the database.
-	// It returns ErrNotFound if an entity with given key does not exist.
+	// Returns ErrNotFound if an entity with given key does not exist.
 	Delete(db weave.KVStore, key []byte) error
 
 	// Has returns nil if an entity with given primary key value exists. It
@@ -106,6 +106,7 @@ func NewSerialModelBucket(name string, m SerialModel, opts ...SerialModelBucketO
 // SerialModelBucket during creation.
 type SerialModelBucketOption func(smb *serialModelBucket)
 
+// indexInfo keeps information on index
 type indexInfo struct {
 	name string
 	// prefix is the kvstore prefix used for all items in the index
@@ -135,6 +136,7 @@ func indexPrefix(bucketName, indexName string) []byte {
 	return []byte(path)
 }
 
+// serialModelBucket is concrete implementation of SerialModelBucket
 type serialModelBucket struct {
 	b     Bucket
 	idSeq Sequence
@@ -194,6 +196,7 @@ func (smb *serialModelBucket) PrefixScan(db weave.ReadOnlyKVStore, prefix []byte
 	return &idSerialModelIterator{iterator: rawIter, bucketPrefix: smb.b.DBKey(nil)}, nil
 }
 
+// getIndexInfo returns the indexInfo from indices by name
 func (smb *serialModelBucket) getIndexInfo(name string) *indexInfo {
 	for _, info := range smb.indices {
 		if info.name == name {

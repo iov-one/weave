@@ -635,6 +635,11 @@ func TestSchemaVersionedSerialModelBucketPrefixScan(t *testing.T) {
 	assert.Nil(t, err)
 	assertMySerialModelState(t, &m, 2, models[3].Cnt+1)
 
+	// test iterator done case
+	if err = iter.LoadNext(&m); !errors.ErrIteratorDone.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
 	iter.Release()
 
 	// reverse prefix scan
@@ -653,6 +658,11 @@ func TestSchemaVersionedSerialModelBucketPrefixScan(t *testing.T) {
 	err = iter.LoadNext(&m)
 	assert.Nil(t, err)
 	assertMySerialModelState(t, &m, 2, models[0].Cnt+1)
+
+	// test iterator done case
+	if err = iter.LoadNext(&m); !errors.ErrIteratorDone.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
 
 	iter.Release()
 }

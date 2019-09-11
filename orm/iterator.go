@@ -19,6 +19,7 @@ type SerialModelIterator interface {
 	Release()
 }
 
+// idSerialModelIterator iterates over IDs
 type idSerialModelIterator struct {
 	// this is the raw KVStoreIterator
 	iterator weave.Iterator
@@ -41,6 +42,7 @@ func (i *idSerialModelIterator) Release() {
 	i.iterator.Release()
 }
 
+// indexSerialModelIterator iterates over indexes
 type indexSerialModelIterator struct {
 	// this is the raw KVStoreIterator
 	iterator weave.Iterator
@@ -48,6 +50,8 @@ type indexSerialModelIterator struct {
 	bucketPrefix []byte
 	unique       bool
 
+	// there could be multiple indexes that point to the same
+	// object so we cache keys.
 	kv         weave.ReadOnlyKVStore
 	cachedKeys [][]byte
 }

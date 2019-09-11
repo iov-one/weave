@@ -35,7 +35,7 @@ func TestSerialModelBucket(t *testing.T) {
 		t.Fatalf("unexpected error for an unknown model get: %s", err)
 	}
 }
-func TestSerialModelBucketCreateSequence(t *testing.T) {
+func TestSerialModelBucketCreate(t *testing.T) {
 	db := store.MemStore()
 
 	b := NewSerialModelBucket("cnts", &CounterWithID{})
@@ -73,7 +73,7 @@ func TestSerialModelBucketCreateSequence(t *testing.T) {
 	assert.Equal(t, int64(222), loaded.Count)
 }
 
-func TestSerialModelBucketUpsertSequence(t *testing.T) {
+func TestSerialModelBucketUpsert(t *testing.T) {
 	db := store.MemStore()
 
 	b := NewSerialModelBucket("cnts", &CounterWithID{})
@@ -148,7 +148,28 @@ func TestSerialModelBucketPrefixScan(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, cnts[len(cnts)-1], loaded)
 	iter.Release()
+}
 
+func TestSerialModelBucketPrefixIteratorDone(t *testing.T) {
+	db := store.MemStore()
+
+	b := NewSerialModelBucket("cnts", &CounterWithID{})
+
+	cntr := CounterWithID{Count: 1}
+	// make sure we point to value in array, so this ID gets set
+	err := b.Create(db, &cntr)
+	assert.Nil(t, err)
+
+	var loaded CounterWithID
+	iter, err := b.PrefixScan(db, nil, false)
+	assert.Nil(t, err)
+
+	err = iter.LoadNext(&loaded)
+	assert.Nil(t, err)
+
+	if err = iter.LoadNext(&loaded); !errors.ErrIteratorDone.Is(err) {
+		t.Fatalf("unexpected error: %s", err)
+	}
 }
 
 func lexographicCountIndex(obj Object) ([]byte, error) {
