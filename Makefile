@@ -9,15 +9,11 @@ TOOLS := cmd/bnsd cmd/bnscli
 # MODE=set just records which lines were hit by one test
 MODE ?= set
 
-# Check if linter exists
-LINT := $(shell command -v golangci-lint 2> /dev/null)
-
 # for dockerized prototool
 USER := $(shell id -u):$(shell id -g)
 DOCKER_BASE := docker run --rm -v $(shell pwd):/work iov1/prototool:v0.2.2
 PROTOTOOL := $(DOCKER_BASE) prototool
 PROTOC := $(DOCKER_BASE) protoc
-
 
 all: test lint
 
