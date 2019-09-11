@@ -20,7 +20,7 @@ cache:
     - $TRAVIS_BUILD_DIR/.gitian-builder-cache
     - /var/cache/apt-cacher-ng
     - $HOME/docker
-    
+
 before_cache:
   # Save tagged docker images
   - mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}' | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
@@ -32,7 +32,6 @@ go:
 # reason for bumping 1.11.x to 1.11.4+ is this: https://github.com/golang/go/issues/30446#issuecomment-468038052
 - "1.11.4"
 - "1.12"
-
 
 env:
   global:
@@ -117,4 +116,3 @@ deploy:
   on:
     tags: true
     condition: $TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$
-
