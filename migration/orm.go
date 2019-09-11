@@ -174,7 +174,6 @@ type SerialModelBucket struct {
 	packageName string
 	schema      *SchemaBucket
 	migrations  *register
-	model       reflect.Type
 }
 
 var _ orm.SerialModelBucket = (*SerialModelBucket)(nil)
@@ -204,16 +203,11 @@ func (i *migrationIterator) Release() {
 }
 
 func NewSerialModelBucket(packageName string, model orm.SerialModel, bucket orm.SerialModelBucket) *SerialModelBucket {
-	tp := reflect.TypeOf(model)
-	if tp.Kind() == reflect.Ptr {
-		tp = tp.Elem()
-	}
 	return &SerialModelBucket{
 		b:           bucket,
 		packageName: packageName,
 		schema:      NewSchemaBucket(),
 		migrations:  reg,
-		model:       tp,
 	}
 }
 
