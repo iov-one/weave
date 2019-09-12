@@ -191,8 +191,8 @@ func TestSerialModelBucketIndexScanUnique(t *testing.T) {
 		CounterWithID{Count: 1},
 		CounterWithID{Count: 17},
 		CounterWithID{Count: 93},
-		CounterWithID{Count: 3},
-		CounterWithID{Count: 8},
+		CounterWithID{Count: 3333333333},
+		CounterWithID{Count: 1111111111},
 	}
 	for i := range cnts {
 		// make sure we point to value in array, so this ID gets set
@@ -212,7 +212,7 @@ func TestSerialModelBucketIndexScanUnique(t *testing.T) {
 	err = iter.LoadNext(&loaded)
 	assert.Nil(t, err)
 	// should get second-lowest value
-	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(4), Count: 3}, loaded)
+	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(2), Count: 17}, loaded)
 
 	iter.Release()
 
@@ -223,12 +223,12 @@ func TestSerialModelBucketIndexScanUnique(t *testing.T) {
 	err = iter.LoadNext(&loaded)
 	assert.Nil(t, err)
 	// should get highest value
-	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(3), Count: 93}, loaded)
+	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(4), Count: 3333333333}, loaded)
 
 	err = iter.LoadNext(&loaded)
 	assert.Nil(t, err)
 	// should get second-highest value
-	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(2), Count: 17}, loaded)
+	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(5), Count: 1111111111}, loaded)
 
 	iter.Release()
 }
@@ -243,9 +243,13 @@ func TestSerialModelBucketIndexScanMulti(t *testing.T) {
 		CounterWithID{Count: 17},
 		CounterWithID{Count: 3},
 		CounterWithID{Count: 8},
+		CounterWithID{Count: 3333333333},
 		CounterWithID{Count: 17},
 		CounterWithID{Count: 3},
+		CounterWithID{Count: 3333333333},
+		CounterWithID{Count: 1111111111},
 	}
+
 	for i := range cnts {
 		// make sure we point to value in array, so this ID gets set
 		err := b.Create(db, &cnts[i])
@@ -268,7 +272,7 @@ func TestSerialModelBucketIndexScanMulti(t *testing.T) {
 	err = iter.LoadNext(&loaded)
 	assert.Nil(t, err)
 	// should get 3 a second time
-	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(6), Count: 3}, loaded)
+	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(7), Count: 3}, loaded)
 
 	iter.Release()
 
@@ -277,21 +281,20 @@ func TestSerialModelBucketIndexScanMulti(t *testing.T) {
 	assert.Nil(t, err)
 	err = iter.LoadNext(&loaded)
 	assert.Nil(t, err)
-	// should get lowest value
-	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(2), Count: 17}, loaded)
+	// should get highest value (3333333333)
+	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(5), Count: 3333333333}, loaded)
 
 	err = iter.LoadNext(&loaded)
 	assert.Nil(t, err)
-	// should get second-lowest value (17)
-	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(5), Count: 17}, loaded)
+	// should get second-highest value (3333333333)
+	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(8), Count: 3333333333}, loaded)
 
 	err = iter.LoadNext(&loaded)
 	assert.Nil(t, err)
-	// should get third-lowest value (8)
-	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(4), Count: 8}, loaded)
+	// should get third-lowest value (1111111111)
+	assert.Equal(t, CounterWithID{ID: weavetest.SequenceID(9), Count: 1111111111}, loaded)
 
 	iter.Release()
-
 }
 
 func TestSerialModelBucketByIndex(t *testing.T) {
