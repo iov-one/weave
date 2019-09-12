@@ -21,7 +21,7 @@ func TestSerialModelBucket(t *testing.T) {
 	assert.Nil(t, err)
 
 	var c1 CounterWithID
-	err = b.One(db, key1, &c1)
+	err = b.GetByID(db, key1, &c1)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), c1.Count)
 	assert.Equal(t, key1, c1.GetID())
@@ -31,7 +31,7 @@ func TestSerialModelBucket(t *testing.T) {
 	if err := b.Delete(db, []byte("unknown")); !errors.ErrNotFound.Is(err) {
 		t.Fatalf("unexpected error when deleting unexisting instance: %s", err)
 	}
-	if err := b.One(db, key1, &c1); !errors.ErrNotFound.Is(err) {
+	if err := b.GetByID(db, key1, &c1); !errors.ErrNotFound.Is(err) {
 		t.Fatalf("unexpected error for an unknown model get: %s", err)
 	}
 }
@@ -55,7 +55,7 @@ func TestSerialModelBucketCreate(t *testing.T) {
 
 	var loaded CounterWithID
 	// Ensure values retrived from db are valid
-	err = b.One(db, weavetest.SequenceID(1), &loaded)
+	err = b.GetByID(db, weavetest.SequenceID(1), &loaded)
 	assert.Nil(t, err)
 	assert.Equal(t, weavetest.SequenceID(1), loaded.GetID())
 	assert.Equal(t, int64(111), loaded.Count)
@@ -67,7 +67,7 @@ func TestSerialModelBucketCreate(t *testing.T) {
 	assert.Equal(t, cnt.GetID(), weavetest.SequenceID(2))
 
 	// Ensure values retrived from db are valid and ID is incremented
-	err = b.One(db, weavetest.SequenceID(2), &loaded)
+	err = b.GetByID(db, weavetest.SequenceID(2), &loaded)
 	assert.Nil(t, err)
 	assert.Equal(t, weavetest.SequenceID(2), loaded.GetID())
 	assert.Equal(t, int64(222), loaded.Count)
@@ -92,7 +92,7 @@ func TestSerialModelBucketUpsert(t *testing.T) {
 
 	// Get from db and compare
 	var loaded CounterWithID
-	err = b.One(db, weavetest.SequenceID(1), &loaded)
+	err = b.GetByID(db, weavetest.SequenceID(1), &loaded)
 	assert.Nil(t, err)
 	assert.Equal(t, weavetest.SequenceID(1), loaded.GetID())
 	assert.Equal(t, int64(111), loaded.Count)
@@ -103,7 +103,7 @@ func TestSerialModelBucketUpsert(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Get from db and compare
-	err = b.One(db, weavetest.SequenceID(1), &loaded)
+	err = b.GetByID(db, weavetest.SequenceID(1), &loaded)
 	assert.Nil(t, err)
 	assert.Equal(t, weavetest.SequenceID(1), loaded.GetID())
 	assert.Equal(t, int64(333), loaded.Count)
@@ -422,7 +422,7 @@ func TestSerialModelBucketOneWrongModelType(t *testing.T) {
 	assert.Nil(t, err)
 
 	var bad BadCounter
-	if err := b.One(db, []byte("counter"), &bad); !errors.ErrType.Is(err) {
+	if err := b.GetByID(db, []byte("counter"), &bad); !errors.ErrType.Is(err) {
 		t.Fatalf("unexpected error when trying to get wrong model type value: %s", err)
 	}
 }

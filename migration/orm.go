@@ -215,8 +215,8 @@ func (smb *SerialModelBucket) Register(name string, r weave.QueryRouter) {
 	smb.b.Register(name, r)
 }
 
-func (smb *SerialModelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest orm.SerialModel) error {
-	if err := smb.b.One(db, key, dest); err != nil {
+func (smb *SerialModelBucket) GetByID(db weave.ReadOnlyKVStore, key []byte, dest orm.SerialModel) error {
+	if err := smb.b.GetByID(db, key, dest); err != nil {
 		return err
 	}
 	if err := smb.migrate(db, dest); err != nil {
