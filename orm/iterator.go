@@ -62,7 +62,7 @@ var _ SerialModelIterator = (*indexSerialModelIterator)(nil)
 func (i *indexSerialModelIterator) LoadNext(dest SerialModel) error {
 	key, err := i.getKey()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "cannot load next")
 	}
 	val, err := i.kv.Get(key)
 
