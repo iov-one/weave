@@ -150,6 +150,18 @@ type serialModelBucket struct {
 	model reflect.Type
 }
 
+// enforceType checks if given models is supported by serialModelBucket
+func (smb *serialModelBucket) enforceType(m SerialModel) error {
+	mTp := reflect.TypeOf(m)
+	if mTp.Kind() != reflect.Ptr {
+		return errors.Wrap(errors.ErrType, "serialmodel destination must be a pointer")
+	}
+	if smb.model != mTp.Elem() {
+		return errors.Wrapf(errors.ErrType, "cannot store %T type in this bucket", m)
+	}
+	return nil
+}
+
 func (smb *serialModelBucket) Register(name string, r weave.QueryRouter) {
 	smb.b.Register(name, r)
 }
@@ -291,12 +303,9 @@ func (smb *serialModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string
 }
 
 func (smb *serialModelBucket) Create(db weave.KVStore, m SerialModel) error {
-	mTp := reflect.TypeOf(m)
-	if mTp.Kind() != reflect.Ptr {
-		return errors.Wrap(errors.ErrType, "serialmodel destination must be a pointer")
-	}
-	if smb.model != mTp.Elem() {
-		return errors.Wrapf(errors.ErrType, "cannot store %T type in this bucket", m)
+	err := smb.enforceType(m)
+	if err != nil {
+		return errors.Wrap(err, "model type is not supported")
 	}
 
 	if err := m.Validate(); err != nil {
@@ -308,7 +317,6 @@ func (smb *serialModelBucket) Create(db weave.KVStore, m SerialModel) error {
 		return errors.Wrap(errors.ErrModel, "ID must be unset")
 	}
 
-	var err error
 	key, err = smb.idSeq.NextVal(db)
 	if err != nil {
 		return errors.Wrap(err, "ID sequence")
@@ -326,12 +334,9 @@ func (smb *serialModelBucket) Create(db weave.KVStore, m SerialModel) error {
 }
 
 func (smb *serialModelBucket) Upsert(db weave.KVStore, m SerialModel) error {
-	mTp := reflect.TypeOf(m)
-	if mTp.Kind() != reflect.Ptr {
-		return errors.Wrap(errors.ErrType, "serialmodel destination must be a pointer")
-	}
-	if smb.model != mTp.Elem() {
-		return errors.Wrapf(errors.ErrType, "cannot store %T type in this bucket", m)
+	err := smb.enforceType(m)
+	if err != nil {
+		return errors.Wrap(err, "model type is not supported")
 	}
 
 	if err := m.Validate(); err != nil {
