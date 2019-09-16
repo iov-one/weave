@@ -193,7 +193,7 @@ func (i *migrationIterator) LoadNext(dest orm.SerialModel) error {
 		return err
 	}
 	if err := i.smb.migrate(i.db, dest); err != nil {
-		return errors.Wrapf(err, "migrate %d model", dest)
+		return errors.Wrapf(err, "migrate %T model", dest)
 	}
 	return nil
 }
@@ -263,7 +263,6 @@ func (smb *SerialModelBucket) PrefixScan(db weave.ReadOnlyKVStore, prefix []byte
 }
 
 func (smb *SerialModelBucket) IndexScan(db weave.ReadOnlyKVStore, indexName string, prefix []byte, reverse bool) (orm.SerialModelIterator, error) {
-	// Get iterator
 	iter, err := smb.b.IndexScan(db, indexName, prefix, reverse)
 	if err != nil {
 		return nil, err

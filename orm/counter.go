@@ -9,14 +9,6 @@ func (c *CounterWithID) SetID(id []byte) error {
 	return nil
 }
 
-// Copy produces a new copy to fulfill the Model interface
-func (c *CounterWithID) Copy() CloneableData {
-	return &CounterWithID{
-		ID:    c.ID,
-		Count: c.Count,
-	}
-}
-
 // Validate is always succesful
 func (c *CounterWithID) Validate() error {
 	// TODO possible errors
