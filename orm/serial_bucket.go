@@ -26,14 +26,14 @@ type SerialModelSlicePtr interface{}
 // SerialModelBucket is implemented by buckets that operates on SerialModels rather than
 // Objects.
 type SerialModelBucket interface {
-	// GetByID query the database for a single SerialModel instance by ID. Lookup is done
+	// ByID query the database for a single SerialModel instance by ID. Lookup is done
 	// by the primary index key. Result is loaded into given destination
 	// SerialModel.
 	// This method returns ErrNotFound if the entity does not exist in the
 	// database.
 	// If given SerialModel type cannot be used to contain stored entity, ErrType
 	// is returned.
-	GetByID(db weave.ReadOnlyKVStore, key []byte, dest SerialModel) error
+	ByID(db weave.ReadOnlyKVStore, key []byte, dest SerialModel) error
 
 	// PrefixScan will scan for all SerialModels with a primary key (ID)
 	// that begins with the given prefix.
@@ -166,7 +166,7 @@ func (smb *serialModelBucket) Register(name string, r weave.QueryRouter) {
 	smb.b.Register(name, r)
 }
 
-func (smb *serialModelBucket) GetByID(db weave.ReadOnlyKVStore, key []byte, dest SerialModel) error {
+func (smb *serialModelBucket) ByID(db weave.ReadOnlyKVStore, key []byte, dest SerialModel) error {
 	obj, err := smb.b.Get(db, key)
 	if err != nil {
 		return err

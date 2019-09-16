@@ -374,7 +374,7 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 	assert.Nil(t, err)
 
 	var res MySerialModel
-	if err = b1.GetByID(db, weavetest.SequenceID(1), &res); err != nil {
+	if err = b1.ByID(db, weavetest.SequenceID(1), &res); err != nil {
 		t.Fatalf("cannot fetch the first model: %s", err)
 	}
 	assertMySerialModelState(t, &res, 1, 1)
@@ -388,7 +388,7 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 	err = b1.Create(db, &m1)
 	assert.Nil(t, err)
 
-	if err = b1.GetByID(db, weavetest.SequenceID(1), &res); err != nil {
+	if err = b1.ByID(db, weavetest.SequenceID(1), &res); err != nil {
 		t.Fatalf("cannot fetch the first model: %s", err)
 	}
 	assertMySerialModelState(t, &res, 1, 1)
@@ -396,7 +396,7 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 	// Bumping a schema should unlock saving entities with higher schema version.
 	ensureSchemaVersion(t, db, thisPkgName, 2)
 
-	if err = b1.GetByID(db, m1.ID, &res); err != nil {
+	if err = b1.ByID(db, m1.ID, &res); err != nil {
 		t.Fatalf("cannot fetch the first model: %s", err)
 	}
 	// Schema migration callback must update the model.
@@ -410,7 +410,7 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 	}
 	err = b1.Upsert(db, &m2)
 	assert.Nil(t, err)
-	if err = b1.GetByID(db, m2.ID, &res); err != nil {
+	if err = b1.ByID(db, m2.ID, &res); err != nil {
 		t.Fatalf("cannot fetch the second model: %s", err)
 	}
 	// This model was stored with the second schema version so it must not
@@ -507,7 +507,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 	assert.Nil(t, err)
 
 	var mres MySerialModel
-	if err := b1.GetByID(db, m.ID, &mres); err != nil {
+	if err := b1.ByID(db, m.ID, &mres); err != nil {
 		t.Fatalf("cannot fetch the model: %s", err)
 	}
 
@@ -527,7 +527,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 	assert.Nil(t, err)
 
 	var mwres MySerialModelWithRef
-	if err := b2.GetByID(db, mwr.ID, &mwres); err != nil {
+	if err := b2.ByID(db, mwr.ID, &mwres); err != nil {
 		t.Fatalf("cannot fetch the model: %s", err)
 	}
 
@@ -536,13 +536,13 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 	// Bump schema version
 	ensureSchemaVersion(t, db, thisPkgName, 2)
 
-	if err := b1.GetByID(db, m.ID, &mres); err != nil {
+	if err := b1.ByID(db, m.ID, &mres); err != nil {
 		t.Fatalf("cannot fetch the model: %s", err)
 	}
 	// Check if migration applied successfully
 	assertMySerialModelState(t, &mres, 2, 2)
 
-	if err := b2.GetByID(db, mwr.ID, &mwres); err != nil {
+	if err := b2.ByID(db, mwr.ID, &mwres); err != nil {
 		t.Fatalf("cannot fetch the model with reference: %s", err)
 	}
 	// Check if migration applied successfully
@@ -555,7 +555,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 
 	// Check if MySerialModel is accessible with using ID retrieved
 	// from MySerialModelWithRef
-	if err := b1.GetByID(db, mwres.MySerialModelID, &mres); err != nil {
+	if err := b1.ByID(db, mwres.MySerialModelID, &mres); err != nil {
 		t.Fatalf("cannot fetch the model with reference: %s", err)
 	}
 }
