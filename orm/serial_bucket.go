@@ -309,8 +309,7 @@ func (smb *serialModelBucket) Create(db weave.KVStore, m SerialModel) error {
 	}
 
 	// If key is provided use it otherwise generate auto-incremented key
-	var key []byte
-	key = m.GetID()
+	key := m.GetID()
 	if len(key) == 0 {
 		key, err = smb.idSeq.NextVal(db)
 		if err != nil {
