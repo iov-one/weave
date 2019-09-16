@@ -55,14 +55,10 @@ type SerialModelBucket interface {
 	// in order of their count. Or easily find the lowest or highest count.
 	IndexScan(db weave.ReadOnlyKVStore, indexName string, prefix []byte, reverse bool) (SerialModelIterator, error)
 
-	// Create saves given SerialModel in the database. Before inserting into
-	// database, SerialModel is validated using its Validate method.
-	// ID field must be unset so auto incremented ID is generated.
+	// Create saves given SerialModel in the database.
+	//If ID field is provided uses it otherwise generates an auto-incremented key.
+	// Before inserting into database, SerialModel is validated using Validate method.
 	Create(db weave.KVStore, m SerialModel) error
-
-	// Upsert creates given SerialModel in the database or upserts of given SerialModel
-	// with given ID exists. ID field must be set.
-	Upsert(db weave.KVStore, m SerialModel) error
 
 	// Delete removes an entity with given primary key from the database.
 	// Returns ErrNotFound if an entity with given key does not exist.
@@ -312,45 +308,19 @@ func (smb *serialModelBucket) Create(db weave.KVStore, m SerialModel) error {
 		return errors.Wrap(err, "invalid serialmodel")
 	}
 
-	key := m.GetID()
-	if len(key) != 0 {
-		return errors.Wrap(errors.ErrModel, "ID must be unset")
-	}
-
-	key, err = smb.idSeq.NextVal(db)
-	if err != nil {
-		return errors.Wrap(err, "ID sequence")
+	// If key is provided use it otherwise generate auto-incremented key
+	var key []byte
+	key = m.GetID()
+	if len(key) == 0 {
+		key, err = smb.idSeq.NextVal(db)
+		if err != nil {
+			return errors.Wrap(err, "ID sequence")
+		}
 	}
 
 	obj := NewSimpleObj(key, m)
 	if err := smb.b.Save(db, obj); err != nil {
 		return errors.Wrap(err, "cannot create in the database")
-	}
-	// after serialization, return original/generated key on SerialModel
-	if err := m.SetID(key); err != nil {
-		return errors.Wrap(err, "cannot set ID")
-	}
-	return nil
-}
-
-func (smb *serialModelBucket) Upsert(db weave.KVStore, m SerialModel) error {
-	err := smb.enforceType(m)
-	if err != nil {
-		return errors.Wrap(err, "model type is not supported")
-	}
-
-	if err := m.Validate(); err != nil {
-		return errors.Wrap(err, "invalid serialmodel")
-	}
-
-	key := m.GetID()
-	if len(key) == 0 {
-		return errors.Wrap(errors.ErrModel, "ID must be set")
-	}
-
-	obj := NewSimpleObj(key, m)
-	if err := smb.b.Save(db, obj); err != nil {
-		return errors.Wrap(err, "cannot update in the database")
 	}
 	// after serialization, return original/generated key on SerialModel
 	if err := m.SetID(key); err != nil {

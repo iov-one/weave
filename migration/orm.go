@@ -278,13 +278,6 @@ func (smb *SerialModelBucket) Create(db weave.KVStore, model orm.SerialModel) er
 	return smb.b.Create(db, model)
 }
 
-func (smb *SerialModelBucket) Upsert(db weave.KVStore, model orm.SerialModel) error {
-	if err := smb.migrate(db, model); err != nil {
-		return errors.Wrap(err, "migrate")
-	}
-	return smb.b.Upsert(db, model)
-}
-
 func (smb *SerialModelBucket) Delete(db weave.KVStore, key []byte) error {
 	return smb.b.Delete(db, key)
 }

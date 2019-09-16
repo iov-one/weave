@@ -379,7 +379,6 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 	}
 	assertMySerialModelState(t, &res, 1, 1)
 
-	// Test Upsert
 	m1ID := weavetest.SequenceID(1)
 	m1 = MySerialModel{
 		Metadata: &weave.Metadata{Schema: 1},
@@ -402,13 +401,14 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 	// Schema migration callback must update the model.
 	assertMySerialModelState(t, &res, 2, 3)
 
+	// Test create with auto id generation
 	m2ID := weavetest.SequenceID(2)
 	m2 := MySerialModel{
 		Metadata: &weave.Metadata{Schema: 2},
 		ID:       m2ID,
 		Cnt:      11,
 	}
-	err = b1.Upsert(db, &m2)
+	err = b1.Create(db, &m2)
 	assert.Nil(t, err)
 	if err = b1.ByID(db, m2.ID, &res); err != nil {
 		t.Fatalf("cannot fetch the second model: %s", err)
@@ -503,7 +503,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 		ID:       mID,
 		Cnt:      1,
 	}
-	err := b1.Upsert(db, &m)
+	err := b1.Create(db, &m)
 	assert.Nil(t, err)
 
 	var mres MySerialModel
@@ -523,7 +523,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 	}
 
 	// Save MySerialModel with external reference
-	err = b2.Upsert(db, &mwr)
+	err = b2.Create(db, &mwr)
 	assert.Nil(t, err)
 
 	var mwres MySerialModelWithRef
