@@ -73,6 +73,13 @@ func TestNewAntispamFeeDecorator(t *testing.T) {
 			AntiSpamFee:  coin.NewCoin(0, 1235, "GATO"),
 			WantCheckErr: errors.ErrCurrency,
 		},
+		"Product fee can be empty": {
+			ReqFee:       coin.Coin{},
+			Handler:      &weavetest.Handler{},
+			Tx:           &weavetest.Tx{Msg: &weavetest.Msg{RoutePath: "foo/bar"}},
+			AntiSpamFee:  coin.NewCoin(0, 1, "DOGE"),
+			WantCheckFee: coin.NewCoin(0, 1, "DOGE"),
+		},
 		"deliver err propagates": {
 			ReqFee:         coin.NewCoin(0, 1234, "DOGE"),
 			Handler:        &weavetest.Handler{},
