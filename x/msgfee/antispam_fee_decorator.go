@@ -37,7 +37,8 @@ func (d *AntispamFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx 
 		return nil, err
 	}
 	if res.RequiredFee.IsZero() {
-		return nil, errors.Wrap(errors.ErrEmpty, "required must not be zero")
+		res.RequiredFee = d.fee
+		return res, nil
 	}
 	if !res.RequiredFee.SameType(d.fee) {
 		return nil, errors.Wrapf(errors.ErrCurrency,
