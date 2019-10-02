@@ -125,6 +125,8 @@ github.com/tendermint/iavl v0.12.2 h1:Ls5p5VINCM1HRT9g5Vvs2zmDOCU/CCIvIHzd/pZ8P0
 github.com/tendermint/iavl v0.12.2/go.mod h1:EoKMMv++tDOL5qKKVnoIqtVPshRrEPeJ0WsgDOLAauM=
 github.com/tendermint/tendermint v0.31.5 h1:vTet8tCq3B9/J9Yo11dNZ8pOB7NtSy++bVSfkP4KzR4=
 github.com/tendermint/tendermint v0.31.5/go.mod h1:ymcPyWblXCplCPQjbOYbrF1fWnpslATMVqiGgWbZrlc=
+github.com/tendermint/tendermint v0.31.9 h1:GJJ0IPPdA6EnIZ0gkMNJPxhatEkqSSOGfZKQCiqj9xw=
+github.com/tendermint/tendermint v0.31.9/go.mod h1:ymcPyWblXCplCPQjbOYbrF1fWnpslATMVqiGgWbZrlc=
 github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef h1:wHSqTBrZW24CsNJDfeh9Ex6Pm0Rcpc7qrgKBiL44vF4=
 github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef/go.mod h1:sJ5fKU0s6JVwZjjcUEX2zFOnvq0ASQ2K9Zr6cf67kNs=
 golang.org/x/crypto v0.0.0-20170930174604-9419663f5a44/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=

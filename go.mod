@@ -22,7 +22,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tendermint/go-amino v0.15.0
 	github.com/tendermint/iavl v0.12.2
-	github.com/tendermint/tendermint v0.31.5
+	github.com/tendermint/tendermint v0.31.9
 	github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 	google.golang.org/grpc v1.21.0 // indirect

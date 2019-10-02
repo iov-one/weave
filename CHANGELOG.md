@@ -1,6 +1,8 @@
 # Changelog
 
 ## HEAD
+## 0.21.2
+- Upgrade tendermint dependency to v0.31.9
 ## 0.21.1
 - Let AntispamFeeDecorator handle empty product fee.
 ## 0.21.0
