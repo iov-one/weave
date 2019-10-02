@@ -12,9 +12,10 @@ Breaking changes
   When creating a new bucket instance a model instance must be provided instead
   of `orm.SimpleObj`.
 
+## 0.21.2
+- Upgrade tendermint dependency to v0.31.9
 ## 0.21.1
 - Let AntispamFeeDecorator handle empty product fee.
-
 ## 0.21.0
 - `x/batch`: increase maximum number of messages to 15
 - `cmd/bnscli`: a new command `mnemonic` was added for generating a random
