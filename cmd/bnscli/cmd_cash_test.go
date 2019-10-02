@@ -170,6 +170,7 @@ func TestCmdWithFeeHappyPathDefaultAmount(t *testing.T) {
 }
 
 type abciQueryRequest struct {
+	ID     string `json:"id"`
 	Method string `json:"method"`
 	Params struct {
 		Data string `json:"data"` // hex-encoded
@@ -203,7 +204,7 @@ func newCashConfTendermintServer(
 		assert.Nil(t, err)
 
 		if bytes.Equal(raw, []byte("_c:cash")) {
-			io.WriteString(w, tmResponse(t, raw, &conf))
+			io.WriteString(w, tmResponse(t, raw, &conf, req.ID))
 			return
 		}
 
@@ -216,9 +217,9 @@ func newCashConfTendermintServer(
 					Pkg:      pkg,
 					Version:  1,
 				}
-				io.WriteString(w, tmResponse(t, raw, schema))
+				io.WriteString(w, tmResponse(t, raw, schema, req.ID))
 			} else {
-				io.WriteString(w, tmEmptyResponse(t))
+				io.WriteString(w, tmEmptyResponse(t, req.ID))
 			}
 			return
 		}
@@ -227,14 +228,14 @@ func newCashConfTendermintServer(
 			path := string(raw[len("msgfee:"):])
 			fee, ok := msgfees[path]
 			if !ok {
-				io.WriteString(w, tmEmptyResponse(t))
+				io.WriteString(w, tmEmptyResponse(t, req.ID))
 				return
 			}
 			io.WriteString(w, tmResponse(t, raw, &msgfee.MsgFee{
 				Metadata: &weave.Metadata{Schema: 1},
 				MsgPath:  path,
 				Fee:      fee,
-			}))
+			}, req.ID))
 			return
 		}
 
@@ -244,7 +245,7 @@ func newCashConfTendermintServer(
 
 // tmResponse returns a tenderming HTTP response for a configuration query.
 // Returned response does not contain "key" or "height" information.
-func tmResponse(t testing.TB, key []byte, payload interface{ Marshal() ([]byte, error) }) string {
+func tmResponse(t testing.TB, key []byte, payload interface{ Marshal() ([]byte, error) }, clientID string) string {
 	value, err := payload.Marshal()
 	assert.Nil(t, err)
 
@@ -260,7 +261,7 @@ func tmResponse(t testing.TB, key []byte, payload interface{ Marshal() ([]byte, 
 
 	return `{
 	  "jsonrpc": "2.0",
-	  "id": "",
+	  "id": "` + clientID + `",
 	  "result": {
 	    "response": {
 	      "key": "` + encKey + `",
@@ -270,14 +271,14 @@ func tmResponse(t testing.TB, key []byte, payload interface{ Marshal() ([]byte, 
 	}`
 }
 
-func tmEmptyResponse(t testing.TB) string {
+func tmEmptyResponse(t testing.TB, clientID string) string {
 	set, err := (&app.ResultSet{}).Marshal()
 	assert.Nil(t, err)
 	enc := base64.StdEncoding.EncodeToString(set)
 
 	return `{
 	  "jsonrpc": "2.0",
-	  "id": "",
+	  "id": "` + clientID + `",
 	  "result": {
 	    "response": {
 	      "key": "` + enc + `",
