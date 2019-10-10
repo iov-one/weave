@@ -31,7 +31,7 @@ Create a transaction for registering a username.
 	fl.Parse(args)
 
 	var targets []username.BlockchainAddress
-	if len(*blockchainFl) != 0 && len(*addressFl) != 0 {
+	if len(*blockchainFl) != 0 || len(*addressFl) != 0 {
 		t := username.BlockchainAddress{
 			BlockchainID: *blockchainFl,
 			Address:      *addressFl,
