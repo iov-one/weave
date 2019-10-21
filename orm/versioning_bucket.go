@@ -3,6 +3,7 @@ package orm
 import (
 	"bytes"
 	"encoding/binary"
+	"math"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -40,36 +41,29 @@ func WithVersioning(b IDGenBucket) VersioningBucket {
 //  - ErrDeleted when deleted
 // Object won't be nil in success case
 func (b VersioningBucket) GetLatestVersion(db weave.ReadOnlyKVStore, id []byte) (*VersionedIDRef, Object, error) {
-	prefix := id
-	dbKeyLength := len(b.DBKey(prefix)) - len(prefix)
-	matches, err := b.Query(db, weave.PrefixQueryMod, prefix)
+	start := MarshalVersionedID(VersionedIDRef{ID: id, Version: 0})
+	end := MarshalVersionedID(VersionedIDRef{ID: id, Version: math.MaxUint32})
+	iter, err := db.ReverseIterator(b.DBKey(start), b.DBKey(end))
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "prefix query")
+		return nil, nil, errors.Wrap(err, "failed to setup iterator")
 	}
-	// find highest version for that ID
-	var highestVersion VersionedIDRef
-	var found weave.Model
-	for _, m := range matches {
-		idData := m.Key[dbKeyLength:]
-		vID, err := UnmarshalVersionedID(idData)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "wrong key type")
-		}
-		if vID.Version > highestVersion.Version {
-			highestVersion = vID
-			found = m
-		}
-	}
-	if len(found.Key) == 0 {
+	defer iter.Release()
+
+	k, v, err := iter.Next()
+	if errors.ErrIteratorDone.Is(err) {
 		return nil, nil, errors.Wrap(errors.ErrNotFound, "unknown id")
+	} else if err != nil {
+		return nil, nil, errors.Wrap(err, "iterating for latest version ")
 	}
-	if tombstone.Equal(found.Value) {
+	if tombstone.Equal(v) {
 		return nil, nil, errors.ErrDeleted
 	}
-	obj, err := b.Parse(found.Key, found.Value)
+	obj, err := b.Parse(k, v)
 	if err != nil {
 		return nil, nil, err
 	}
+	dbKeyLength := len(b.DBKey(id)) - len(id)
+	highestVersion, err := UnmarshalVersionedID(k[dbKeyLength:])
 	return &highestVersion, obj, err
 }
 
