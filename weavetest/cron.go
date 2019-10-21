@@ -40,6 +40,7 @@ func (c *Cron) Schedule(db weave.KVStore, runAt time.Time, auth []weave.Conditio
 	}
 
 	c.tasks = append(c.tasks, &crontask{
+		tid:   tid,
 		runAt: runAt,
 		auth:  auth,
 		msg:   msg,
