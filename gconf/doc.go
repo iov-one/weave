@@ -13,7 +13,8 @@ To use gconf you must follow a few simple principles.
 1. Define your configuration as a protobuf message.
 
 2. Define your configuration update message as a protobuf message. It must have
-a `patch` field that holds the new configuration state.
+a `patch` field that holds the new configuration state. Add created message to
+the Tx declaration. Register handler in your extension routing.
 
 3. Zero field values are ignored during the update message processing,
 
