@@ -30,18 +30,22 @@ Create a transaction for registering a username.
 	)
 	fl.Parse(args)
 
-	target := username.BlockchainAddress{
-		BlockchainID: *blockchainFl,
-		Address:      *addressFl,
-	}
-	if err := target.Validate(); err != nil {
-		return fmt.Errorf("given data produce an invalid target: %s", err)
+	var targets []username.BlockchainAddress
+	if len(*blockchainFl) != 0 || len(*addressFl) != 0 {
+		t := username.BlockchainAddress{
+			BlockchainID: *blockchainFl,
+			Address:      *addressFl,
+		}
+		if err := t.Validate(); err != nil {
+			return fmt.Errorf("given data produce an invalid target: %s", err)
+		}
+		targets = append(targets, t)
 	}
 
 	msg := username.RegisterTokenMsg{
 		Metadata: &weave.Metadata{Schema: 1},
 		Username: *nameFl + "*" + *namespaceFl,
-		Targets:  []username.BlockchainAddress{target},
+		Targets:  targets,
 	}
 	if err := msg.Validate(); err != nil {
 		return fmt.Errorf("given data produce an invalid message: %s", err)
