@@ -21,7 +21,7 @@ to your project.
 
 Join the Weave [community channel](https://riot.im/app/#/room/#weave:matrix.org) :loudspeaker:
 
-**Note: Requires Go 1.11.4+**
+**Note: Requires at least Go 1.11+**
 
 It is inspired by the routing and middleware model of many web
 application frameworks, and informed by years of wrestling with
@@ -43,7 +43,7 @@ On the other hand, if you want to try out tendermint, or have a
 design that doesn't require an advanced setup, you should try
 this library and give feedback, especially on ease-of-use.
 The end goal is to make blockchain development almost as
-productive as web development (in golang), by providing
+productive as web development (in Go), by providing
 defaults and best practices for many choices, while allowing
 extreme flexibility in business logic and data modelling.
 
@@ -52,11 +52,11 @@ For more details on the design goals, see the
 
 ## Prerequisites
 
-* [golang 1.11.4+](https://golang.org/doc/install)
+* [Go 1.11+](https://golang.org/doc/install)
 * [docker](https://docs.docker.com/install/)
 * [tendermint 0.31.5](https://github.com/tendermint/tendermint/tree/v0.31.5)
   * [Installation](https://github.com/tendermint/tendermint/blob/master/docs/introduction/install.md)
-  
+
 ## Instructions
 
 First, make sure you have
