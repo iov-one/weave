@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 )
 
@@ -40,4 +41,37 @@ func (c *configuration) Unmarshal(raw []byte) error {
 
 func (c *configuration) Validate() error {
 	return c.err
+}
+
+func TestConfModelBucket(t *testing.T) {
+	db := store.MemStore()
+	b := NewConfigurationModelBucket()
+
+	if err := b.Has(db, []byte("does-not-exist")); !errors.ErrNotFound.Is(err) {
+		t.Fatalf("expected configuration to not be found: %+v", err)
+	}
+
+	c := &configuration{raw: "foobar"}
+	if _, err := b.Put(db, []byte("mymod"), c); err != nil {
+		t.Fatalf("cannot store configuration: %s", err)
+	}
+
+	if err := b.One(db, []byte("mymod"), c); err != nil {
+		t.Fatalf("cannot get configuration: %s", err)
+	}
+	if err := b.Has(db, []byte("mymod")); err != nil {
+		t.Fatalf("mymod configuration should be present: %s", err)
+	}
+
+	// Using Load/Save should work interchangeably
+	if err := Load(db, "mymod", c); err != nil {
+		t.Fatalf("cannot load: %s", err)
+	}
+	c2 := &configuration{raw: "second conf"}
+	if err := Save(db, "mymod", c2); err != nil {
+		t.Fatalf("cannot save: %s", err)
+	}
+	if err := b.One(db, []byte("mymod"), c2); err != nil {
+		t.Fatalf("cannot get configuration: %s", err)
+	}
 }

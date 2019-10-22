@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package lateinit;
+
+import "codec.proto";
+import "gogoproto/gogo.proto";
+
+message ExecutedInit {
+  weave.Metadata metadata = 1;
+  string init_id = 2 [(gogoproto.customname) = "InitID"];
+}
+
+message ExecuteInitMsg {
+  weave.Metadata metadata = 1;
+  string init_id = 2 [(gogoproto.customname) = "InitID"];
+}

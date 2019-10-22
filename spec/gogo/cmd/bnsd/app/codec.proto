@@ -12,6 +12,7 @@ import "x/currency/codec.proto";
 import "x/distribution/codec.proto";
 import "x/escrow/codec.proto";
 import "x/gov/codec.proto";
+import "x/lateinit/codec.proto";
 import "x/msgfee/codec.proto";
 import "x/multisig/codec.proto";
 import "x/sigs/codec.proto";
@@ -76,6 +77,7 @@ message Tx {
     blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
     blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
     blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
+    lateinit.ExecuteInitMsg lateinit_execute_init_msg = 90;
   }
 }
 
@@ -112,6 +114,7 @@ message ExecuteBatchMsg {
       blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
       blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
       blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
+      lateinit.ExecuteInitMsg lateinit_execute_init_msg = 90;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];
@@ -149,6 +152,7 @@ message ProposalOptions {
     blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
     blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
     blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
+    lateinit.ExecuteInitMsg lateinit_execute_init_msg = 90;
   }
 }
 
@@ -182,6 +186,7 @@ message ExecuteProposalBatchMsg {
       blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
       blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
       blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
+      lateinit.ExecuteInitMsg lateinit_execute_init_msg = 90;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];

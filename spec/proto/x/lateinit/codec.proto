@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package lateinit;
+
+import "codec.proto";
+
+message ExecutedInit {
+  weave.Metadata metadata = 1;
+  string init_id = 2 ;
+}
+
+message ExecuteInitMsg {
+  weave.Metadata metadata = 1;
+  string init_id = 2 ;
+}

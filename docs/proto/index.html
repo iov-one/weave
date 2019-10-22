@@ -713,6 +713,25 @@
         
           
           <li>
+            <a href="#x%2flateinit%2fcodec.proto">x/lateinit/codec.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#lateinit.ExecuteInitMsg"><span class="badge">M</span>ExecuteInitMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#lateinit.ExecutedInit"><span class="badge">M</span>ExecutedInit</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
             <a href="#x%2fmsgfee%2fcodec.proto">x/msgfee/codec.proto</a>
             <ul>
               
@@ -1167,6 +1186,13 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td><p> </p></td>
                 </tr>
               
+                <tr>
+                  <td>lateinit_execute_init_msg</td>
+                  <td><a href="#lateinit.ExecuteInitMsg">lateinit.ExecuteInitMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -1381,6 +1407,13 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td><p> </p></td>
                 </tr>
               
+                <tr>
+                  <td>lateinit_execute_init_msg</td>
+                  <td><a href="#lateinit.ExecuteInitMsg">lateinit.ExecuteInitMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -1589,6 +1622,13 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 <tr>
                   <td>blueaccount_update_configuration_msg</td>
                   <td><a href="#blueaccount.UpdateConfigurationMsg">blueaccount.UpdateConfigurationMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>lateinit_execute_init_msg</td>
+                  <td><a href="#lateinit.ExecuteInitMsg">lateinit.ExecuteInitMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1881,6 +1921,13 @@ gov.TallyMsg gov_tally_msg = 76; </p></td>
                 <tr>
                   <td>blueaccount_update_configuration_msg</td>
                   <td><a href="#blueaccount.UpdateConfigurationMsg">blueaccount.UpdateConfigurationMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>lateinit_execute_init_msg</td>
+                  <td><a href="#lateinit.ExecuteInitMsg">lateinit.ExecuteInitMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -5272,6 +5319,80 @@ is Withdrawn.</p></td>
                 <tr>
                   <td>rule</td>
                   <td><a href="#gov.UpdateElectionRuleMsg">UpdateElectionRuleMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="x/lateinit/codec.proto">x/lateinit/codec.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="lateinit.ExecuteInitMsg">ExecuteInitMsg</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>init_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="lateinit.ExecutedInit">ExecutedInit</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>init_id</td>
+                  <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>

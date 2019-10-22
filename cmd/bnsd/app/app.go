@@ -29,6 +29,7 @@ import (
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/gov"
+	"github.com/iov-one/weave/x/lateinit"
 	"github.com/iov-one/weave/x/msgfee"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
@@ -91,6 +92,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	username.RegisterRoutes(r, authFn)
 	msgfee.RegisterRoutes(r, authFn)
 	blueaccount.RegisterRoutes(r, authFn)
+	lateinit.RegisterRoutes(r, authFn)
 	return r
 }
 
@@ -115,6 +117,7 @@ func QueryRouter(minFee coin.Coin) weave.QueryRouter {
 		username.RegisterQuery,
 		cron.RegisterQuery,
 		blueaccount.RegisterQuery,
+		lateinit.RegisterQuery,
 	)
 	return r
 }
