@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package statefix;
+
+import "codec.proto";
+import "gogoproto/gogo.proto";
+
+message ExecutedFix {
+  weave.Metadata metadata = 1;
+  string fix_id = 2 [(gogoproto.customname) = "FixID"];
+}
+
+message ExecuteFixMsg {
+  weave.Metadata metadata = 1;
+  string fix_id = 2 [(gogoproto.customname) = "FixID"];
+}

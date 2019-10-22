@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package statefix;
+
+import "codec.proto";
+
+message ExecutedFix {
+  weave.Metadata metadata = 1;
+  string fix_id = 2 ;
+}
+
+message ExecuteFixMsg {
+  weave.Metadata metadata = 1;
+  string fix_id = 2 ;
+}

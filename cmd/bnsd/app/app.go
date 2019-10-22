@@ -12,6 +12,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/cmd/bnsd/x/statefix"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
@@ -89,6 +90,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	gov.RegisterRoutes(r, authFn, decodeProposalOptions, proposalOptionsExecutor(ctrl), scheduler)
 	username.RegisterRoutes(r, authFn)
 	msgfee.RegisterRoutes(r, authFn)
+	statefix.RegisterRoutes(r, authFn)
 	return r
 }
 
@@ -112,6 +114,7 @@ func QueryRouter(minFee coin.Coin) weave.QueryRouter {
 		gov.RegisterQuery,
 		username.RegisterQuery,
 		cron.RegisterQuery,
+		statefix.RegisterQuery,
 	)
 	return r
 }
