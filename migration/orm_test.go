@@ -271,12 +271,12 @@ func (m *MySerialModel) GetMetadata() *weave.Metadata {
 	return m.Metadata
 }
 
-func (m *MySerialModel) SetID(id []byte) error {
+func (m *MySerialModel) SetPrimaryKey(id []byte) error {
 	m.ID = id
 	return nil
 }
 
-func (m *MySerialModel) GetID() []byte {
+func (m *MySerialModel) GetPrimaryKey() []byte {
 	return m.ID
 }
 
@@ -311,12 +311,12 @@ func (m *MySerialModelWithRef) GetMetadata() *weave.Metadata {
 	return m.Metadata
 }
 
-func (m *MySerialModelWithRef) SetID(id []byte) error {
+func (m *MySerialModelWithRef) SetPrimaryKey(id []byte) error {
 	m.ID = id
 	return nil
 }
 
-func (m *MySerialModelWithRef) GetID() []byte {
+func (m *MySerialModelWithRef) GetPrimaryKey() []byte {
 	return m.ID
 }
 

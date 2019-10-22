@@ -144,7 +144,7 @@ func load(key, value, bucketPrefix []byte, dest SerialModel) error {
 	if err := dest.Unmarshal(value); err != nil {
 		return errors.Wrapf(err, "unmarshaling into %T", dest)
 	}
-	if err := dest.SetID(key); err != nil {
+	if err := dest.SetPrimaryKey(key); err != nil {
 		return errors.Wrap(err, "setting ID")
 	}
 	return nil

@@ -8,13 +8,13 @@ import (
 )
 
 // SerialModel is implemented by any entity that can be stored using SerialModelBucket.
-// GetID/SetID are used to store and access the Key.
+// GetPrimaryKey/SetPrimaryKey are used to store and access the Key.
 // The ID is always set to nil before serializing and storing the Value.
 type SerialModel interface {
 	weave.Persistent
 	Validate() error
-	GetID() []byte
-	SetID([]byte) error
+	GetPrimaryKey() []byte
+	SetPrimaryKey([]byte) error
 }
 
 // SerialModelSlicePtr represents a pointer to a slice of SerialModels. Think of it as
@@ -178,7 +178,7 @@ func (smb *serialModelBucket) ByID(db weave.ReadOnlyKVStore, key []byte, dest Se
 
 	ptr := reflect.ValueOf(dest)
 	ptr.Elem().Set(reflect.ValueOf(res).Elem())
-	if err = ptr.Interface().(SerialModel).SetID(key); err != nil {
+	if err = ptr.Interface().(SerialModel).SetPrimaryKey(key); err != nil {
 		return errors.Wrap(errors.ErrType, "cannot set ID")
 	}
 	return nil
@@ -284,7 +284,7 @@ func (smb *serialModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string
 		}
 
 		val := reflect.ValueOf(obj.Value())
-		if err := val.Interface().(SerialModel).SetID(obj.Key()); err != nil {
+		if err := val.Interface().(SerialModel).SetPrimaryKey(obj.Key()); err != nil {
 			return errors.Wrap(errors.ErrType, "cannot set ID")
 		}
 
@@ -309,7 +309,7 @@ func (smb *serialModelBucket) Create(db weave.KVStore, m SerialModel) error {
 	}
 
 	// If key is provided use it otherwise generate auto-incremented key
-	key := m.GetID()
+	key := m.GetPrimaryKey()
 	if len(key) == 0 {
 		key, err = smb.idSeq.NextVal(db)
 		if err != nil {
@@ -322,7 +322,7 @@ func (smb *serialModelBucket) Create(db weave.KVStore, m SerialModel) error {
 		return errors.Wrap(err, "cannot create in the database")
 	}
 	// after serialization, return original/generated key on SerialModel
-	if err := m.SetID(key); err != nil {
+	if err := m.SetPrimaryKey(key); err != nil {
 		return errors.Wrap(err, "cannot set ID")
 	}
 	return nil

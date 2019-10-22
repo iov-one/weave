@@ -2,9 +2,9 @@ package orm
 
 var _ Model = (*CounterWithID)(nil)
 
-// SetID is a minimal implementation, useful when the ID is a separate protobuf field
-func (c *CounterWithID) SetID(id []byte) error {
-	c.ID = id
+// SetPrimaryKey is a minimal implementation, useful when the ID is a separate protobuf field
+func (c *CounterWithID) SetPrimaryKey(pk []byte) error {
+	c.PrimaryKey = pk
 	// TODO possible errors
 	return nil
 }

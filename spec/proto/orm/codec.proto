@@ -22,6 +22,6 @@ message VersionedIDRef {
 
 // CounterWithID could be used for sequence, but mainly just for test
 message CounterWithID {
-  bytes id = 1 ;
+  bytes primary_key = 1;
   int64 count = 2;
 }
