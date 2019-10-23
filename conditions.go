@@ -234,6 +234,20 @@ func (a Address) String() string {
 	return strings.ToUpper(hex.EncodeToString(a))
 }
 
+
+// Bech32String returns a human reacable bech32 string.
+func (a Address) Bech32String(prefix string) (string, error) {
+	if len(a) == 0 {
+		return "", errors.Wrapf(errors.ErrInput, "invalid address length: %v", a)
+	}
+	bech, err := bech32.Encode(prefix, a)
+	if err != nil {
+		return "", errors.Wrap(errors.ErrInput, "cannot encode bech32")
+	}
+
+	return string(bech), nil
+}
+
 // Validate returns an error if the address is not the valid size
 func (a Address) Validate() error {
 	if len(a) == 0 {

@@ -28,6 +28,46 @@ func TestAddressPrinting(t *testing.T) {
 
 }
 
+func TestAddressBech32Printing(t *testing.T) {
+	cases := map[string]struct {
+		hex    string
+		hrp    string
+		bech32 string
+	}{
+		"success lower case hex tiov hrp": {
+			hex:    "e774b6e08e3c9ad9d35a7830654db7906b0b02d5",
+			hrp:    "tiov",
+			bech32: "tiov1ua6tdcyw8jddn5660qcx2ndhjp4skqk4rr48rw",
+		},
+		"success lower case hex iov hrp": {
+			hex:    "e774b6e08e3c9ad9d35a7830654db7906b0b02d5",
+			hrp:    "iov",
+			bech32: "iov1ua6tdcyw8jddn5660qcx2ndhjp4skqk4dkurrl",
+		},
+		"success upper case hex tiov hrp": {
+			hex:    "C1888F21C55E9EF00B0220C7CAECBE862C4591F0",
+			hrp:    "tiov",
+			bech32: "tiov1cxyg7gw9t600qzczyrru4m97sckyty0s4cmkzm",
+		},
+		"success uppeer case hex iov hrp": {
+			hex:    "C1888F21C55E9EF00B0220C7CAECBE862C4591F0",
+			hrp:    "iov",
+			bech32: "iov1cxyg7gw9t600qzczyrru4m97sckyty0smdjjz2",
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			addr, err := weave.ParseAddress(tc.hex)
+			assert.Nil(t, err)
+
+			got, err := addr.Bech32String(tc.hrp)
+			assert.Nil(t, err)
+			assert.Equal(t, tc.bech32, got)
+		})
+	}
+}
+
 func TestAddressUnmarshalJSON(t *testing.T) {
 	fromHex := func(s string) []byte {
 		b, err := hex.DecodeString(s)
