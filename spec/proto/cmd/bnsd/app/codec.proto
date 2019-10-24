@@ -29,7 +29,7 @@ import "x/validators/codec.proto";
 message Tx {
   cash.FeeInfo fees = 1;
   repeated sigs.StdSignature signatures = 2;
-  // ID of a multisig contract.
+  // Multisig contains IDs of multisig contracts.
   // empty array results in multisig being ignored, basically the same behaviour
   // as if it never got supplied.
   repeated bytes multisig = 4;
