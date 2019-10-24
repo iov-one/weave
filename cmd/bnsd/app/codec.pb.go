@@ -49,7 +49,7 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 type Tx struct {
 	Fees       *cash.FeeInfo        `protobuf:"bytes,1,opt,name=fees,proto3" json:"fees,omitempty"`
 	Signatures []*sigs.StdSignature `protobuf:"bytes,2,rep,name=signatures,proto3" json:"signatures,omitempty"`
-	// ID of a multisig contract.
+	// Multisig contains IDs of multisig contracts.
 	// empty array results in multisig being ignored, basically the same behaviour
 	// as if it never got supplied.
 	Multisig [][]byte `protobuf:"bytes,4,rep,name=multisig,proto3" json:"multisig,omitempty"`
