@@ -1,0 +1,21 @@
+{
+	"Sum": {
+		"BlueaccountRegisterDomainMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "wunderland"
+		}
+	}
+}
+{
+	"Sum": {
+		"BlueaccountRegisterDomainMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "wunderland",
+			"client_token": "aGVsbG8gd29ybGQK"
+		}
+	}
+}

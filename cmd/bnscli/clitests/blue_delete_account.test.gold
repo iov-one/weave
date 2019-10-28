@@ -1,0 +1,11 @@
+{
+	"Sum": {
+		"BlueaccountDeleteAccountMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "wunderland",
+			"name": "alice"
+		}
+	}
+}

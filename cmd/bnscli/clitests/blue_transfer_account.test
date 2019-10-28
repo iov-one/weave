@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+bnscli blue-transfer-account \
+		-domain wunderland \
+		-name alice \
+		-owner 'seq:foo/bar/1' \
+	| bnscli view

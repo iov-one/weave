@@ -1,0 +1,47 @@
+{
+	"Sum": {
+		"BlueaccountRegisterAccountMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "wunderland",
+			"name": "alice",
+			"targets": null
+		}
+	}
+}
+{
+	"Sum": {
+		"BlueaccountRegisterAccountMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "wunderland",
+			"name": "alice",
+			"targets": null,
+			"client_token": "aGVsbG8gd29ybGQK"
+		}
+	}
+}
+{
+	"Sum": {
+		"BlueaccountRegisterAccountMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "wunderland",
+			"name": "alice",
+			"targets": [
+				{
+					"blockchain_id": "first",
+					"address": "111"
+				},
+				{
+					"blockchain_id": "second",
+					"address": "222"
+				}
+			],
+			"client_token": "aGVsbG8gd29ybGQK"
+		}
+	}
+}
