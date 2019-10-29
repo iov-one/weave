@@ -19,6 +19,8 @@ cache:
     - $HOME/gopath/pkg/mod
     - $TRAVIS_BUILD_DIR/.gitian-builder-cache
     - /var/cache/apt-cacher-ng
+    # astronomer
+    - $HOME/.cache/astronomer_report
 
 os:
 - linux
@@ -85,6 +87,7 @@ script:
       docker logout;
     fi;
   fi;
+- docker run --rm -t -e GITHUB_TOKEN=$ASTRONOMER_TOKEN -v "$HOME/.cache/astronomer_report:/data" ullaakut/astronomer iov-one/weave
 
 notifications:
   email: false
