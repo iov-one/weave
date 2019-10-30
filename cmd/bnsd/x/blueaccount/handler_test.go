@@ -107,7 +107,7 @@ func TestUseCases(t *testing.T) {
 				if !d.Owner.Equals(aliceCond.Address()) {
 					t.Fatalf("unexpected wunderland owner: want %q, got %q", aliceCond.Address(), d.Owner)
 				}
-				if got, want := d.ValidUntill, weave.UnixTime(now+1000); got != want {
+				if got, want := d.ValidUntil, weave.UnixTime(now+1000); got != want {
 					t.Fatalf("unexpected valid till: want %d, got %d", want, got)
 				}
 			},
@@ -140,7 +140,7 @@ func TestUseCases(t *testing.T) {
 				if !d.Owner.Equals(bobCond.Address()) {
 					t.Fatalf("unexpected wunderland owner: want %q, got %q", bobCond.Address(), d.Owner)
 				}
-				if got, want := d.ValidUntill, weave.UnixTime(now+1000); got != want {
+				if got, want := d.ValidUntil, weave.UnixTime(now+1000); got != want {
 					t.Fatalf("unexpected valid till: want %d, got %d", want, got)
 				}
 			},
@@ -366,7 +366,7 @@ func TestUseCases(t *testing.T) {
 				// Expiration time should be execution time
 				// (block time) which is now + 2, plus
 				// expiration offset.
-				if got, want := d.ValidUntill, weave.UnixTime(now+2+1000); want != got {
+				if got, want := d.ValidUntil, weave.UnixTime(now+2+1000); want != got {
 					t.Fatalf("want valid till %s, got %s", want, got)
 				}
 			},
@@ -422,7 +422,7 @@ func TestUseCases(t *testing.T) {
 				}
 				// Expiration time should not be updated
 				// because it would be shortened.
-				if got, want := d.ValidUntill, weave.UnixTime(now+1000); want != got {
+				if got, want := d.ValidUntil, weave.UnixTime(now+1000); want != got {
 					t.Logf("want %d %s", want, want)
 					t.Logf(" got %d %s", got, got)
 					t.Fatal("unexpected valid till")

@@ -21,10 +21,10 @@ message Domain {
   // Owner is a weave.Address that controls this domain and all accounts that
   // belong to this domain.
   bytes owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  // Valid untill defines the expiration date for the domain. Expired domain
+  // Valid until defines the expiration date for the domain. Expired domain
   // cannot be used or modified. None of the accounts that belong to an expired
   // domain can be used of modified as well.
-  int64 valid_untill = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
+  int64 valid_until = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
 }
 
 // Account represents a blue account name.

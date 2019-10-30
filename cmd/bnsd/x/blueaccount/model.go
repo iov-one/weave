@@ -52,7 +52,7 @@ func (d *Domain) Validate() error {
 	errs = errors.AppendField(errs, "Metadata", d.Metadata.Validate())
 	errs = errors.AppendField(errs, "Domain", validateDomain(d.Domain))
 	errs = errors.AppendField(errs, "Owner", d.Owner.Validate())
-	errs = errors.AppendField(errs, "ValidUntill", d.ValidUntill.Validate())
+	errs = errors.AppendField(errs, "ValidUntil", d.ValidUntil.Validate())
 	return errs
 }
 

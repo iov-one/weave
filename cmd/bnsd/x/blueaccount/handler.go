@@ -97,10 +97,10 @@ func (h *registerDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, errors.Wrap(err, "cannot load configuration")
 	}
 	domain := Domain{
-		Metadata:    &weave.Metadata{},
-		Owner:       owner,
-		Domain:      msg.Domain,
-		ValidUntill: weave.AsUnixTime(now.Add(conf.DomainRenew.Duration())),
+		Metadata:   &weave.Metadata{},
+		Owner:      owner,
+		Domain:     msg.Domain,
+		ValidUntil: weave.AsUnixTime(now.Add(conf.DomainRenew.Duration())),
 	}
 	if _, err := h.domains.Put(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, errors.Wrap(err, "cannot store domain entity")
@@ -182,7 +182,7 @@ func (h *transferDomaiHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if !h.auth.HasAddress(ctx, domain.Owner) {
 		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "only owner can transfer a domain")
 	}
-	if weave.IsExpired(ctx, domain.ValidUntill) {
+	if weave.IsExpired(ctx, domain.ValidUntil) {
 		return nil, nil, errors.Wrap(errors.ErrExpired, "expired domain cannot be transferred")
 	}
 	return &domain, &msg, nil
@@ -214,12 +214,12 @@ func (h *renewDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot load configuration")
 	}
-	nextValidUntill := now.Add(conf.DomainRenew.Duration())
-	// ValidUntill time is only extended. We want to avoid the situation when
+	nextValidUntil := now.Add(conf.DomainRenew.Duration())
+	// ValidUntil time is only extended. We want to avoid the situation when
 	// the configuration is changed, limiting the expiration time period
 	// and renewing a domain by shortening its expiration date.
-	if nextValidUntill.After(domain.ValidUntill.Time()) {
-		domain.ValidUntill = weave.AsUnixTime(nextValidUntill)
+	if nextValidUntil.After(domain.ValidUntil.Time()) {
+		domain.ValidUntil = weave.AsUnixTime(nextValidUntil)
 		if _, err := h.domains.Put(db, []byte(msg.Domain), domain); err != nil {
 			return nil, errors.Wrap(err, "cannot store domain")
 		}
@@ -332,7 +332,7 @@ func (h *registerAccounHandler) validate(ctx weave.Context, db weave.KVStore, tx
 	if !h.auth.HasAddress(ctx, domain.Owner) {
 		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "only domain owner can register an account")
 	}
-	if weave.IsExpired(ctx, domain.ValidUntill) {
+	if weave.IsExpired(ctx, domain.ValidUntil) {
 		return nil, nil, errors.Wrap(errors.ErrExpired, "domain is expired")
 	}
 	switch err := h.accounts.Has(db, accountKey(msg.Name, msg.Domain)); {
@@ -393,7 +393,7 @@ func (h *transferAccounHandler) validate(ctx weave.Context, db weave.KVStore, tx
 	if err := h.domains.One(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "cannot get domain")
 	}
-	if weave.IsExpired(ctx, domain.ValidUntill) {
+	if weave.IsExpired(ctx, domain.ValidUntil) {
 		return nil, nil, nil, errors.Wrap(errors.ErrExpired, "cannot transfer account in an expired domain")
 	}
 	var account Account
@@ -445,7 +445,7 @@ func (h *replaceAccountTargetHandler) validate(ctx weave.Context, db weave.KVSto
 	if err := h.domains.One(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, nil, errors.Wrap(err, "cannot get domain")
 	}
-	if weave.IsExpired(ctx, domain.ValidUntill) {
+	if weave.IsExpired(ctx, domain.ValidUntil) {
 		return nil, nil, errors.Wrap(errors.ErrExpired, "cannot update account in an expired domain")
 	}
 	var account Account
