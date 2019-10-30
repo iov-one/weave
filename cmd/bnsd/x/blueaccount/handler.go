@@ -71,14 +71,14 @@ type registerDomaiHandler struct {
 }
 
 func (h *registerDomaiHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	if _, err := h.validate(ctx, db, tx); err != nil {
+	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: 0}, nil
 }
 
 func (h *registerDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, err := h.validate(ctx, db, tx)
+	conf, msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -91,10 +91,6 @@ func (h *registerDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	now, err := weave.BlockTime(ctx)
 	if err != nil {
 		return nil, errors.Wrap(errors.ErrState, "block time not present in context")
-	}
-	conf, err := loadConf(db)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot load configuration")
 	}
 	domain := Domain{
 		Metadata:   &weave.Metadata{},
@@ -121,29 +117,29 @@ func (h *registerDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: nil}, nil
 }
 
-func (h *registerDomaiHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*RegisterDomainMsg, error) {
+func (h *registerDomaiHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Configuration, *RegisterDomainMsg, error) {
 	var msg RegisterDomainMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
-		return nil, errors.Wrap(err, "load msg")
+		return nil, nil, errors.Wrap(err, "load msg")
 	}
 	switch err := h.domains.Has(db, []byte(msg.Domain)); {
 	case err == nil:
-		return nil, errors.Wrapf(errors.ErrDuplicate, "domain %q already registered", msg.Domain)
+		return nil, nil, errors.Wrapf(errors.ErrDuplicate, "domain %q already registered", msg.Domain)
 	case errors.ErrNotFound.Is(err):
 		// All good.
 	default:
-		return nil, errors.Wrap(err, "cannot check if domain already exists")
+		return nil, nil, errors.Wrap(err, "cannot check if domain already exists")
 	}
 
 	conf, err := loadConf(db)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot load configuration")
+		return nil, nil, errors.Wrap(err, "cannot load configuration")
 	}
 	if ok, err := regexp.MatchString(conf.ValidDomain, msg.Domain); err != nil || !ok {
-		return nil, errors.Wrap(errors.ErrInput, "domain is not allowed")
+		return nil, nil, errors.Wrap(errors.ErrInput, "domain is not allowed")
 	}
 
-	return &msg, nil
+	return conf, &msg, nil
 }
 
 type transferDomaiHandler struct {
