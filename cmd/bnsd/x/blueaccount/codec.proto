@@ -62,7 +62,7 @@ message BlockchainAddress {
   // chain that this token instance links to. Because we do not know the rules
   // to validate an address for any blockchain ID, this is an arbitrary bulk of
   // data.
-  // It is more convinient to always use encoded representation of each address
+  // It is more convenient to always use encoded representation of each address
   // and store it as a string. Using bytes while compact is not as comfortable
   // to use.
   string address = 2;
