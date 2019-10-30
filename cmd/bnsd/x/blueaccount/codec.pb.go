@@ -121,12 +121,9 @@ type Account struct {
 	Name   string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	// Owner is a weave.Address that controls this account. Can be empty.
 	//
-	// An account is always owned by the domain owner and as such, regardless
-	// the owner field value, can be edited by the domain owner that this account
-	// belongs to.
-	// Setting the owner attribute to an address different than the domain owner
-	// extends the domain owner permission and allows to manage a single account
-	// to someone else than the domain owner.
+	// An account is always owned by the domain owner. In addition, ownership can
+	// be assigned to one more address to share ownership and allow another party
+	// to manage selected account.
 	Owner   github_com_iov_one_weave.Address `protobuf:"bytes,4,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
 	Targets []BlockchainAddress              `protobuf:"bytes,5,rep,name=targets,proto3" json:"targets"`
 }
@@ -210,7 +207,7 @@ type BlockchainAddress struct {
 	// chain that this token instance links to. Because we do not know the rules
 	// to validate an address for any blockchain ID, this is an arbitrary bulk of
 	// data.
-	// It is more convinient to always use encoded representation of each address
+	// It is more convenient to always use encoded representation of each address
 	// and store it as a string. Using bytes while compact is not as comfortable
 	// to use.
 	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
