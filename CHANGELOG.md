@@ -1,6 +1,8 @@
 # Changelog
 
 ## HEAD
+- Blue Account functionality was implememented in  `cmd/bnsd/x/blueaccount` and
+  integrated into `bnsd` application.
 - `x/msgfee` was extended to provide a message to set a fee for a given message path.
 `bnscli` and `bnsd` were extended to support this change.
 
