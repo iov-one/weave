@@ -23,7 +23,7 @@ func init() {
 var _ weave.Msg = (*UpdateConfigurationMsg)(nil)
 
 func (UpdateConfigurationMsg) Path() string {
-	return "blueaccount/updateconfigurationmsg"
+	return "blueaccount/update_configuration_msg"
 }
 
 func (msg *UpdateConfigurationMsg) Validate() error {
@@ -36,7 +36,7 @@ func (msg *UpdateConfigurationMsg) Validate() error {
 var _ weave.Msg = (*RegisterDomainMsg)(nil)
 
 func (RegisterDomainMsg) Path() string {
-	return "blueaccount/registerdomainmsg"
+	return "blueaccount/register_domain_msg"
 }
 
 func (msg *RegisterDomainMsg) Validate() error {
@@ -53,7 +53,7 @@ func (msg *RegisterDomainMsg) Validate() error {
 var _ weave.Msg = (*TransferDomainMsg)(nil)
 
 func (TransferDomainMsg) Path() string {
-	return "blueaccount/transferdomainmsg"
+	return "blueaccount/transfer_domain_msg"
 }
 
 func (msg *TransferDomainMsg) Validate() error {
@@ -67,7 +67,7 @@ func (msg *TransferDomainMsg) Validate() error {
 var _ weave.Msg = (*RenewDomainMsg)(nil)
 
 func (RenewDomainMsg) Path() string {
-	return "blueaccount/renewdomainmsg"
+	return "blueaccount/renew_domain_msg"
 }
 
 func (msg *RenewDomainMsg) Validate() error {
@@ -81,7 +81,7 @@ func (msg *RenewDomainMsg) Validate() error {
 var _ weave.Msg = (*DeleteDomainMsg)(nil)
 
 func (DeleteDomainMsg) Path() string {
-	return "blueaccount/deletedomainmsg"
+	return "blueaccount/delete_domain_msg"
 }
 
 func (msg *DeleteDomainMsg) Validate() error {
@@ -94,7 +94,7 @@ func (msg *DeleteDomainMsg) Validate() error {
 var _ weave.Msg = (*RegisterAccountMsg)(nil)
 
 func (RegisterAccountMsg) Path() string {
-	return "blueaccount/registeraccountmsg"
+	return "blueaccount/register_account_msg"
 }
 
 func (msg *RegisterAccountMsg) Validate() error {
@@ -112,7 +112,7 @@ func (msg *RegisterAccountMsg) Validate() error {
 var _ weave.Msg = (*TransferAccountMsg)(nil)
 
 func (TransferAccountMsg) Path() string {
-	return "blueaccount/transferaccountmsg"
+	return "blueaccount/transfer_account_msg"
 }
 
 func (msg *TransferAccountMsg) Validate() error {
@@ -126,7 +126,7 @@ func (msg *TransferAccountMsg) Validate() error {
 var _ weave.Msg = (*ReplaceAccountTargetsMsg)(nil)
 
 func (ReplaceAccountTargetsMsg) Path() string {
-	return "blueaccount/replaceaccounttargetsmsg"
+	return "blueaccount/replace_account_targets_msg"
 }
 
 func (msg *ReplaceAccountTargetsMsg) Validate() error {
@@ -141,7 +141,7 @@ func (msg *ReplaceAccountTargetsMsg) Validate() error {
 var _ weave.Msg = (*DeleteAccountMsg)(nil)
 
 func (DeleteAccountMsg) Path() string {
-	return "blueaccount/deleteaccountmsg"
+	return "blueaccount/delete_account_msg"
 }
 
 func (msg *DeleteAccountMsg) Validate() error {
