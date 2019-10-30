@@ -12,7 +12,7 @@ echo ''
 bnscli blue-register-account \
 		-domain wunderland \
 		-name alice \
-		-client-token "68656c6c6f20776f726c640a" \
+		-token "68656c6c6f20776f726c640a" \
 	| bnscli view
 
 echo ''
@@ -20,7 +20,7 @@ echo ''
 bnscli blue-register-account \
 		-domain wunderland \
 		-name alice \
-		-client-token "68656c6c6f20776f726c640a" \
+		-token "68656c6c6f20776f726c640a" \
 	| bnscli blue-with-bc-address -addr 111 -bc first \
 	| bnscli blue-with-bc-address -addr 222 -bc second \
 	| bnscli view

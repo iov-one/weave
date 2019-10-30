@@ -102,11 +102,11 @@ message RegisterDomainMsg {
   bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // Domain part of the account that should be registered.
   string domain = 3;
-  // Client token is an arbitrary data that can be provided by a middleman
+  // Third party token is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
   // transaction, helped a user to register a domain. Storing a client token
   // helps identify contribution of such party later.
-  bytes client_token = 4;
+  bytes third_party_token = 4;
 }
 
 // TransferDomainMsg is issuing an ownership transfer over specified domain.
@@ -125,11 +125,11 @@ message RenewDomainMsg {
   weave.Metadata metadata = 1;
   // Name of the domain that is transferred.
   string domain = 2;
-  // Client token is an arbitrary data that can be provided by a middleman
+  // Third party token is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
   // transaction, helped a user to renew a domain. Storing a client token helps
   // identify contribution of such party later.
-  bytes client_token = 3;
+  bytes third_party_token = 3;
 }
 
 // DeleteDomainMsg issues deletion of a domain and all accounts that belong to
@@ -151,12 +151,12 @@ message RegisterAccountMsg {
   // Owner holds the address of the newly registered account. Can be empty to
   // leave the administration to the domain owner only.
   bytes owner = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  // Client token is an arbitrary data that can be provided by a middleman
+  repeated BlockchainAddress targets = 5 [(gogoproto.nullable) = false];
+  // Third party token is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
   // transaction, helped a user to renew a domain. Storing a client token helps
   // identify contribution of such party later.
-  repeated BlockchainAddress targets = 5 [(gogoproto.nullable) = false];
-  bytes client_token = 6;
+  bytes third_party_token = 6;
 }
 
 // TransferAccountMsg is issuing an ownership transfer over specified account.

@@ -15,7 +15,7 @@
 				"schema": 1
 			},
 			"domain": "wunderland",
-			"client_token": "aGVsbG8gd29ybGQK"
+			"third_party_token": "aGVsbG8gd29ybGQK"
 		}
 	}
 }

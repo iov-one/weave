@@ -46,7 +46,7 @@ func (msg *RegisterDomainMsg) Validate() error {
 		errs = errors.AppendField(errs, "Owner", msg.Owner.Validate())
 	}
 	errs = errors.AppendField(errs, "Domain", validateDomain(msg.Domain))
-	errs = errors.AppendField(errs, "ClientToken", validateClientToken(msg.ClientToken))
+	errs = errors.AppendField(errs, "ThirdPartyToken", validateThirdPartyToken(msg.ThirdPartyToken))
 	return errs
 }
 
@@ -74,7 +74,7 @@ func (msg *RenewDomainMsg) Validate() error {
 	var errs error
 	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())
 	errs = errors.AppendField(errs, "Domain", validateDomain(msg.Domain))
-	errs = errors.AppendField(errs, "ClientToken", validateClientToken(msg.ClientToken))
+	errs = errors.AppendField(errs, "ThirdPartyToken", validateThirdPartyToken(msg.ThirdPartyToken))
 	return errs
 }
 
@@ -105,7 +105,7 @@ func (msg *RegisterAccountMsg) Validate() error {
 		errs = errors.AppendField(errs, "Owner", msg.Owner.Validate())
 	}
 	errs = errors.AppendField(errs, "Targets", validateTargets(msg.Targets))
-	errs = errors.AppendField(errs, "ClientToken", validateClientToken(msg.ClientToken))
+	errs = errors.AppendField(errs, "ThirdPartyToken", validateThirdPartyToken(msg.ThirdPartyToken))
 	return errs
 }
 
@@ -170,8 +170,8 @@ func validateDomain(domain string) error {
 	return nil
 }
 
-// validateClientToken returns an error if provided client token is not valid.
-func validateClientToken(token []byte) error {
+// validateThirdPartyToken returns an error if provided token is not valid.
+func validateThirdPartyToken(token []byte) error {
 	const maxLen = 64
 	if len(token) > maxLen {
 		return errors.Wrapf(errors.ErrInput, "must not be longer than %d characters", maxLen)

@@ -19,15 +19,15 @@ Create a transaction for registering a domain.
 		fl.PrintDefaults()
 	}
 	var (
-		domainFl      = fl.String("domain", "", "Domain part of the username. For example wunderland in 'alice*wunderland'")
-		clientTokenFl = flHex(fl, "client-token", "", "Optional, hex encoded client token.")
+		domainFl = fl.String("domain", "", "Domain part of the username. For example wunderland in 'alice*wunderland'")
+		tokenFl  = flHex(fl, "token", "", "Optional, hex encoded third party token.")
 	)
 	fl.Parse(args)
 
 	msg := blueaccount.RegisterDomainMsg{
-		Metadata:    &weave.Metadata{Schema: 1},
-		Domain:      *domainFl,
-		ClientToken: *clientTokenFl,
+		Metadata:        &weave.Metadata{Schema: 1},
+		Domain:          *domainFl,
+		ThirdPartyToken: *tokenFl,
 	}
 	if err := msg.Validate(); err != nil {
 		return fmt.Errorf("given data produce an invalid message: %s", err)
@@ -79,17 +79,17 @@ Create a transaction for registering an account.
 		fl.PrintDefaults()
 	}
 	var (
-		domainFl      = fl.String("domain", "", "Domain part of the username. For example wunderland in 'alice*wunderland'")
-		nameFl        = fl.String("name", "", "Name part of the username. For example alice in 'alice*wunderland'")
-		clientTokenFl = flHex(fl, "client-token", "", "Optional, hex encoded client token.")
+		domainFl = fl.String("domain", "", "Domain part of the username. For example wunderland in 'alice*wunderland'")
+		nameFl   = fl.String("name", "", "Name part of the username. For example alice in 'alice*wunderland'")
+		tokenFl  = flHex(fl, "token", "", "Optional, hex encoded third party token.")
 	)
 	fl.Parse(args)
 
 	msg := blueaccount.RegisterAccountMsg{
-		Metadata:    &weave.Metadata{Schema: 1},
-		Domain:      *domainFl,
-		Name:        *nameFl,
-		ClientToken: *clientTokenFl,
+		Metadata:        &weave.Metadata{Schema: 1},
+		Domain:          *domainFl,
+		Name:            *nameFl,
+		ThirdPartyToken: *tokenFl,
 	}
 	if err := msg.Validate(); err != nil {
 		return fmt.Errorf("given data produce an invalid message: %s", err)

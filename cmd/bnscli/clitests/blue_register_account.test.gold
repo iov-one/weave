@@ -19,7 +19,7 @@
 			"domain": "wunderland",
 			"name": "alice",
 			"targets": null,
-			"client_token": "aGVsbG8gd29ybGQK"
+			"third_party_token": "aGVsbG8gd29ybGQK"
 		}
 	}
 }
@@ -41,7 +41,7 @@
 					"address": "222"
 				}
 			],
-			"client_token": "aGVsbG8gd29ybGQK"
+			"third_party_token": "aGVsbG8gd29ybGQK"
 		}
 	}
 }

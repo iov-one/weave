@@ -10,5 +10,5 @@ echo ''
 
 bnscli blue-register-domain \
 		-domain wunderland \
-		-client-token "68656c6c6f20776f726c640a" \
+		-token "68656c6c6f20776f726c640a" \
 	| bnscli view
