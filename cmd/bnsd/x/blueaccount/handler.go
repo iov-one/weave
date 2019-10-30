@@ -261,23 +261,13 @@ func (h *deleteDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	}
 
 	// This might be an expensive operation.
-	it, err := DomainAccounts(db, msg.Domain)
+	accountKeys, err := itemKeys(DomainAccounts(db, msg.Domain))
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot get domain account iterator")
+		return nil, errors.Wrap(err, "cannot list accounts")
 	}
-	defer it.Release()
-
-deleteAccounts:
-	for {
-		switch key, _, err := it.Next(); {
-		case errors.ErrIteratorDone.Is(err):
-			break deleteAccounts
-		case err == nil:
-			if err := db.Delete(key); err != nil {
-				return nil, errors.Wrap(err, "cannot delete account")
-			}
-		default:
-			return nil, errors.Wrap(err, "account interator failed")
+	for _, key := range accountKeys {
+		if err := db.Delete(key); err != nil {
+			return nil, errors.Wrap(err, "cannot delete account")
 		}
 	}
 	return &weave.DeliverResult{Data: nil}, nil

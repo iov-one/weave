@@ -75,6 +75,31 @@ func DomainAccounts(db weave.ReadOnlyKVStore, domain string) (weave.Iterator, er
 	return db.Iterator(start, end)
 }
 
+// itemKeys returns list all item keys that give iterator represents.
+//
+// This function consumes and releases given iterator, collecting all keys it
+// returns. This functionality is helpful when the intention is to access
+// database for every key. Because iterator is using gorutines to read data,
+// accessing database while reading an iterator will cause a data race.
+func itemKeys(it weave.Iterator, err error) ([][]byte, error) {
+	if err != nil {
+		return nil, err
+	}
+	defer it.Release()
+
+	var keys [][]byte
+	for {
+		switch k, _, err := it.Next(); {
+		case err == nil:
+			keys = append(keys, k)
+		case errors.ErrIteratorDone.Is(err):
+			return keys, nil
+		default:
+			return keys, err
+		}
+	}
+}
+
 func (ba *BlockchainAddress) Validate() error {
 	if !validBlockchainID(ba.BlockchainID) {
 		return errors.Wrap(errors.ErrInput, "invalid blockchain ID")
