@@ -61,7 +61,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	})
 
 	r.Handle(&UpdateConfigurationMsg{}, gconf.NewUpdateConfigurationHandler(
-		"blueaccount", &Configuration{}, auth))
+		"blueaccount", &Configuration{}, auth, migration.CurrentAdmin))
 }
 
 type registerDomainHandler struct {

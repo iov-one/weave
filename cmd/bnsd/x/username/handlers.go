@@ -180,5 +180,5 @@ func (h *changeTokenTargetsHandler) validate(ctx weave.Context, db weave.KVStore
 
 func NewConfigHandler(auth x.Authenticator) weave.Handler {
 	var conf Configuration
-	return gconf.NewUpdateConfigurationHandler("username", &conf, auth)
+	return gconf.NewUpdateConfigurationHandler("username", &conf, auth, migration.CurrentAdmin)
 }

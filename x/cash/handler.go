@@ -78,5 +78,5 @@ func (h SendHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx
 
 func NewConfigHandler(auth x.Authenticator) weave.Handler {
 	var conf Configuration
-	return gconf.NewUpdateConfigurationHandler("cash", &conf, auth)
+	return gconf.NewUpdateConfigurationHandler("cash", &conf, auth, migration.CurrentAdmin)
 }

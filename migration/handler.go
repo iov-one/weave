@@ -133,7 +133,10 @@ func (h *upgradeSchemaHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 		return nil, errors.Wrap(err, "load msg")
 	}
 
-	conf := mustLoadConf(db)
+	conf, err := loadConf(db)
+	if err != nil {
+		return nil, errors.Wrap(err, "load configuration")
+	}
 	if !h.auth.HasAddress(ctx, conf.Admin) {
 		return nil, errors.Wrap(errors.ErrUnauthorized, "admin signature required")
 	}
