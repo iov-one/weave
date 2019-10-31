@@ -5,6 +5,10 @@ import (
 	"github.com/iov-one/weave/errors"
 )
 
+func init() {
+	MustRegister(1, &UpgradeSchemaMsg{}, NoModification)
+}
+
 var _ weave.Msg = (*UpgradeSchemaMsg)(nil)
 
 func (msg *UpgradeSchemaMsg) Validate() error {
