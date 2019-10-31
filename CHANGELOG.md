@@ -1,10 +1,13 @@
 # Changelog
 
 ## HEAD
+- `migrations`: when upgrading the schema version an explicit version must be
+  provided. This is required to ensure at most one delivery.
+- `cmd/bnscli` can create a schema upgrade transaction.
 - Blue Account functionality was implememented in  `cmd/bnsd/x/blueaccount` and
-  integrated into `bnsd` application.
-- `x/msgfee` was extended to provide a message to set a fee for a given message path.
-`bnscli` and `bnsd` were extended to support this change.
+  integrated into `cmd/bnsd` application.
+- `x/msgfee` was extended to provide a message to set a fee for a given message
+  path.  `bnscli` and `bnsd` were extended to support this change.
 
 Breaking changes
 

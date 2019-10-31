@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
@@ -268,6 +269,44 @@ Create a transaction to delete an account.
 	tx := &bnsd.Tx{
 		Sum: &bnsd.Tx_BlueaccountReplaceAccountTargetMsg{
 			BlueaccountReplaceAccountTargetMsg: &msg,
+		},
+	}
+	_, err := writeTx(output, tx)
+	return err
+}
+
+func cmdUpdateBlueConfiguration(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Create a transaction to delete an account.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		ownerFl       = flAddress(fl, "owner", "", "Address of the owner.")
+		validDomainFl = fl.String("valid-domain", "", "Regular expression defining a rule for a valid domain.")
+		validNameFl   = fl.String("valid-name", "", "Regular expression defining a rule for a valid name.")
+		domainRenewFl = fl.Duration("domain-renew", 30*24*time.Hour, "Period of the domain renewal.")
+	)
+	fl.Parse(args)
+
+	msg := blueaccount.UpdateConfigurationMsg{
+		Metadata: &weave.Metadata{Schema: 1},
+		Patch: &blueaccount.Configuration{
+			Metadata:    &weave.Metadata{Schema: 1},
+			Owner:       *ownerFl,
+			ValidDomain: *validDomainFl,
+			ValidName:   *validNameFl,
+			DomainRenew: weave.AsUnixDuration(*domainRenewFl),
+		},
+	}
+	if err := msg.Validate(); err != nil {
+		return fmt.Errorf("given data produce an invalid message: %s", err)
+	}
+	tx := &bnsd.Tx{
+		Sum: &bnsd.Tx_BlueaccountUpdateConfigurationMsg{
+			BlueaccountUpdateConfigurationMsg: &msg,
 		},
 	}
 	_, err := writeTx(output, tx)

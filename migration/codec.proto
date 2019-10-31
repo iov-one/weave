@@ -28,4 +28,11 @@ message UpgradeSchemaMsg {
   weave.Metadata metadata = 1;
   // Name of the package that schema version upgrade is made for.
   string pkg = 2;
+  // To version defines to which version upgrade this schema. It always must be
+  // a value one higher than the currently registered schema or 1 if this is
+  // the initial upgrade.
+  // This value must be provided to avoid consecutive upgrades submitted by a
+  // mistake. This ensures at most one delivery as upgrades to an invalid
+  // version are rejected.
+  uint32 to_version = 3;
 }

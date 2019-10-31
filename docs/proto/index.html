@@ -3082,6 +3082,18 @@ For example, for extension `x/myext` package value is `myext` </p></td>
                   <td><p>Name of the package that schema version upgrade is made for. </p></td>
                 </tr>
               
+                <tr>
+                  <td>to_version</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>To version defines to which version upgrade this schema. It always must be
+a value one higher than the currently registered schema or 1 if this is
+the initial upgrade.
+This value must be provided to avoid consecutive upgrades submitted by a
+mistake. This ensures at most one delivery as upgrades to an invalid
+version are rejected. </p></td>
+                </tr>
+              
             </tbody>
           </table>
         

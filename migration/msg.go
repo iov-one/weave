@@ -11,6 +11,9 @@ func (msg *UpgradeSchemaMsg) Validate() error {
 	if msg.Pkg == "" {
 		return errors.Wrap(errors.ErrEmpty, "pkg is required")
 	}
+	if msg.ToVersion == 0 {
+		return errors.Wrap(errors.ErrEmpty, "to version is required")
+	}
 	return nil
 }
 

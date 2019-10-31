@@ -12,8 +12,8 @@ import (
 )
 
 func RegisterQuery(qr weave.QueryRouter) {
-	NewDomainBucket().Register("domain", qr)
-	NewAccountBucket().Register("account", qr)
+	NewDomainBucket().Register("bluedomains", qr)
+	NewAccountBucket().Register("blueaccounts", qr)
 }
 
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {

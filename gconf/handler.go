@@ -49,18 +49,25 @@ func (h UpdateConfigurationHandler) Deliver(ctx weave.Context, store weave.KVSto
 }
 
 func (h UpdateConfigurationHandler) applyTx(ctx weave.Context, store weave.KVStore, tx weave.Tx) error {
-	if err := Load(store, h.pkg, h.config); err != nil {
-		return errors.Wrap(err, "load message")
-	}
+	switch err := Load(store, h.pkg, h.config); {
+	case err == nil:
+		// Configuration owner must sign the transaction in order to
+		// authenticate the change.
+		owner := h.config.GetOwner()
+		if owner == nil {
+			return errors.Wrap(errors.ErrUnauthorized, "owner signature required")
+		}
+		if !h.auth.HasAddress(ctx, owner) {
+			return errors.Wrap(errors.ErrUnauthorized, "owner did not sign transaction")
+		}
+	case errors.ErrNotFound.Is(err):
+		// Configuration entity does not exist. It was not initialized
+		// during via the genesis and will be created for the first
+		// time now.
 
-	// Configuration owner must sign the transaction in order to
-	// authenticate the change.
-	owner := h.config.GetOwner()
-	if owner == nil {
-		return errors.Wrap(errors.ErrUnauthorized, "owner signature required")
-	}
-	if !h.auth.HasAddress(ctx, owner) {
-		return errors.Wrap(errors.ErrUnauthorized, "owner did not sign transaction")
+		// TODO - because of lack of a better idea, anyone can do this right now
+	default:
+		return errors.Wrap(err, "load current configuration")
 	}
 
 	payload, err := patchPayload(tx)
