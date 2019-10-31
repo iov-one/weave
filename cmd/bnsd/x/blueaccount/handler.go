@@ -22,29 +22,29 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	domains := NewDomainBucket()
 	accounts := NewAccountBucket()
 
-	r.Handle(&RegisterDomainMsg{}, &registerDomaiHandler{
+	r.Handle(&RegisterDomainMsg{}, &registerDomainHandler{
 		domains:  domains,
 		accounts: accounts,
 		auth:     auth,
 	})
-	r.Handle(&TransferDomainMsg{}, &transferDomaiHandler{
+	r.Handle(&TransferDomainMsg{}, &transferDomainHandler{
 		domains: domains,
 		auth:    auth,
 	})
-	r.Handle(&RenewDomainMsg{}, &renewDomaiHandler{
+	r.Handle(&RenewDomainMsg{}, &renewDomainHandler{
 		domains: domains,
 		auth:    auth,
 	})
-	r.Handle(&DeleteDomainMsg{}, &deleteDomaiHandler{
+	r.Handle(&DeleteDomainMsg{}, &deleteDomainHandler{
 		domains: domains,
 		auth:    auth,
 	})
-	r.Handle(&RegisterAccountMsg{}, &registerAccounHandler{
+	r.Handle(&RegisterAccountMsg{}, &registerAccountHandler{
 		auth:     auth,
 		domains:  domains,
 		accounts: accounts,
 	})
-	r.Handle(&TransferAccountMsg{}, &transferAccounHandler{
+	r.Handle(&TransferAccountMsg{}, &transferAccountHandler{
 		auth:     auth,
 		domains:  domains,
 		accounts: accounts,
@@ -54,7 +54,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		domains:  domains,
 		accounts: accounts,
 	})
-	r.Handle(&DeleteAccountMsg{}, &deleteAccounHandler{
+	r.Handle(&DeleteAccountMsg{}, &deleteAccountHandler{
 		auth:     auth,
 		domains:  domains,
 		accounts: accounts,
@@ -64,20 +64,20 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		"blueaccount", &Configuration{}, auth))
 }
 
-type registerDomaiHandler struct {
+type registerDomainHandler struct {
 	auth     x.Authenticator
 	domains  orm.ModelBucket
 	accounts orm.ModelBucket
 }
 
-func (h *registerDomaiHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *registerDomainHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: 0}, nil
 }
 
-func (h *registerDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *registerDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	conf, msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (h *registerDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: nil}, nil
 }
 
-func (h *registerDomaiHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Configuration, *RegisterDomainMsg, error) {
+func (h *registerDomainHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Configuration, *RegisterDomainMsg, error) {
 	var msg RegisterDomainMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -142,19 +142,19 @@ func (h *registerDomaiHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	return conf, &msg, nil
 }
 
-type transferDomaiHandler struct {
+type transferDomainHandler struct {
 	auth    x.Authenticator
 	domains orm.ModelBucket
 }
 
-func (h *transferDomaiHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *transferDomainHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: 0}, nil
 }
 
-func (h *transferDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *transferDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	domain, msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -166,7 +166,7 @@ func (h *transferDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	return &weave.DeliverResult{Data: nil}, nil
 }
 
-func (h *transferDomaiHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Domain, *TransferDomainMsg, error) {
+func (h *transferDomainHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Domain, *TransferDomainMsg, error) {
 	var msg TransferDomainMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -184,19 +184,19 @@ func (h *transferDomaiHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	return &domain, &msg, nil
 }
 
-type renewDomaiHandler struct {
+type renewDomainHandler struct {
 	auth    x.Authenticator
 	domains orm.ModelBucket
 }
 
-func (h *renewDomaiHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *renewDomainHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: 0}, nil
 }
 
-func (h *renewDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *renewDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	domain, msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -223,7 +223,7 @@ func (h *renewDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weav
 	return &weave.DeliverResult{Data: nil}, nil
 }
 
-func (h *renewDomaiHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Domain, *RenewDomainMsg, error) {
+func (h *renewDomainHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Domain, *RenewDomainMsg, error) {
 	var msg RenewDomainMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -235,19 +235,19 @@ func (h *renewDomaiHandler) validate(ctx weave.Context, db weave.KVStore, tx wea
 	return &domain, &msg, nil
 }
 
-type deleteDomaiHandler struct {
+type deleteDomainHandler struct {
 	auth    x.Authenticator
 	domains orm.ModelBucket
 }
 
-func (h *deleteDomaiHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *deleteDomainHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: 0}, nil
 }
 
-func (h *deleteDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *deleteDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	_, msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -269,7 +269,7 @@ func (h *deleteDomaiHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	return &weave.DeliverResult{Data: nil}, nil
 }
 
-func (h *deleteDomaiHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Domain, *DeleteDomainMsg, error) {
+func (h *deleteDomainHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Domain, *DeleteDomainMsg, error) {
 	var msg DeleteDomainMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -284,20 +284,20 @@ func (h *deleteDomaiHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 	return &domain, &msg, nil
 }
 
-type registerAccounHandler struct {
+type registerAccountHandler struct {
 	auth     x.Authenticator
 	domains  orm.ModelBucket
 	accounts orm.ModelBucket
 }
 
-func (h *registerAccounHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *registerAccountHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: 0}, nil
 }
 
-func (h *registerAccounHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *registerAccountHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	_, msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -316,7 +316,7 @@ func (h *registerAccounHandler) Deliver(ctx weave.Context, db weave.KVStore, tx 
 	return &weave.DeliverResult{Data: nil}, nil
 }
 
-func (h *registerAccounHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Domain, *RegisterAccountMsg, error) {
+func (h *registerAccountHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Domain, *RegisterAccountMsg, error) {
 	var msg RegisterAccountMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, errors.Wrap(err, "load msg")
@@ -349,20 +349,20 @@ func (h *registerAccounHandler) validate(ctx weave.Context, db weave.KVStore, tx
 	return &domain, &msg, nil
 }
 
-type transferAccounHandler struct {
+type transferAccountHandler struct {
 	auth     x.Authenticator
 	accounts orm.ModelBucket
 	domains  orm.ModelBucket
 }
 
-func (h *transferAccounHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *transferAccountHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: 0}, nil
 }
 
-func (h *transferAccounHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *transferAccountHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	account, domain, msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -380,7 +380,7 @@ func (h *transferAccounHandler) Deliver(ctx weave.Context, db weave.KVStore, tx 
 	return &weave.DeliverResult{Data: nil}, nil
 }
 
-func (h *transferAccounHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Account, *Domain, *TransferAccountMsg, error) {
+func (h *transferAccountHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Account, *Domain, *TransferAccountMsg, error) {
 	var msg TransferAccountMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "load msg")
@@ -456,20 +456,20 @@ func (h *replaceAccountTargetHandler) validate(ctx weave.Context, db weave.KVSto
 	return &account, &msg, nil
 }
 
-type deleteAccounHandler struct {
+type deleteAccountHandler struct {
 	auth     x.Authenticator
 	domains  orm.ModelBucket
 	accounts orm.ModelBucket
 }
 
-func (h *deleteAccounHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *deleteAccountHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: 0}, nil
 }
 
-func (h *deleteAccounHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *deleteAccountHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -480,7 +480,7 @@ func (h *deleteAccounHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 	return &weave.DeliverResult{Data: nil}, nil
 }
 
-func (h *deleteAccounHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DeleteAccountMsg, error) {
+func (h *deleteAccountHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DeleteAccountMsg, error) {
 	var msg DeleteAccountMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
