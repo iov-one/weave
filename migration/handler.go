@@ -114,15 +114,10 @@ func (h *upgradeSchemaHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, err
 	}
 
-	ver, err := h.bucket.CurrentSchema(db, msg.Pkg)
-	if err != nil && !errors.ErrNotFound.Is(err) {
-		return nil, errors.Wrap(err, "current schema version")
-	}
-
 	schema := Schema{
 		Metadata: &weave.Metadata{Schema: 1},
 		Pkg:      msg.Pkg,
-		Version:  ver + 1,
+		Version:  msg.ToVersion,
 	}
 	obj, err := h.bucket.Create(db, &schema)
 	if err != nil {
@@ -138,9 +133,25 @@ func (h *upgradeSchemaHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 		return nil, errors.Wrap(err, "load msg")
 	}
 
-	conf := mustLoadConf(db)
+	conf, err := loadConf(db)
+	if err != nil {
+		return nil, errors.Wrap(err, "load configuration")
+	}
 	if !h.auth.HasAddress(ctx, conf.Admin) {
 		return nil, errors.Wrap(errors.ErrUnauthorized, "admin signature required")
+	}
+
+	switch ver, err := h.bucket.CurrentSchema(db, msg.Pkg); {
+	case err == nil:
+		if ver+1 != msg.ToVersion {
+			return nil, errors.Wrapf(errors.ErrSchema, "the current schema version is %d", ver)
+		}
+	case errors.ErrNotFound.Is(err):
+		if msg.ToVersion != 1 {
+			return nil, errors.Wrap(errors.ErrSchema, "schema must be initialized with version 1")
+		}
+	default:
+		return nil, errors.Wrap(err, "current schema version")
 	}
 
 	return &msg, nil

@@ -1,0 +1,26 @@
+#!/bin/sh
+
+set -e
+
+bnscli blue-register-account \
+		-domain wunderland \
+		-name alice \
+	| bnscli view
+
+echo ''
+
+bnscli blue-register-account \
+		-domain wunderland \
+		-name alice \
+		-token "68656c6c6f20776f726c640a" \
+	| bnscli view
+
+echo ''
+
+bnscli blue-register-account \
+		-domain wunderland \
+		-name alice \
+		-token "68656c6c6f20776f726c640a" \
+	| bnscli blue-with-bc-address -addr 111 -bc first \
+	| bnscli blue-with-bc-address -addr 222 -bc second \
+	| bnscli view

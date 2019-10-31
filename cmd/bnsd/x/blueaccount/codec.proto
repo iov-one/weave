@@ -1,0 +1,189 @@
+syntax = "proto3";
+
+package blueaccount;
+
+import "codec.proto";
+import "gogoproto/gogo.proto";
+
+// Domain represents a blue account domain.
+//
+// Domain is a container for accounts. Account representation is
+// `<name>*<domain>`.
+// Each domain owner controls all accounts that belong to that domain.
+// Each domain controls expiration of all accounts that belong to that domain.
+//
+// Because of the functionality that the Red Account provides, Blue Account
+// domain must not be `iov` as this is a domain used by Red Account
+// functionality.
+message Domain {
+  weave.Metadata metadata = 1;
+  string domain = 2;
+  // Owner is a weave.Address that controls this domain and all accounts that
+  // belong to this domain.
+  bytes owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // Valid until defines the expiration date for the domain. Expired domain
+  // cannot be used or modified. None of the accounts that belong to an expired
+  // domain can be used of modified as well.
+  int64 valid_until = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
+}
+
+// Account represents a blue account name.
+//
+// String representation of an account is `<name>*<domain>`. Empty name is an
+// acceptable account string. Complete validation rules for name and domain are
+// declared by configuration entity.
+//
+// An account must always belong to an existing domain.
+message Account {
+  weave.Metadata metadata = 1;
+  // Domain references a domain that this account belongs to.
+  string domain = 2;
+  string name = 3;
+  // Owner is a weave.Address that controls this account. Can be empty.
+  //
+  // An account is always owned by the domain owner. In addition, ownership can
+  // be assigned to one more address to share ownership and allow another party
+  // to manage selected account.
+  bytes owner = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  repeated BlockchainAddress targets = 5 [(gogoproto.nullable) = false];
+}
+
+// BlockchainAddress represents a blochain address. This structure clubs together
+// blokchain ID together with an address on that network. It is used to point
+// to an address on any blockchain network.
+message BlockchainAddress {
+  // An arbitrary blockchain ID.
+  string blockchain_id = 1 [(gogoproto.customname) = "BlockchainID"];
+  // An address on the specified blockchain network. Address is not a
+  // weave.Address as we cannot know what is the format of an address on the
+  // chain that this token instance links to. Because we do not know the rules
+  // to validate an address for any blockchain ID, this is an arbitrary bulk of
+  // data.
+  // It is more convenient to always use encoded representation of each address
+  // and store it as a string. Using bytes while compact is not as comfortable
+  // to use.
+  string address = 2;
+}
+
+// Configuration is a dynamic configuration used by this extension, managed by
+// the functionality provided by gconf package.
+message Configuration {
+  weave.Metadata metadata = 1;
+  // Owner is present to implement gconf.OwnedConfig interface
+  // This defines the Address that is allowed to update the Configuration object and is
+  // needed to make use of gconf.NewUpdateConfigurationHandler
+  bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // Valid domain defines a regular expression that every valid domain of an
+  // account must match. Rule must not include the asterisk (*) character.
+  string valid_domain = 3;
+  // Valid name defines a regular expression that every valid name of an
+  // account must match. Rule must not include the asterisk (*) character.
+  string valid_name = 4;
+  // Domain review defines the duration of the domain renewal period.
+  int64 domain_renew = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
+}
+
+// UpdateConfigurationMsg is used by the gconf extension to update the
+// configuration.
+message UpdateConfigurationMsg {
+  weave.Metadata metadata = 1;
+  Configuration patch = 2;
+}
+
+// RegisterDomainMsg is issuing registration of a new domain. Requested
+// domain name must be available (not yet registed) in order for the request to
+// succeed.
+// Registering a domain creates an account with no name that belongs to this
+// domain.
+message RegisterDomainMsg {
+  weave.Metadata metadata = 1;
+  // Owner holds the address of the newly registered domain. If not provided,
+  // main signer is used.
+  bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // Domain part of the account that should be registered.
+  string domain = 3;
+  // Third party token is an arbitrary data that can be provided by a middleman
+  // (i.e. retailer) that although does not participate directly in the
+  // transaction, helped a user to register a domain. Storing a client token
+  // helps identify contribution of such party later.
+  bytes third_party_token = 4;
+}
+
+// TransferDomainMsg is issuing an ownership transfer over specified domain.
+message TransferDomainMsg {
+  weave.Metadata metadata = 1;
+  // Name of the domain that is transferred.
+  string domain = 2;
+  // New owner holds the address that the ownership of the domain is
+  // transferred to.
+  bytes new_owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+}
+
+// RenewDomainMsg is issuing a domain expiration time extension. Extension
+// period is defined by the configuration entity.
+message RenewDomainMsg {
+  weave.Metadata metadata = 1;
+  // Name of the domain that is transferred.
+  string domain = 2;
+  // Third party token is an arbitrary data that can be provided by a middleman
+  // (i.e. retailer) that although does not participate directly in the
+  // transaction, helped a user to renew a domain. Storing a client token helps
+  // identify contribution of such party later.
+  bytes third_party_token = 3;
+}
+
+// DeleteDomainMsg issues deletion of a domain and all accounts that belong to
+// that domain.
+message DeleteDomainMsg {
+  weave.Metadata metadata = 1;
+  // Name of the domain that is deleted.
+  string domain = 2;
+}
+
+// RegisterAccountMsg issues registration of an account. Requested domain must
+// exist and belong to the same user that signs this message.
+message RegisterAccountMsg {
+  weave.Metadata metadata = 1;
+  // Domain that a new account is the be registered under.
+  string domain = 2;
+  // Name that a new account is the be registered with.
+  string name = 3;
+  // Owner holds the address of the newly registered account. Can be empty to
+  // leave the administration to the domain owner only.
+  bytes owner = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  repeated BlockchainAddress targets = 5 [(gogoproto.nullable) = false];
+  // Third party token is an arbitrary data that can be provided by a middleman
+  // (i.e. retailer) that although does not participate directly in the
+  // transaction, helped a user to renew a domain. Storing a client token helps
+  // identify contribution of such party later.
+  bytes third_party_token = 6;
+}
+
+// TransferAccountMsg is issuing an ownership transfer over specified account.
+// Transfering an account ownership does not affect related domain owner
+// permissions to administrate that account.
+message TransferAccountMsg {
+  weave.Metadata metadata = 1;
+  string domain = 2;
+  string name = 3;
+  // New owner holds the address that the ownership of the domain is
+  // transferred to.
+  bytes new_owner = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+}
+
+// ReplaceAccountTargetsMsg is issuing rewrite of all targets that given
+// account points to.
+message ReplaceAccountTargetsMsg {
+  weave.Metadata metadata = 1;
+  string domain = 2;
+  string name = 4;
+  repeated BlockchainAddress new_targets = 5 [(gogoproto.nullable) = false];
+}
+
+// DeleteAccountMsg issues deletion of a name that belongs to given domain.
+// Message must be signed by the domain owner.
+message DeleteAccountMsg {
+  weave.Metadata metadata = 1;
+  string domain = 2;
+  string name = 3;
+}

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -e
+
+bnscli blue-register-domain \
+		-domain wunderland \
+	| bnscli view
+
+echo ''
+
+bnscli blue-register-domain \
+		-domain wunderland \
+		-token "68656c6c6f20776f726c640a" \
+	| bnscli view

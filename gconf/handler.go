@@ -20,17 +20,42 @@ type OwnedConfig interface {
 type UpdateConfigurationHandler struct {
 	pkg string
 	// We require this type to load the data.
-	config OwnedConfig
-	auth   x.Authenticator
+	config    OwnedConfig
+	auth      x.Authenticator
+	initAdmin func(weave.ReadOnlyKVStore) (weave.Address, error)
 }
 
 var _ weave.Handler = (*UpdateConfigurationHandler)(nil)
 
-func NewUpdateConfigurationHandler(pkg string, config OwnedConfig, auth x.Authenticator) UpdateConfigurationHandler {
+// NewUpdateConfigurationHandler returns a message handler that process
+// configuration patch message.
+//
+// To pass authentication step, each message must be signed by the current
+// configuration owner.
+//
+// A special chicken-egg problem appears when the configuration does not exist
+// (it was not created via genesis). This is an issue, because without
+// configuration we cannot configure configuration owner that can update the
+// configuration. This means that the configuration cannot be created as well.
+// A configuration is needed to create a configuration.
+// To address the above issue, an optional `initConfAdmin` argument can be
+// given to provide a creation only admin address. A good deafult is to use
+// `migration.CurrentAdmin` function.
+// `initConfAdmin` is used to authenticate the tranaction only when no
+// configuration exist. Once a configuration is created, `initConfAdmin` is not
+// used anymore and the autentication relies only on configuration's owner
+// declaration.
+func NewUpdateConfigurationHandler(
+	pkg string,
+	config OwnedConfig,
+	auth x.Authenticator,
+	initConfAdmin func(weave.ReadOnlyKVStore) (weave.Address, error),
+) UpdateConfigurationHandler {
 	return UpdateConfigurationHandler{
-		pkg:    pkg,
-		config: config,
-		auth:   auth,
+		pkg:       pkg,
+		config:    config,
+		auth:      auth,
+		initAdmin: initConfAdmin,
 	}
 }
 
@@ -49,18 +74,33 @@ func (h UpdateConfigurationHandler) Deliver(ctx weave.Context, store weave.KVSto
 }
 
 func (h UpdateConfigurationHandler) applyTx(ctx weave.Context, store weave.KVStore, tx weave.Tx) error {
-	if err := Load(store, h.pkg, h.config); err != nil {
-		return errors.Wrap(err, "load message")
-	}
-
-	// Configuration owner must sign the transaction in order to
-	// authenticate the change.
-	owner := h.config.GetOwner()
-	if owner == nil {
-		return errors.Wrap(errors.ErrUnauthorized, "owner signature required")
-	}
-	if !h.auth.HasAddress(ctx, owner) {
-		return errors.Wrap(errors.ErrUnauthorized, "owner did not sign transaction")
+	switch err := Load(store, h.pkg, h.config); {
+	case err == nil:
+		// Configuration owner must sign the transaction in order to
+		// authenticate the change.
+		owner := h.config.GetOwner()
+		if owner == nil {
+			return errors.Wrap(errors.ErrUnauthorized, "owner signature required")
+		}
+		if !h.auth.HasAddress(ctx, owner) {
+			return errors.Wrap(errors.ErrUnauthorized, "owner did not sign transaction")
+		}
+	case errors.ErrNotFound.Is(err):
+		// Configuration entity does not exist. It was not initialized
+		// during via the genesis and will be created for the first
+		// time now.
+		if h.initAdmin == nil {
+			return errors.Wrap(errors.ErrUnauthorized, "configuration does not exist and cannot be initialized")
+		}
+		admin, err := h.initAdmin(store)
+		if err != nil {
+			return errors.Wrap(err, "get init admin")
+		}
+		if !h.auth.HasAddress(ctx, admin) {
+			return errors.Wrap(errors.ErrUnauthorized, "initialization admin signature required")
+		}
+	default:
+		return errors.Wrap(err, "load current configuration")
 	}
 
 	payload, err := patchPayload(tx)

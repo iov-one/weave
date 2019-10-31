@@ -124,7 +124,7 @@ func TestUpdateConfigurationHandler(t *testing.T) {
 
 			var c myconfig
 			auth := &weavetest.CtxAuth{Key: "auth"}
-			handler := NewUpdateConfigurationHandler("mypkg", &c, auth)
+			handler := NewUpdateConfigurationHandler("mypkg", &c, auth, nil)
 
 			ctx := weave.WithHeight(context.Background(), 999)
 			ctx = weave.WithChainID(ctx, "mychain-123")

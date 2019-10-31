@@ -47,6 +47,7 @@ created. This command fails if the private key file already exists.
 	if err != nil {
 		return fmt.Errorf("cannot read mnemonic: %s", err)
 	}
+	mnemonic = bytes.TrimSpace(mnemonic)
 
 	priv, err := keygen(string(mnemonic), *pathFl)
 	if err != nil {
