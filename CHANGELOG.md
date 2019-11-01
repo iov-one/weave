@@ -1,6 +1,7 @@
 # Changelog
 
 ## HEAD
+- `x/username`: allow to change configuration via message
 - `gconf`: allow to provide an optional authentication address that will be
   used to authenticate a configuration creation message. This solves a
   chicken-egg problem of when the confgiuration was not created via genesis.

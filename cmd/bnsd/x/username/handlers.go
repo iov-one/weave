@@ -22,6 +22,8 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r.Handle(&RegisterTokenMsg{}, &registerTokenHandler{auth: auth, bucket: b})
 	r.Handle(&TransferTokenMsg{}, &transferTokenHandler{auth: auth, bucket: b})
 	r.Handle(&ChangeTokenTargetsMsg{}, &changeTokenTargetsHandler{auth: auth, bucket: b})
+	r.Handle(&UpdateConfigurationMsg{},
+		gconf.NewUpdateConfigurationHandler("username", &Configuration{}, auth, migration.CurrentAdmin))
 }
 
 type registerTokenHandler struct {
@@ -176,9 +178,4 @@ func (h *changeTokenTargetsHandler) validate(ctx weave.Context, db weave.KVStore
 	}
 
 	return &msg, &token, nil
-}
-
-func NewConfigHandler(auth x.Authenticator) weave.Handler {
-	var conf Configuration
-	return gconf.NewUpdateConfigurationHandler("username", &conf, auth, migration.CurrentAdmin)
 }
