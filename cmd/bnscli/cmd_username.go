@@ -178,7 +178,7 @@ func cmdUpdateUsernameConfiguration(input io.Reader, output io.Writer, args []st
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
 		fmt.Fprintln(flag.CommandLine.Output(), `
-Create a transaction to delete an account.
+Create a transaction to change username extension configuration.
 
 Username is in format <name>*<label>
 		`)
