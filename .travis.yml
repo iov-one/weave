@@ -49,8 +49,7 @@ install:
 
 script:
 - set -eo pipefail
-- make protolint;
-- make protodocs;
+- make protoc;
 - make install;
 - make all;
 - if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" ]]; then
