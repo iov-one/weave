@@ -312,14 +312,14 @@ func TestSerialModelBucketByIndex(t *testing.T) {
 			WantErr:   nil,
 			WantResPtr: []*CounterWithID{
 				{
-					PrimaryKey:    weavetest.SequenceID(1),
-					Count: 1001,
+					PrimaryKey: weavetest.SequenceID(1),
+					Count:      1001,
 				},
 			},
 			WantRes: []CounterWithID{
 				{
-					PrimaryKey:    weavetest.SequenceID(1),
-					Count: 1001,
+					PrimaryKey: weavetest.SequenceID(1),
+					Count:      1001,
 				},
 			},
 		},
@@ -386,8 +386,8 @@ func TestSerialModelBucketByIndex(t *testing.T) {
 // BadCounter implements Model but is different type than the model
 type BadCounter struct {
 	CounterWithID
-	PrimaryKey     []byte
-	Random int
+	PrimaryKey []byte
+	Random     int
 }
 
 var _ Model = (*BadCounter)(nil)
@@ -399,6 +399,12 @@ func TestSerialModelBucketCreateWrongModelType(t *testing.T) {
 	if err := b.Create(db, &BadCounter{CounterWithID: CounterWithID{Count: 5}, Random: 77}); !errors.ErrType.Is(err) {
 		t.Fatalf("unexpected error when trying to store wrong model type value: %s", err)
 	}
+}
+
+func TestSerialModelBucketFixed(t *testing.T) {
+	smb := NewSerialModelBucket("cnts", &CounterWithID{})
+	indexFn := WithIndexSerial("test", nil, false)
+	assert.Panics(t, func() { indexFn(smb.(*serialModelBucket)) })
 }
 
 func TestSerialModelBucketOneWrongModelType(t *testing.T) {

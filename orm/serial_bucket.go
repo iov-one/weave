@@ -95,6 +95,10 @@ func NewSerialModelBucket(name string, m SerialModel, opts ...SerialModelBucketO
 	for _, fn := range opts {
 		fn(smb)
 	}
+
+	// set fixed
+	smb.fixed = true
+
 	return smb
 }
 
@@ -116,6 +120,10 @@ type indexInfo struct {
 // referenced per index value.
 func WithIndexSerial(name string, indexer Indexer, unique bool) SerialModelBucketOption {
 	return func(smb *serialModelBucket) {
+		// if bucket is already initialized, then panic
+		if smb.fixed {
+			panic(ErrBucketFixed)
+		}
 		smb.b = smb.b.WithIndex(name, indexer, unique)
 		// Until we get better integration with orm, we need to store some info ourselves here...
 		info := indexInfo{
@@ -144,6 +152,9 @@ type serialModelBucket struct {
 	// pointer is implementing SerialModel interface, this variable references
 	// the structure directly and not the structure's pointer type.
 	model reflect.Type
+
+	// fixed boolean value is used to determine if serial model bucket is built
+	fixed bool
 }
 
 // enforceType checks if given models is supported by serialModelBucket
