@@ -369,8 +369,8 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 		Metadata: &weave.Metadata{Schema: 1},
 		Cnt:      1,
 	}
-	// Test Create
-	err := b1.Create(db, &m1)
+	// Test Save
+	err := b1.Save(db, &m1)
 	assert.Nil(t, err)
 
 	var res MySerialModel
@@ -384,7 +384,7 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 		Metadata: &weave.Metadata{Schema: 1},
 		Cnt:      1,
 	}
-	err = b1.Create(db, &m1)
+	err = b1.Save(db, &m1)
 	assert.Nil(t, err)
 
 	if err = b1.ByID(db, weavetest.SequenceID(1), &res); err != nil {
@@ -401,14 +401,14 @@ func TestSchemaVersionedSerialModelBucket(t *testing.T) {
 	// Schema migration callback must update the model.
 	assertMySerialModelState(t, &res, 2, 3)
 
-	// Test create with auto id generation
+	// Test Save with auto id generation
 	m2ID := weavetest.SequenceID(2)
 	m2 := MySerialModel{
 		Metadata: &weave.Metadata{Schema: 2},
 		ID:       m2ID,
 		Cnt:      11,
 	}
-	err = b1.Create(db, &m2)
+	err = b1.Save(db, &m2)
 	assert.Nil(t, err)
 	if err = b1.ByID(db, m2.ID, &res); err != nil {
 		t.Fatalf("cannot fetch the second model: %s", err)
@@ -503,7 +503,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 		ID:       mID,
 		Cnt:      1,
 	}
-	err := b1.Create(db, &m)
+	err := b1.Save(db, &m)
 	assert.Nil(t, err)
 
 	var mres MySerialModel
@@ -523,7 +523,7 @@ func TestSchemaVersionedSerialModelBucketRefID(t *testing.T) {
 	}
 
 	// Save MySerialModel with external reference
-	err = b2.Create(db, &mwr)
+	err = b2.Save(db, &mwr)
 	assert.Nil(t, err)
 
 	var mwres MySerialModelWithRef
@@ -610,7 +610,7 @@ func TestSchemaVersionedSerialModelBucketPrefixScan(t *testing.T) {
 
 	// Save models
 	for i := range models {
-		err := b.Create(db, &models[i])
+		err := b.Save(db, &models[i])
 		assert.Nil(t, err)
 	}
 
@@ -718,7 +718,7 @@ func TestSchemaVersionedSerialModelBucketIndexScanUnique(t *testing.T) {
 
 	// Save models
 	for i := range models {
-		err := b.Create(db, &models[i])
+		err := b.Save(db, &models[i])
 		assert.Nil(t, err)
 	}
 
@@ -837,7 +837,7 @@ func TestSchemaVersionedSerialModelBucketIndexScanMulti(t *testing.T) {
 
 	// Save models
 	for i := range models {
-		err := b.Create(db, &models[i])
+		err := b.Save(db, &models[i])
 		assert.Nil(t, err)
 	}
 

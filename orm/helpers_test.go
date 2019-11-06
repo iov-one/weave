@@ -25,7 +25,7 @@ func TestWithLimit(t *testing.T) {
 
 	for _, e := range expected {
 		// make sure we point to value in array, so this PrimaryKey gets set
-		err := b.Create(db, e)
+		err := b.Save(db, e)
 		if err != nil {
 			t.Fatalf("unexpected error: %s", err)
 		}
@@ -90,7 +90,7 @@ func TestToSlice(t *testing.T) {
 	}
 	for _, e := range expected {
 		// make sure we point to value in array, so this PrimaryKey gets set
-		err := b.Create(db, e)
+		err := b.Save(db, e)
 		assert.Nil(t, err)
 	}
 

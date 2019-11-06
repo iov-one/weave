@@ -271,11 +271,11 @@ func (smb *SerialModelBucket) IndexScan(db weave.ReadOnlyKVStore, indexName stri
 	return &migrationIterator{iter: iter, smb: smb, db: db}, nil
 }
 
-func (smb *SerialModelBucket) Create(db weave.KVStore, model orm.SerialModel) error {
+func (smb *SerialModelBucket) Save(db weave.KVStore, model orm.SerialModel) error {
 	if err := smb.migrate(db, model); err != nil {
 		return errors.Wrap(err, "migrate")
 	}
-	return smb.b.Create(db, model)
+	return smb.b.Save(db, model)
 }
 
 func (smb *SerialModelBucket) Delete(db weave.KVStore, key []byte) error {

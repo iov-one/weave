@@ -55,10 +55,10 @@ type SerialModelBucket interface {
 	// in order of their count. Or easily find the lowest or highest count.
 	IndexScan(db weave.ReadOnlyKVStore, indexName string, prefix []byte, reverse bool) (SerialModelIterator, error)
 
-	// Create saves given SerialModel in the database.
+	// Save saves given SerialModel in the database.
 	//If ID field is provided uses it otherwise generates an auto-incremented key.
 	// Before inserting into database, SerialModel is validated using Validate method.
-	Create(db weave.KVStore, m SerialModel) error
+	Save(db weave.KVStore, m SerialModel) error
 
 	// Delete removes an entity with given primary key from the database.
 	// Returns ErrNotFound if an entity with given key does not exist.
@@ -309,7 +309,7 @@ func (smb *serialModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string
 
 }
 
-func (smb *serialModelBucket) Create(db weave.KVStore, m SerialModel) error {
+func (smb *serialModelBucket) Save(db weave.KVStore, m SerialModel) error {
 	err := smb.enforceType(m)
 	if err != nil {
 		return errors.Wrap(err, "model type is not supported")
