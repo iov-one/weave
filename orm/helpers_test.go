@@ -38,26 +38,26 @@ func TestWithLimit(t *testing.T) {
 
 	// should return error when received limit lesser than 1
 	limit := 0
-	limitedIter, err := WithLimit(iter, limit)
+	_, err = WithLimit(iter, limit)
 	if err != nil && !errors.ErrInput.Is(err) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	limit = -100
-	limitedIter, err = WithLimit(iter, limit)
+	_, err = WithLimit(iter, limit)
 	if err != nil && !errors.ErrInput.Is(err) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	// limit 1 should work
 	limit = 1
-	limitedIter, err = WithLimit(iter, limit)
+	_, err = WithLimit(iter, limit)
 	if err != nil && !errors.ErrInput.Is(err) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	limit = 10
-	limitedIter, err = WithLimit(iter, limit)
+	limitedIter, err := WithLimit(iter, limit)
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
