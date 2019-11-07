@@ -326,16 +326,16 @@ func (smb *serialModelBucket) Save(db weave.KVStore, m SerialModel) error {
 		if err != nil {
 			return errors.Wrap(err, "ID sequence")
 		}
+		if err := m.SetPrimaryKey(key); err != nil {
+			return errors.Wrap(err, "cannot set ID")
+		}
 	}
 
 	obj := NewSimpleObj(key, m)
 	if err := smb.b.Save(db, obj); err != nil {
 		return errors.Wrap(err, "cannot create in the database")
 	}
-	// after serialization, return original/generated key on SerialModel
-	if err := m.SetPrimaryKey(key); err != nil {
-		return errors.Wrap(err, "cannot set ID")
-	}
+
 	return nil
 }
 
