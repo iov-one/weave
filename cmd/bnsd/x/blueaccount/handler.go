@@ -396,10 +396,10 @@ func (h *transferAccountHandler) validate(ctx weave.Context, db weave.KVStore, t
 	if err := h.accounts.One(db, accountKey(msg.Name, msg.Domain), &account); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "cannot get account")
 	}
-	// Authenticated by either Account owner (if set) or by the Domain owner.
-	authenticated := (len(account.Owner) != 0 && h.auth.HasAddress(ctx, account.Owner)) || h.auth.HasAddress(ctx, domain.Owner)
-	if !authenticated {
-		return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "only owner can transfer an account")
+	// Only the domain owner can transfer an account. An account owner
+	// (account.Owner) cannot transfer.
+	if !h.auth.HasAddress(ctx, domain.Owner) {
+		return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "only domain owner can transfer an account")
 	}
 	if msg.Name == "" {
 		return nil, nil, nil, errors.Wrap(errors.ErrInput, "empty name account cannot be trasfered separately from domain")
