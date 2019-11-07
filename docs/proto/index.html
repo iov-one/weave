@@ -249,6 +249,10 @@
                 </li>
               
                 <li>
+                  <a href="#blueaccount.DeleteAllAccountsMsg"><span class="badge">M</span>DeleteAllAccountsMsg</a>
+                </li>
+              
+                <li>
                   <a href="#blueaccount.DeleteDomainMsg"><span class="badge">M</span>DeleteDomainMsg</a>
                 </li>
               
@@ -1171,6 +1175,13 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td><p> </p></td>
                 </tr>
               
+                <tr>
+                  <td>blueaccount_delete_all_accounts_msg</td>
+                  <td><a href="#blueaccount.DeleteAllAccountsMsg">blueaccount.DeleteAllAccountsMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -1385,6 +1396,13 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td><p> </p></td>
                 </tr>
               
+                <tr>
+                  <td>blueaccount_delete_all_accounts_msg</td>
+                  <td><a href="#blueaccount.DeleteAllAccountsMsg">blueaccount.DeleteAllAccountsMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -1593,6 +1611,13 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 <tr>
                   <td>blueaccount_update_configuration_msg</td>
                   <td><a href="#blueaccount.UpdateConfigurationMsg">blueaccount.UpdateConfigurationMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>blueaccount_delete_all_accounts_msg</td>
+                  <td><a href="#blueaccount.DeleteAllAccountsMsg">blueaccount.DeleteAllAccountsMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1889,6 +1914,13 @@ gov.TallyMsg gov_tally_msg = 76; </p></td>
                   <td><p> </p></td>
                 </tr>
               
+                <tr>
+                  <td>blueaccount_delete_all_accounts_msg</td>
+                  <td><a href="#blueaccount.DeleteAllAccountsMsg">blueaccount.DeleteAllAccountsMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -2082,6 +2114,36 @@ account must match. Rule must not include the asterisk (*) character. </p></td>
               
                 <tr>
                   <td>name</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="blueaccount.DeleteAllAccountsMsg">DeleteAllAccountsMsg</h3>
+        <p>DeleteAllAccountsMsg issues deletion of all names (except the one with an</p><p>empty name) that belongs to given domain.</p><p>Message must be signed by the domain owner.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>domain</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p> </p></td>

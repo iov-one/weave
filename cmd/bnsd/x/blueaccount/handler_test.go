@@ -357,6 +357,77 @@ func TestUseCases(t *testing.T) {
 				assertAccounts(t, db, "wunderland", nil)
 			},
 		},
+		"deleting all accounts does not delete the empty name account": {
+			Requests: []Request{
+				{
+					Now:        now + 1,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterDomainMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+						},
+					},
+					BlockHeight: 101,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 2,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterAccountMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+							Name:     "alice",
+						},
+					},
+					BlockHeight: 102,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 3,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterAccountMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+							Name:     "bob",
+							Owner:    bobCond.Address(),
+						},
+					},
+					BlockHeight: 103,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 4,
+					Conditions: []weave.Condition{bobCond},
+					Tx: &weavetest.Tx{
+						Msg: &DeleteAllAccountsMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+						},
+					},
+					BlockHeight: 104,
+					WantErr:     errors.ErrUnauthorized, // Only the domain owner can delete.
+				},
+				{
+					Now:        now + 5,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &DeleteAllAccountsMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+						},
+					},
+					BlockHeight: 105,
+					WantErr:     nil,
+				},
+			},
+			AfterTest: func(t *testing.T, db weave.KVStore) {
+				// Deleting all accounts does not delete the one with an empty name.
+				assertAccounts(t, db, "wunderland", []string{"*wunderland"})
+			},
+		},
 		"deletion of a non existing domain fails": {
 			Requests: []Request{
 				{

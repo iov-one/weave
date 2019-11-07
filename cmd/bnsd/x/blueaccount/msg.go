@@ -18,6 +18,7 @@ func init() {
 	migration.MustRegister(1, &TransferAccountMsg{}, migration.NoModification)
 	migration.MustRegister(1, &ReplaceAccountTargetsMsg{}, migration.NoModification)
 	migration.MustRegister(1, &DeleteAccountMsg{}, migration.NoModification)
+	migration.MustRegister(1, &DeleteAllAccountsMsg{}, migration.NoModification)
 }
 
 var _ weave.Msg = (*UpdateConfigurationMsg)(nil)
@@ -145,6 +146,23 @@ func (DeleteAccountMsg) Path() string {
 }
 
 func (msg *DeleteAccountMsg) Validate() error {
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())
+	// Domain validation rules are dynamically set via configuration and
+	// cannot be enforced here.
+	if len(msg.Domain) == 0 {
+		errs = errors.AppendField(errs, "Domain", errors.ErrEmpty)
+	}
+	return errs
+}
+
+var _ weave.Msg = (*DeleteAllAccountsMsg)(nil)
+
+func (DeleteAllAccountsMsg) Path() string {
+	return "blueaccount/delete_all_accounts_msg"
+}
+
+func (msg *DeleteAllAccountsMsg) Validate() error {
 	var errs error
 	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())
 	// Domain validation rules are dynamically set via configuration and

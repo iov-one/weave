@@ -1,6 +1,7 @@
 package blueaccount
 
 import (
+	"bytes"
 	"regexp"
 
 	weave "github.com/iov-one/weave"
@@ -55,6 +56,11 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		accounts: accounts,
 	})
 	r.Handle(&DeleteAccountMsg{}, &deleteAccountHandler{
+		auth:     auth,
+		domains:  domains,
+		accounts: accounts,
+	})
+	r.Handle(&DeleteAllAccountsMsg{}, &deleteAllAccountsHandler{
 		auth:     auth,
 		domains:  domains,
 		accounts: accounts,
@@ -500,6 +506,58 @@ func (h *deleteAccountHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	authenticated := (len(account.Owner) != 0 && h.auth.HasAddress(ctx, account.Owner)) || h.auth.HasAddress(ctx, domain.Owner)
 	if !authenticated {
 		return nil, errors.Wrap(errors.ErrUnauthorized, "only owner can delete an account")
+	}
+	return &msg, nil
+}
+
+type deleteAllAccountsHandler struct {
+	auth     x.Authenticator
+	domains  orm.ModelBucket
+	accounts orm.ModelBucket
+}
+
+func (h *deleteAllAccountsHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	if _, err := h.validate(ctx, db, tx); err != nil {
+		return nil, err
+	}
+	return &weave.CheckResult{GasAllocated: 0}, nil
+}
+
+func (h *deleteAllAccountsHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	msg, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return nil, err
+	}
+	// This might be an expensive operation.
+	accountKeys, err := itemKeys(DomainAccounts(db, msg.Domain))
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot list accounts")
+	}
+
+	rootAccountKeySuffix := []byte(":" + msg.Domain + "*")
+	for _, key := range accountKeys {
+		// No name account cannot be deleted as long as the domain exists.
+		if bytes.HasSuffix(key, rootAccountKeySuffix) {
+			continue
+		}
+		if err := db.Delete(key); err != nil {
+			return nil, errors.Wrap(err, "cannot delete an account")
+		}
+	}
+	return &weave.DeliverResult{Data: nil}, nil
+}
+
+func (h *deleteAllAccountsHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DeleteAllAccountsMsg, error) {
+	var msg DeleteAllAccountsMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, errors.Wrap(err, "load msg")
+	}
+	var domain Domain
+	if err := h.domains.One(db, []byte(msg.Domain), &domain); err != nil {
+		return nil, errors.Wrap(err, "cannot get domain")
+	}
+	if !h.auth.HasAddress(ctx, domain.Owner) {
+		return nil, errors.Wrap(errors.ErrUnauthorized, "only owner can delete accounts")
 	}
 	return &msg, nil
 }
