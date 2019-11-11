@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -e
+
+bnscli blue-transfer-domain \
+		-domain wunderland \
+		-owner 'seq:foo/bar/1' \
+	| bnscli view

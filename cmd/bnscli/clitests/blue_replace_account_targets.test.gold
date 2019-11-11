@@ -1,0 +1,33 @@
+{
+	"Sum": {
+		"BlueaccountReplaceAccountTargetMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "wunderland",
+			"name": "alice",
+			"new_targets": null
+		}
+	}
+}
+{
+	"Sum": {
+		"BlueaccountReplaceAccountTargetMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "wunderland",
+			"name": "alice",
+			"new_targets": [
+				{
+					"blockchain_id": "first",
+					"address": "111"
+				},
+				{
+					"blockchain_id": "second",
+					"address": "222"
+				}
+			]
+		}
+	}
+}

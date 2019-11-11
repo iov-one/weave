@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package bnsd;
 
+import "cmd/bnsd/x/blueaccount/codec.proto";
 import "cmd/bnsd/x/username/codec.proto";
 import "gogoproto/gogo.proto";
 import "migration/codec.proto";
@@ -65,6 +66,15 @@ message Tx {
     gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
     // 79 is reserved (see ProposalOptions: TextResolutionMsg)
     msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
+    blueaccount.RegisterDomainMsg blueaccount_register_domain_msg = 81;
+    blueaccount.TransferDomainMsg blueaccount_transfer_domain_msg = 82;
+    blueaccount.RenewDomainMsg blueaccount_renew_domain_msg = 83;
+    blueaccount.DeleteDomainMsg blueaccount_delete_domain_msg = 84;
+    blueaccount.RegisterAccountMsg blueaccount_register_account_msg = 85;
+    blueaccount.TransferAccountMsg blueaccount_transfer_account_msg = 86;
+    blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
+    blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
+    blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
   }
 }
 
@@ -91,6 +101,15 @@ message ExecuteBatchMsg {
       // upgrade schema is important enough, it should be a solo action
       // aswap and gov don't make much sense as part of a batch (no vote buying)
       msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
+      blueaccount.RegisterDomainMsg blueaccount_register_domain_msg = 81;
+      blueaccount.TransferDomainMsg blueaccount_transfer_domain_msg = 82;
+      blueaccount.RenewDomainMsg blueaccount_renew_domain_msg = 83;
+      blueaccount.DeleteDomainMsg blueaccount_delete_domain_msg = 84;
+      blueaccount.RegisterAccountMsg blueaccount_register_account_msg = 85;
+      blueaccount.TransferAccountMsg blueaccount_transfer_account_msg = 86;
+      blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
+      blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
+      blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];
@@ -118,6 +137,15 @@ message ProposalOptions {
     gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
     gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
     msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
+    blueaccount.RegisterDomainMsg blueaccount_register_domain_msg = 81;
+    blueaccount.TransferDomainMsg blueaccount_transfer_domain_msg = 82;
+    blueaccount.RenewDomainMsg blueaccount_renew_domain_msg = 83;
+    blueaccount.DeleteDomainMsg blueaccount_delete_domain_msg = 84;
+    blueaccount.RegisterAccountMsg blueaccount_register_account_msg = 85;
+    blueaccount.TransferAccountMsg blueaccount_transfer_account_msg = 86;
+    blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
+    blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
+    blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
   }
 }
 
@@ -141,6 +169,15 @@ message ExecuteProposalBatchMsg {
       gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
       gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
       msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
+      blueaccount.RegisterDomainMsg blueaccount_register_domain_msg = 81;
+      blueaccount.TransferDomainMsg blueaccount_transfer_domain_msg = 82;
+      blueaccount.RenewDomainMsg blueaccount_renew_domain_msg = 83;
+      blueaccount.DeleteDomainMsg blueaccount_delete_domain_msg = 84;
+      blueaccount.RegisterAccountMsg blueaccount_register_account_msg = 85;
+      blueaccount.TransferAccountMsg blueaccount_transfer_account_msg = 86;
+      blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
+      blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
+      blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];

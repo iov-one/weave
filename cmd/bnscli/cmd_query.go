@@ -15,6 +15,7 @@ import (
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
+	"github.com/iov-one/weave/cmd/bnsd/x/blueaccount"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/cash"
@@ -182,6 +183,16 @@ var queries = map[string]struct {
 		decKey: sequenceKey,
 		encID:  numericID,
 	},
+	"/bluedomains": {
+		newObj: func() model { return &blueaccount.Domain{} },
+		decKey: strKey,
+		encID:  strID,
+	},
+	"/blueaccounts": {
+		newObj: func() model { return &blueaccount.Account{} },
+		decKey: strKey,
+		encID:  strID,
+	},
 }
 
 // model is an entity used by weave to store data. This interface is
@@ -229,6 +240,10 @@ func addressID(s string) ([]byte, error) {
 	return weave.ParseAddress(s)
 }
 
+func strID(s string) ([]byte, error) {
+	return []byte(s), nil
+}
+
 func refKey(raw []byte) (string, error) {
 	// Skip the prefix, being the characters before : (including separator)
 	val := raw[bytes.Index(raw, []byte(":"))+1:]
@@ -264,6 +279,10 @@ func sequenceKey(raw []byte) (string, error) {
 
 func rawKey(raw []byte) (string, error) {
 	return hex.EncodeToString(raw), nil
+}
+
+func strKey(raw []byte) (string, error) {
+	return string(raw), nil
 }
 
 // extendedProposal is the gov.Proposal with an additional field to extract
