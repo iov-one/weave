@@ -8,13 +8,13 @@
 - `migrations`: when upgrading the schema version an explicit version must be
   provided. This is required to ensure at most one delivery.
 - `cmd/bnscli` can create a schema upgrade transaction.
-- Blue Account functionality was implememented in  `cmd/bnsd/x/blueaccount` and
+- Blue Account functionality was implememented in `cmd/bnsd/x/blueaccount` and
   integrated into `cmd/bnsd` application.
-  
+
 ## 0.21.3
 
 - `x/msgfee` was extended to provide a message to set a fee for a given message path.
-`bnscli` and `bnsd` were extended to support this change.
+  `bnscli` and `bnsd` were extended to support this change.
 
 Breaking changes
 
@@ -25,15 +25,20 @@ Breaking changes
   of `orm.SimpleObj`.
 
 ## 0.21.2
+
 - Upgrade tendermint dependency to v0.31.9
+
 ## 0.21.1
+
 - Let AntispamFeeDecorator handle empty product fee.
+
 ## 0.21.0
+
 - `x/batch`: increase maximum number of messages to 15
 - `cmd/bnscli`: a new command `mnemonic` was added for generating a random
   mnemonic as described in BIP-39.
 - `weave.Options`: add an option to stream json for lower memory footprint
-when parsing large json objects.
+  when parsing large json objects.
 - `cmd/bnscli`: when a transaction is submitted, for certain messages parse
   returned response data and print it in a human readable format.
 - `clean_protos.sh` appends `option go_package = "github.com/iov-one/weave";`
@@ -49,7 +54,6 @@ Breaking changes
 - `orm`: `VersionedIDRef` is now de/serialized by appending BigEndian ID and BigEndian Version
 - `cmd/bnscli`: now expects VersionedIDRef to be serialised using the new format
 
-
 ## 0.20.0
 
 - update all extensions to use multi-error for gathering validation errors.
@@ -60,7 +64,6 @@ Breaking changes
 - `bnsd/x/username`: `iov` is the only valid and accepted domain name for a
   username. This limitation is forced for the MVP release as we do not have
   namespace management implemented.
-
 
 ## 0.19.0
 
@@ -89,8 +92,6 @@ Breaking changes
 - `gov.TallyMsg` is no longer available. Tally is created automatically when
   the voting time is over.
 
-
-
 ## 0.18.0
 
 - `bnsd/x/username` genesis initializer implemented and included in `bnsd`.
@@ -110,7 +111,6 @@ Breaking changes
   - rename `src` and `sender` to `source`
   - rename `dst` and `recipient` to `destination`
 
-
 ## 0.17.0
 
 - Unified dedupe logic for validator bookkeeping and validator diffs in `app`
@@ -124,12 +124,12 @@ Breaking changes
 - Add `CommitInfo` to the context in order to be able to see who signed the
   current block.
 - `cmd/bnscli` new commands
-    - `with-fee` to configure a transaction fee,
-    - `set-validators` to configure the validators,
-    - `multisig` to create or update a multisig contract,
-    - `with-multisig` to attach a multisig to a transaction,
-    - `with-multisig-participant` to attach a participant to a multisig
-      contract create/update transaction
+  - `with-fee` to configure a transaction fee,
+  - `set-validators` to configure the validators,
+  - `multisig` to create or update a multisig contract,
+  - `with-multisig` to attach a multisig to a transaction,
+  - `with-multisig-participant` to attach a participant to a multisig
+    contract create/update transaction
 - `x/aswap` allow timeout of a swap to be any value after 1970-01-01.
 - `Iterator`s in store (btree cache and iavl adaptor) are now lazy. We also
   provide a `ReadOneFromIterator` function to easily get the first or last item
@@ -163,12 +163,11 @@ Breaking changes
 - `x/gov` added indexes to proposals and electorate to enable better client-side UX
 - `cash.UpdateConfigurationMsg` requires `Metadata.Schema`
 - ValidatorUpdate definitions now moved to `weave` package. Weave is using these definitions
-now instead of abci internally.
+  now instead of abci internally.
 - Simplified `Iterator` to 2 methods - Next() and Release()
 - Removed `cmd/bcpd` application
 - Removed `x/namecoin` package that is no longer used.
 - Removed obsolete `examples` directory
-
 
 ## 0.16.0
 
@@ -219,8 +218,6 @@ Breaking changes
   two entities `x/cash.FeeInfo` and `x/sigs.StdSignature`
 - Max length of blockchain ids used in username NFTs is now 32 (previously 128)
 
-
-
 ## 0.15.0
 
 - Tendermint is upgraded to version 0.31.5
@@ -249,7 +246,6 @@ Breaking changes
   `x/msgfee`, `x/multisig`, `x/namecoin`,
   `x/nft`, `x/paychan`, `x/sigs`, `x/validators`
 
-
 ## 0.14.0
 
 - Simplify transaction message unpacking with `weave.LoadMsg`
@@ -271,7 +267,6 @@ Breaking changes
 - Improve high-level benchmarks, sending coins with fees at ABCI level
 - Remove composite literal uses of unkeyed fields
 - Extend multisig contract with weights
-
 
 ## 0.12.1
 
