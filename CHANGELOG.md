@@ -16,7 +16,7 @@
 - `x/msgfee` was extended to provide a message to set a fee for a given message path.
   `bnscli` and `bnsd` were extended to support this change.
 
-Breaking changes
+### Breaking Changes
 
 - `orm` package was updated to no longer rely on `Clone` and `Copy` methods.
   Models no longer must implement `orm.Cloneable`. Models must implement
@@ -47,7 +47,7 @@ Breaking changes
 - `bnsd/x/username` was updated and now the username validation rules are
   defined dynamically via gconf powered configuration.
 
-Breaking changes
+### Breaking Changes
 
 - `cmd/bnscli`: `keygen` command was updated and requires a mnemonic to
   generate a key.
@@ -59,7 +59,7 @@ Breaking changes
 - update all extensions to use multi-error for gathering validation errors.
 - add `query` command to the `bnscli` tool
 
-Breaking changes
+### Breaking Changes
 
 - `bnsd/x/username`: `iov` is the only valid and accepted domain name for a
   username. This limitation is forced for the MVP release as we do not have
@@ -79,7 +79,7 @@ Breaking changes
   `escrow.Contract`, `distribution.Revenue`, `multisig.Contract` `gov.ElectionRule` and
   `paychan.PaymentChannel`.
 
-Breaking changes
+### Breaking Changes
 
 - `weave.Ticker` interface was updated.
 - Add `owner` index to bnsd `x/username` to be able to query tokens by owner.
@@ -102,7 +102,7 @@ Breaking changes
   sub-message. If it is a governance tally, the TallyMsg as well as the
   option (message executed on behalf of the governance stack) is tagged.
 
-Breaking changes
+### Breaking Changes
 
 - Unify all message paths to follow pattern `<package>/<message_name>`
 - `app.Router` interface was changed. Handler registration requires a message
@@ -136,7 +136,7 @@ Breaking changes
   in a range. This will only load desired items from disk and no longer greedily
   load the entire range before returning the first item.
 
-Breaking changes
+### Breaking Changes
 
 - Update `bnsd` transaction entities. All transaction attributes that point to
   a message are now snake case, and their naming follows the format
@@ -209,7 +209,7 @@ Breaking changes
   objects in both json and binary encodings) to enable easier bindings and unit
   tests in client code, and projects that import weave.
 
-Breaking changes
+### Breaking Changes
 
 - Escrow does not support atomic swap anymore: preimage is removed from Tx and,
   haslock extension removed and arbiter now must be an Address and not a
@@ -231,7 +231,7 @@ Breaking changes
 - New `migration` package. Schema versioning for models and messages can be
   implemented by relying on functionality provided by this package.
 
-Breaking changes
+### Breaking Changes
 
 - Dependency management was migrated to Go modules. `dep` is no longer used or
   supported.
@@ -255,7 +255,7 @@ Breaking changes
   `x/sigs` extension
 - A new validator subjective anti-spam fee was added
 
-Breaking changes
+### Breaking Changes
 
 - Timeout types in `x/escrow` changed to UNIX timestamps
 - When considering expiration in `x/escrow` extension, expiration time is now
@@ -273,7 +273,7 @@ Breaking changes
 - Cleanup coins package errors
 - Add support for bech32 in genesis file
 
-Breaking changes
+### Breaking Changes
 
 - Distribution condition must match regexp for validation
 - Deprecate Error.New for errors.Wrap
