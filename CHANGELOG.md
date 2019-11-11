@@ -1,6 +1,7 @@
 # Changelog
 
 ## HEAD
+
 - `gconf`: allow to provide an optional authentication address that will be
   used to authenticate a configuration creation message. This solves a
   chicken-egg problem of when the confgiuration was not created via genesis.
@@ -9,8 +10,11 @@
 - `cmd/bnscli` can create a schema upgrade transaction.
 - Blue Account functionality was implememented in  `cmd/bnsd/x/blueaccount` and
   integrated into `cmd/bnsd` application.
-- `x/msgfee` was extended to provide a message to set a fee for a given message
-  path.  `bnscli` and `bnsd` were extended to support this change.
+  
+## 0.21.3
+
+- `x/msgfee` was extended to provide a message to set a fee for a given message path.
+`bnscli` and `bnsd` were extended to support this change.
 
 Breaking changes
 
