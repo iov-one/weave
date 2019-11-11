@@ -209,6 +209,65 @@ func TestUseCases(t *testing.T) {
 				assertAccounts(t, db, "wunderland", []string{"*wunderland"})
 			},
 		},
+		"an account owner can delete account": {
+			Requests: []Request{
+				{
+					Now:        now,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterDomainMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+						},
+					},
+					BlockHeight: 100,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 1,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterAccountMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Owner:    bobCond.Address(),
+							Domain:   "wunderland",
+							Name:     "bob",
+						},
+					},
+					BlockHeight: 101,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 2,
+					Conditions: []weave.Condition{charlieCond},
+					Tx: &weavetest.Tx{
+						Msg: &DeleteAccountMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+							Name:     "bob",
+						},
+					},
+					BlockHeight: 102,
+					WantErr:     errors.ErrUnauthorized,
+				},
+				{
+					Now:        now + 3,
+					Conditions: []weave.Condition{bobCond},
+					Tx: &weavetest.Tx{
+						Msg: &DeleteAccountMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+							Name:     "bob",
+						},
+					},
+					BlockHeight: 103,
+					WantErr:     nil,
+				},
+			},
+			AfterTest: func(t *testing.T, db weave.KVStore) {
+				assertAccounts(t, db, "wunderland", []string{"*wunderland"})
+			},
+		},
 		"only owner can register username under a domain": {
 			Requests: []Request{
 				{
@@ -823,7 +882,7 @@ func TestUseCases(t *testing.T) {
 				},
 			},
 		},
-		"owner can transfer ownership of an account": {
+		"account owner cannot transfer ownership of an account": {
 			Requests: []Request{
 				{
 					Now:        now,
@@ -851,6 +910,7 @@ func TestUseCases(t *testing.T) {
 					BlockHeight: 101,
 					WantErr:     nil,
 				},
+				// Account owner cannot transfer.
 				{
 					Now:        now + 2,
 					Conditions: []weave.Condition{bobCond},
@@ -863,6 +923,21 @@ func TestUseCases(t *testing.T) {
 						},
 					},
 					BlockHeight: 102,
+					WantErr:     errors.ErrUnauthorized,
+				},
+				// Domain owner can transfer.
+				{
+					Now:        now + 3,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &TransferAccountMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+							Name:     "bob",
+							NewOwner: charlieCond.Address(),
+						},
+					},
+					BlockHeight: 103,
 					WantErr:     nil,
 				},
 			},
