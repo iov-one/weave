@@ -60,7 +60,7 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		domains:  domains,
 		accounts: accounts,
 	})
-	r.Handle(&DeleteAllAccountsMsg{}, &deleteAllAccountsHandler{
+	r.Handle(&FlushDomainMsg{}, &flushDomainHandler{
 		auth:     auth,
 		domains:  domains,
 		accounts: accounts,
@@ -510,20 +510,20 @@ func (h *deleteAccountHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	return &msg, nil
 }
 
-type deleteAllAccountsHandler struct {
+type flushDomainHandler struct {
 	auth     x.Authenticator
 	domains  orm.ModelBucket
 	accounts orm.ModelBucket
 }
 
-func (h *deleteAllAccountsHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h *flushDomainHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	if _, err := h.validate(ctx, db, tx); err != nil {
 		return nil, err
 	}
 	return &weave.CheckResult{GasAllocated: 0}, nil
 }
 
-func (h *deleteAllAccountsHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h *flushDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
@@ -547,8 +547,8 @@ func (h *deleteAllAccountsHandler) Deliver(ctx weave.Context, db weave.KVStore, 
 	return &weave.DeliverResult{Data: nil}, nil
 }
 
-func (h *deleteAllAccountsHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*DeleteAllAccountsMsg, error) {
-	var msg DeleteAllAccountsMsg
+func (h *flushDomainHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*FlushDomainMsg, error) {
+	var msg FlushDomainMsg
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}

@@ -249,15 +249,15 @@
                 </li>
               
                 <li>
-                  <a href="#blueaccount.DeleteAllAccountsMsg"><span class="badge">M</span>DeleteAllAccountsMsg</a>
-                </li>
-              
-                <li>
                   <a href="#blueaccount.DeleteDomainMsg"><span class="badge">M</span>DeleteDomainMsg</a>
                 </li>
               
                 <li>
                   <a href="#blueaccount.Domain"><span class="badge">M</span>Domain</a>
+                </li>
+              
+                <li>
+                  <a href="#blueaccount.FlushDomainMsg"><span class="badge">M</span>FlushDomainMsg</a>
                 </li>
               
                 <li>
@@ -1177,7 +1177,7 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
               
                 <tr>
                   <td>blueaccount_delete_all_accounts_msg</td>
-                  <td><a href="#blueaccount.DeleteAllAccountsMsg">blueaccount.DeleteAllAccountsMsg</a></td>
+                  <td><a href="#blueaccount.FlushDomainMsg">blueaccount.FlushDomainMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1397,8 +1397,8 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 </tr>
               
                 <tr>
-                  <td>blueaccount_delete_all_accounts_msg</td>
-                  <td><a href="#blueaccount.DeleteAllAccountsMsg">blueaccount.DeleteAllAccountsMsg</a></td>
+                  <td>blueaccount_flush_domain_msg</td>
+                  <td><a href="#blueaccount.FlushDomainMsg">blueaccount.FlushDomainMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1617,7 +1617,7 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
               
                 <tr>
                   <td>blueaccount_delete_all_accounts_msg</td>
-                  <td><a href="#blueaccount.DeleteAllAccountsMsg">blueaccount.DeleteAllAccountsMsg</a></td>
+                  <td><a href="#blueaccount.FlushDomainMsg">blueaccount.FlushDomainMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1916,7 +1916,7 @@ gov.TallyMsg gov_tally_msg = 76; </p></td>
               
                 <tr>
                   <td>blueaccount_delete_all_accounts_msg</td>
-                  <td><a href="#blueaccount.DeleteAllAccountsMsg">blueaccount.DeleteAllAccountsMsg</a></td>
+                  <td><a href="#blueaccount.FlushDomainMsg">blueaccount.FlushDomainMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -2125,36 +2125,6 @@ account must match. Rule must not include the asterisk (*) character. </p></td>
 
         
       
-        <h3 id="blueaccount.DeleteAllAccountsMsg">DeleteAllAccountsMsg</h3>
-        <p>DeleteAllAccountsMsg issues deletion of all names (except the one with an</p><p>empty name) that belongs to given domain.</p><p>Message must be signed by the domain owner.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>metadata</td>
-                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>domain</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
         <h3 id="blueaccount.DeleteDomainMsg">DeleteDomainMsg</h3>
         <p>DeleteDomainMsg issues deletion of a domain and all accounts that belong to</p><p>that domain.</p>
 
@@ -2224,6 +2194,36 @@ belong to this domain. </p></td>
                   <td><p>Valid until defines the expiration date for the domain. Expired domain
 cannot be used or modified. None of the accounts that belong to an expired
 domain can be used of modified as well. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="blueaccount.FlushDomainMsg">FlushDomainMsg</h3>
+        <p>FlushDomainMsg issues deletion of all names (except the one with an empty</p><p>name) that belongs to given domain.</p><p>Message must be signed by the domain owner.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>domain</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>

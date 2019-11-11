@@ -187,10 +187,10 @@ message DeleteAccountMsg {
   string name = 3;
 }
 
-// DeleteAllAccountsMsg issues deletion of all names (except the one with an
-// empty name) that belongs to given domain.
+// FlushDomainMsg issues deletion of all names (except the one with an empty
+// name) that belongs to given domain.
 // Message must be signed by the domain owner.
-message DeleteAllAccountsMsg {
+message FlushDomainMsg {
   weave.Metadata metadata = 1;
   string domain = 2;
 }

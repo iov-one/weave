@@ -402,7 +402,7 @@ func TestUseCases(t *testing.T) {
 					Now:        now + 4,
 					Conditions: []weave.Condition{bobCond},
 					Tx: &weavetest.Tx{
-						Msg: &DeleteAllAccountsMsg{
+						Msg: &FlushDomainMsg{
 							Metadata: &weave.Metadata{Schema: 1},
 							Domain:   "wunderland",
 						},
@@ -414,7 +414,7 @@ func TestUseCases(t *testing.T) {
 					Now:        now + 5,
 					Conditions: []weave.Condition{aliceCond},
 					Tx: &weavetest.Tx{
-						Msg: &DeleteAllAccountsMsg{
+						Msg: &FlushDomainMsg{
 							Metadata: &weave.Metadata{Schema: 1},
 							Domain:   "wunderland",
 						},
