@@ -1,6 +1,9 @@
 # Changelog
 
 ## HEAD
+
+## 0.21.3
+
 - `x/msgfee` was extended to provide a message to set a fee for a given message path.
 `bnscli` and `bnsd` were extended to support this change.
 
