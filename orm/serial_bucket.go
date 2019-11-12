@@ -258,6 +258,7 @@ func (smb *serialModelBucket) IndexScan(db weave.ReadOnlyKVStore, indexName stri
 }
 
 func (smb *serialModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, destination SerialModelSlicePtr) error {
+	// TODO refactor this function to return an iterator
 	objs, err := smb.b.GetIndexed(db, indexName, key)
 	if err != nil {
 		return err
