@@ -173,3 +173,41 @@ This functionality is intended to extend RegisterTokenMsg or ChangeTokenTargetsM
 	_, err = writeTx(output, tx)
 	return err
 }
+
+func cmdUpdateUsernameConfiguration(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Create a transaction to change username extension configuration.
+
+Username is in format <name>*<label>
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		ownerFl      = flAddress(fl, "owner", "", "Address of the owner.")
+		validLabelFl = fl.String("valid-label", "", "Regular expression defining a rule for a valid label.")
+		validNameFl  = fl.String("valid-name", "", "Regular expression defining a rule for a valid name.")
+	)
+	fl.Parse(args)
+
+	msg := username.UpdateConfigurationMsg{
+		Metadata: &weave.Metadata{Schema: 1},
+		Patch: &username.Configuration{
+			Metadata:           &weave.Metadata{Schema: 1},
+			Owner:              *ownerFl,
+			ValidUsernameLabel: *validLabelFl,
+			ValidUsernameName:  *validNameFl,
+		},
+	}
+	if err := msg.Validate(); err != nil {
+		return fmt.Errorf("given data produce an invalid message: %s", err)
+	}
+	tx := &bnsd.Tx{
+		Sum: &bnsd.Tx_UsernameUpdateConfigurationMsg{
+			UsernameUpdateConfigurationMsg: &msg,
+		},
+	}
+	_, err := writeTx(output, tx)
+	return err
+}

@@ -10,6 +10,20 @@ func init() {
 	migration.MustRegister(1, &RegisterTokenMsg{}, migration.NoModification)
 	migration.MustRegister(1, &TransferTokenMsg{}, migration.NoModification)
 	migration.MustRegister(1, &ChangeTokenTargetsMsg{}, migration.NoModification)
+	migration.MustRegister(1, &UpdateConfigurationMsg{}, migration.NoModification)
+}
+
+var _ weave.Msg = (*UpdateConfigurationMsg)(nil)
+
+func (msg *UpdateConfigurationMsg) Validate() error {
+	var errs error
+	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())
+	errs = errors.AppendField(errs, "Patch", msg.Patch.Validate())
+	return errs
+}
+
+func (UpdateConfigurationMsg) Path() string {
+	return "username/update_configuration"
 }
 
 var _ weave.Msg = (*RegisterTokenMsg)(nil)

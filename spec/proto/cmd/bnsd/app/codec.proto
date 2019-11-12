@@ -49,6 +49,7 @@ message Tx {
     username.RegisterTokenMsg username_register_token_msg = 61;
     username.TransferTokenMsg username_transfer_token_msg = 62;
     username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
+    username.UpdateConfigurationMsg username_update_configuration_msg = 64;
     distribution.CreateMsg distribution_create_msg = 66;
     distribution.DistributeMsg distribution_msg = 67;
     distribution.ResetMsg distribution_reset_msg = 68;
@@ -94,6 +95,7 @@ message ExecuteBatchMsg {
       username.RegisterTokenMsg username_register_token_msg = 61;
       username.TransferTokenMsg username_transfer_token_msg = 62;
       username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
+      username.UpdateConfigurationMsg username_update_configuration_msg = 64;
       distribution.CreateMsg distribution_create_msg = 66;
       distribution.DistributeMsg distribution_msg = 67;
       distribution.ResetMsg distribution_reset_msg = 68;
@@ -128,6 +130,7 @@ message ProposalOptions {
     username.RegisterTokenMsg username_register_token_msg = 61;
     username.TransferTokenMsg username_transfer_token_msg = 62;
     username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
+    username.UpdateConfigurationMsg username_update_configuration_msg = 64;
     distribution.CreateMsg distribution_create_msg = 66;
     distribution.DistributeMsg distribution_msg = 67;
     distribution.ResetMsg distribution_reset_msg = 68;
@@ -160,6 +163,7 @@ message ExecuteProposalBatchMsg {
       username.RegisterTokenMsg username_register_token_msg = 61;
       username.TransferTokenMsg username_transfer_token_msg = 62;
       username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
+      username.UpdateConfigurationMsg username_update_configuration_msg = 64;
       distribution.CreateMsg distribution_create_msg = 66;
       distribution.DistributeMsg distribution_msg = 67;
       distribution.ResetMsg distribution_reset_msg = 68;
