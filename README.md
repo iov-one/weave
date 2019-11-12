@@ -21,7 +21,7 @@ to your project.
 
 Join the Weave [community channel](https://riot.im/app/#/room/#weave:matrix.org) :loudspeaker:
 
-**Note: Requires Go 1.11.4+**
+**Note: Requires Go 1.13.0+**
 
 It is inspired by the routing and middleware model of many web
 application frameworks, and informed by years of wrestling with
