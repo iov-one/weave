@@ -183,7 +183,9 @@ func (kind *Error) Is(err error) bool {
 			}
 		}
 
-		if c, ok := err.(causer); ok {
+		if w, ok := err.(unwrapper); ok {
+			err = w.Unwrap()
+		} else if c, ok := err.(causer); ok {
 			err = c.Cause()
 		} else {
 			return false
@@ -248,7 +250,13 @@ func (e *wrappedError) Error() string {
 	return fmt.Sprintf("%s: %s", e.msg, e.parent.Error())
 }
 
+// Case implements a deprecated interface, now replaced by the Unwrap.
 func (e *wrappedError) Cause() error {
+	return e.parent
+}
+
+// Unwrap implements error unwraping interface from the standard library.
+func (e *wrappedError) Unwrap() error {
 	return e.parent
 }
 
@@ -268,8 +276,17 @@ func WithType(err error, obj interface{}) error {
 
 // causer is an interface implemented by an error that supports wrapping. Use
 // it to test if an error wraps another error instance.
+//
+// This interface is deprecated since unwrapper interface introduction in Go
+// 1.13. Use unwrapper instead.
 type causer interface {
 	Cause() error
+}
+
+// unwrapper is an interface implemented by an error that supports wrapping. Use
+// it to test if an error wraps another error instance.
+type unwrapper interface {
+	Unwrap() error
 }
 
 type unpacker interface {
