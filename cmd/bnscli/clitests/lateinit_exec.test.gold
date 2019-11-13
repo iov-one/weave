@@ -1,0 +1,10 @@
+{
+	"Sum": {
+		"LateinitExecuteInitMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"init_id": "an-id-of-an-instruction"
+		}
+	}
+}

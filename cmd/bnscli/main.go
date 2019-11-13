@@ -76,6 +76,7 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"with-fee":                      cmdWithFee,
 	"with-multisig":                 cmdWithMultisig,
 	"with-multisig-participant":     cmdWithMultisigParticipant,
+	"lateinit-exec":                 cmdLateinitExecute,
 }
 
 func main() {
