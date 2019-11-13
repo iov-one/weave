@@ -2,6 +2,9 @@
 
 ## HEAD
 
+- `x/lateinit`: a new extension that allows to declare and execute a creation
+  of an arbitrary entity declared in code. This is a solution to running a
+  genesis-like bootstrap in already initialized chain.
 - `x/username`: allow to change configuration via message
 - `gconf`: allow to provide an optional authentication address that will be
   used to authenticate a configuration creation message. This solves a
