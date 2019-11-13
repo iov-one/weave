@@ -8,11 +8,11 @@
 - `x/username`: allow to change configuration via message
 - `gconf`: allow to provide an optional authentication address that will be
   used to authenticate a configuration creation message. This solves a
-  chicken-egg problem of when the confgiuration was not created via genesis.
+  chicken-egg problem of when the configuration was not created via genesis.
 - `migrations`: when upgrading the schema version an explicit version must be
   provided. This is required to ensure at most one delivery.
 - `cmd/bnscli` can create a schema upgrade transaction.
-- Blue Account functionality was implememented in `cmd/bnsd/x/blueaccount` and
+- Blue Account functionality was implemented in `cmd/bnsd/x/blueaccount` and
   integrated into `cmd/bnsd` application.
 
 ## 0.21.3
