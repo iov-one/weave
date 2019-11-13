@@ -258,7 +258,10 @@ func (smb *serialModelBucket) IndexScan(db weave.ReadOnlyKVStore, indexName stri
 }
 
 func (smb *serialModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, destination SerialModelSlicePtr) error {
-	// TODO refactor this function to return an iterator
+	// TODO Refactor this function to return lazy iterator
+	// get indexed loads all the objects to objs where
+	// the iterator wrapping must happen. Should be taken care
+	// serial model bucket is optimized by moving bucket logic here
 	objs, err := smb.b.GetIndexed(db, indexName, key)
 	if err != nil {
 		return err
