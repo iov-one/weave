@@ -54,6 +54,10 @@ func TestLimitIterator(t *testing.T) {
 
 	// limit 1 should work
 	iter, err = b.IndexScan(db, "counter", nil, false)
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
 	limit = 1
 	limitedIter = LimitIterator(iter, limit)
 	err = limitedIter.LoadNext(&dest)
@@ -62,6 +66,10 @@ func TestLimitIterator(t *testing.T) {
 	}
 
 	iter, err = b.IndexScan(db, "counter", nil, false)
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
 	limit = 10
 	limitedIter = LimitIterator(iter, limit)
 	err = limitedIter.LoadNext(&dest)
@@ -71,6 +79,10 @@ func TestLimitIterator(t *testing.T) {
 
 	// reset iterator counter
 	iter, err = b.IndexScan(db, "counter", nil, false)
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	
 	limitedIter = LimitIterator(iter, limit)
 	for i := 0; i < 10; i++ {
 		if err := limitedIter.LoadNext(&dest); err != nil {
