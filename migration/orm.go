@@ -167,6 +167,136 @@ func (m *ModelBucket) migrate(db weave.ReadOnlyKVStore, model orm.Model) error {
 	return migrate(m.migrations, m.schema, m.packageName, db, model)
 }
 
+// SerialModelBucket implements the orm.SerialModelBucket interface and provides the same
+// functionality with additional model schema migration.
+type SerialModelBucket struct {
+	b           orm.SerialModelBucket
+	packageName string
+	schema      *SchemaBucket
+	migrations  *register
+}
+
+var _ orm.SerialModelBucket = (*SerialModelBucket)(nil)
+
+// migrationIterator iterates over orm.SerialIterator thus applies
+// migration on LoadNext
+type migrationIterator struct {
+	iter orm.SerialModelIterator
+	smb  *SerialModelBucket
+	db   weave.ReadOnlyKVStore
+}
+
+var _ orm.SerialModelIterator = (*migrationIterator)(nil)
+
+func (i *migrationIterator) LoadNext(dest orm.SerialModel) error {
+	if err := i.iter.LoadNext(dest); err != nil {
+		return err
+	}
+	if err := i.smb.migrate(i.db, dest); err != nil {
+		return errors.Wrapf(err, "migrate %T model", dest)
+	}
+	return nil
+}
+
+func (i *migrationIterator) Release() {
+	i.iter.Release()
+}
+
+func NewSerialModelBucket(packageName string, model orm.SerialModel, bucket orm.SerialModelBucket) *SerialModelBucket {
+	return &SerialModelBucket{
+		b:           bucket,
+		packageName: packageName,
+		schema:      NewSchemaBucket(),
+		migrations:  reg,
+	}
+}
+
+func (smb *SerialModelBucket) Register(name string, r weave.QueryRouter) {
+	smb.b.Register(name, r)
+}
+
+func (smb *SerialModelBucket) ByID(db weave.ReadOnlyKVStore, key []byte, dest orm.SerialModel) error {
+	if err := smb.b.ByID(db, key, dest); err != nil {
+		return err
+	}
+	if err := smb.migrate(db, dest); err != nil {
+		return errors.Wrap(err, "migrate")
+	}
+	return nil
+}
+
+func (smb *SerialModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest orm.SerialModelSlicePtr) error {
+	if err := smb.b.ByIndex(db, indexName, key, dest); err != nil {
+		return err
+	}
+
+	// The correct type of the dest was already validated by the
+	// SerialModelBucket when getting data by index. We can safely skip checks -
+	// dest is a slice of models.
+	slice := reflect.ValueOf(dest).Elem()
+	for i := 0; i < slice.Len(); i++ {
+		item := slice.Index(i)
+
+		// Slice can be both of values and pointer to values. This
+		// method must support both notations.
+		var model orm.SerialModel
+		if m, ok := item.Interface().(orm.SerialModel); ok {
+			model = m
+		} else {
+			model = item.Addr().Interface().(orm.SerialModel)
+		}
+
+		if err := smb.migrate(db, model); err != nil {
+			return errors.Wrapf(err, "migrate %d element", i)
+		}
+	}
+	return nil
+}
+
+func (smb *SerialModelBucket) PrefixScan(db weave.ReadOnlyKVStore, prefix []byte, reverse bool) (orm.SerialModelIterator, error) {
+	iter, err := smb.b.PrefixScan(db, prefix, reverse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &migrationIterator{iter: iter, smb: smb, db: db}, nil
+}
+
+func (smb *SerialModelBucket) IndexScan(db weave.ReadOnlyKVStore, indexName string, prefix []byte, reverse bool) (orm.SerialModelIterator, error) {
+	iter, err := smb.b.IndexScan(db, indexName, prefix, reverse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &migrationIterator{iter: iter, smb: smb, db: db}, nil
+}
+
+func (smb *SerialModelBucket) Save(db weave.KVStore, model orm.SerialModel) error {
+	if err := smb.migrate(db, model); err != nil {
+		return errors.Wrap(err, "migrate")
+	}
+	return smb.b.Save(db, model)
+}
+
+func (smb *SerialModelBucket) Delete(db weave.KVStore, key []byte) error {
+	return smb.b.Delete(db, key)
+}
+
+func (smb *SerialModelBucket) Has(db weave.KVStore, key []byte) error {
+	return smb.b.Has(db, key)
+}
+
+// useRegister will update this bucket to use a custom register instance
+// instead of the global one. This is a private method meant to be used for
+// tests only.
+func (smb *SerialModelBucket) useRegister(r *register) {
+	smb.migrations = r
+}
+
+func (smb *SerialModelBucket) migrate(db weave.ReadOnlyKVStore, model orm.SerialModel) error {
+	return migrate(smb.migrations, smb.schema, smb.packageName, db, model)
+}
+
 func migrate(
 	migrations *register,
 	schema *SchemaBucket,
