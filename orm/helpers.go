@@ -46,7 +46,6 @@ func ToSlice(iter SerialModelIterator, destination SerialModelSlicePtr) error {
 		return errors.Wrap(errors.ErrType, "destination must be a pointer to slice of SerialModels")
 	}
 
-	// Allocate memory depending on the type of the destination
 	var elemTyp reflect.Type
 	if dest.Type().Elem().Kind() != reflect.Ptr {
 		elemTyp = dest.Type().Elem()

@@ -96,7 +96,6 @@ func NewSerialModelBucket(name string, m SerialModel, opts ...SerialModelBucketO
 		fn(smb)
 	}
 
-	// set fixed
 	smb.fixed = true
 
 	return smb
