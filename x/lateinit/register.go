@@ -13,12 +13,13 @@ import (
 // MustRegister registers an initialization function for given entity.
 func MustRegister(
 	initID string,
+	chainID string,
 	requiredSigner weave.Address,
 	entityID []byte,
 	bucket orm.ModelBucket,
 	entity orm.Model,
 ) {
-	if err := reg.Register(initID, requiredSigner, entityID, bucket, entity); err != nil {
+	if err := reg.Register(initID, chainID, requiredSigner, entityID, bucket, entity); err != nil {
 		panic(err)
 	}
 }
@@ -27,11 +28,13 @@ func MustRegister(
 // used for registering of gconf configuration objects initialization.
 func MustRegisterGConfig(
 	pkgName string,
+	chainID string,
 	requiredSigner weave.Address,
 	entity orm.Model,
 ) {
 	MustRegister(
 		pkgName+"/configuration",
+		chainID,
 		requiredSigner,
 		[]byte(pkgName),
 		gconf.NewConfigurationModelBucket(),
@@ -56,6 +59,7 @@ type register struct {
 // createDef clubs together all parts required to initialize an entity.
 type createDef struct {
 	requiredSigner weave.Address
+	chainID        string
 	entityID       []byte
 	bucket         orm.ModelBucket
 	entity         orm.Model
@@ -63,6 +67,7 @@ type createDef struct {
 
 func (r *register) Register(
 	initID string,
+	chainID string,
 	requiredSigner weave.Address,
 	entityID []byte,
 	bucket orm.ModelBucket,
@@ -90,6 +95,7 @@ func (r *register) Register(
 
 	r.defs[initID] = createDef{
 		requiredSigner: requiredSigner,
+		chainID:        chainID,
 		entityID:       entityID,
 		bucket:         bucket,
 		entity:         entity,
@@ -119,6 +125,10 @@ func (r *register) Exec(
 		return errors.Wrapf(errors.ErrState, "entity %q already exists", def.entityID)
 	default:
 		return errors.Wrapf(err, "cannot check if entity %q exists", def.entityID)
+	}
+
+	if weave.GetChainID(ctx) != def.chainID {
+		return errors.Wrap(errors.ErrChain, "this migration is intended for different chain")
 	}
 
 	if _, err := def.bucket.Put(db, def.entityID, def.entity); err != nil {

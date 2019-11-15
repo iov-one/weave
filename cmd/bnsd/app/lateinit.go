@@ -11,6 +11,7 @@ func init() {
 	// cond:gov/rule/0000000000000003 is owned by technical executors
 	lateinit.MustRegisterGConfig(
 		"msgfee",
+		"iov-mainnet"
 		weave.NewCondition("gov", "rule", []byte("0000000000000003")).Address(),
 		&msgfee.Configuration{
 			Metadata: &weave.Metadata{Schema: 1},

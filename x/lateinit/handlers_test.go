@@ -67,6 +67,16 @@ func TestHandlers(t *testing.T) {
 			},
 			WantErr: errors.ErrState,
 		},
+		"migration for a different chain cannot be executed": {
+			Conditions: []weave.Condition{charlieCond},
+			Tx: &weavetest.Tx{
+				Msg: &ExecuteInitMsg{
+					Metadata: &weave.Metadata{Schema: 1},
+					InitID:   "staging-init",
+				},
+			},
+			WantErr: errors.ErrChain,
+		},
 	}
 
 	for testName, tc := range cases {
@@ -80,6 +90,7 @@ func TestHandlers(t *testing.T) {
 
 			MustRegister(
 				"init-init",
+				"testchain-123",
 				aliceCond.Address(),
 				[]byte("init-init"),
 				b,
@@ -99,12 +110,25 @@ func TestHandlers(t *testing.T) {
 
 			MustRegister(
 				"existing-init",
+				"testchain-123",
 				charlieCond.Address(),
 				[]byte("existing-init"),
 				b,
 				&ExecutedInit{
 					Metadata: &weave.Metadata{Schema: 1},
 					InitID:   "existing-init",
+				},
+			)
+
+			MustRegister(
+				"staging-init",
+				"stagingchain-942",
+				charlieCond.Address(),
+				[]byte("staging-init"),
+				b,
+				&ExecutedInit{
+					Metadata: &weave.Metadata{Schema: 1},
+					InitID:   "staging-init",
 				},
 			)
 
@@ -150,6 +174,7 @@ func withNewRegister() func() {
 func TestOnlyValidEntityCanBeRegistered(t *testing.T) {
 	err := reg.Register(
 		"an id",
+		"testchain-123",
 		nil,
 		[]byte("123456789"),
 		NewExecutedInitBucket(),
