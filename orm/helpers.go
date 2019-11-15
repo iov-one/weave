@@ -21,6 +21,7 @@ func (l *limitedIterator) LoadNext(dest SerialModel) error {
 			return err
 		}
 		l.remaining--
+		return nil
 	}
 	return errors.Wrap(errors.ErrIteratorDone, "iterator limit reached")
 }

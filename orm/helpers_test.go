@@ -9,11 +9,11 @@ import (
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
-func TestWithLimit(t *testing.T) {
+func TestLimitIterator(t *testing.T) {
 	db := store.MemStore()
 
 	b := NewSerialModelBucket("cnts", &CounterWithID{},
-		WithIndexSerial("counter", func(Object) ([]byte, error) { return []byte("all"), nil }, false))
+			WithIndexSerial("counter", lexographicCountIndex, true))
 
 	var expected []*CounterWithID
 	for i := 0; i < 30; i++ {
@@ -31,38 +31,47 @@ func TestWithLimit(t *testing.T) {
 		}
 	}
 
-	iter, err := b.IndexScan(db, "counter", []byte("all"), false)
-	if err != nil {
-		t.Fatalf("unexpected error: %s", err)
-	}
-
-	// should return error when received limit lesser than 1
-	limit := 0
-	_, err = LimitIterator(iter, limit)
-	if err != nil && !errors.ErrInput.Is(err) {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	limit = -100
-	_, err = LimitIterator(iter, limit)
-	if err != nil && !errors.ErrInput.Is(err) {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	// limit 1 should work
-	limit = 1
-	_, err = LimitIterator(iter, limit)
-	if err != nil && !errors.ErrInput.Is(err) {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	limit = 10
-	limitedIter, err := LimitIterator(iter, limit)
+	iter, err := b.IndexScan(db, "counter", nil, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
 	var dest CounterWithID
+	// should return iterator done when received limit lesser than 1
+	limit := 0
+	limitedIter := LimitIterator(iter, limit)
+	err = limitedIter.LoadNext(&dest)
+	if !errors.ErrIteratorDone.Is(err) {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	limit = -100
+	err = limitedIter.LoadNext(&dest)
+	limitedIter = LimitIterator(iter, limit)
+	if !errors.ErrIteratorDone.Is(err) {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// limit 1 should work
+	iter, err = b.IndexScan(db, "counter", nil, false)
+	limit = 1
+	limitedIter = LimitIterator(iter, limit)
+	err = limitedIter.LoadNext(&dest)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	iter, err = b.IndexScan(db, "counter", nil, false)
+	limit = 10
+	limitedIter = LimitIterator(iter, limit)
+	err = limitedIter.LoadNext(&dest)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// reset iterator counter
+	iter, err = b.IndexScan(db, "counter", nil, false)
+	limitedIter = LimitIterator(iter, limit)
 	for i := 0; i < 10; i++ {
 		if err := limitedIter.LoadNext(&dest); err != nil {
 			if !errors.ErrIteratorDone.Is(err) {
