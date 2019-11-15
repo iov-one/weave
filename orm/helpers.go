@@ -29,7 +29,7 @@ func (l *limitedIterator) Release() {
 	l.iter.Release()
 }
 
-func WithLimit(iter SerialModelIterator, limit int) (SerialModelIterator, error) {
+func LimitIterator(iter SerialModelIterator, limit int) (SerialModelIterator, error) {
 	if limit < 1 {
 		return nil, errors.Wrap(errors.ErrInput, "invalid limit")
 	}
