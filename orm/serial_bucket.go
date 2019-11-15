@@ -122,7 +122,7 @@ func WithIndexSerial(name string, indexer Indexer, unique bool) SerialModelBucke
 	return func(smb *serialModelBucket) {
 		// if bucket is already initialized, then panic
 		if smb.fixed {
-			panic(ErrBucketFixed)
+			panic(ErrBucket)
 		}
 		smb.b = smb.b.WithIndex(name, indexer, unique)
 		// Until we get better integration with orm, we need to store some info ourselves here...
