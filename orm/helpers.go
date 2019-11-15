@@ -7,8 +7,7 @@ import (
 )
 
 type limitedIterator struct {
-	// n is count of remaining elements
-	n int
+	remaining int
 	// iterator is the underlying iterator
 	iter SerialModelIterator
 }
@@ -16,9 +15,12 @@ type limitedIterator struct {
 var _ SerialModelIterator = (*limitedIterator)(nil)
 
 func (l *limitedIterator) LoadNext(dest SerialModel) error {
-	if l.n > 0 {
-		l.n--
-		return l.iter.LoadNext(dest)
+	if l.remaining > 0 {
+		err := l.iter.LoadNext(dest)
+		if err != nil {
+			return err
+		}
+		l.remaining--
 	}
 	return errors.Wrap(errors.ErrIteratorDone, "iterator limit reached")
 }
@@ -31,7 +33,7 @@ func WithLimit(iter SerialModelIterator, limit int) (SerialModelIterator, error)
 	if limit < 1 {
 		return nil, errors.Wrap(errors.ErrInput, "invalid limit")
 	}
-	return &limitedIterator{iter: iter, n: limit}, nil
+	return &limitedIterator{iter: iter, remaining: limit}, nil
 }
 
 func ToSlice(iter SerialModelIterator, destination SerialModelSlicePtr) error {
