@@ -46,8 +46,8 @@ func TestLimitIterator(t *testing.T) {
 	}
 
 	limit = -100
-	err = limitedIter.LoadNext(&dest)
 	limitedIter = LimitIterator(iter, limit)
+	err = limitedIter.LoadNext(&dest)
 	if !errors.ErrIteratorDone.Is(err) {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestLimitIterator(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
-	
+
 	limitedIter = LimitIterator(iter, limit)
 	for i := 0; i < 10; i++ {
 		if err := limitedIter.LoadNext(&dest); err != nil {
