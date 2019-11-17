@@ -314,10 +314,6 @@ func (smb *serialModelBucket) Save(db weave.KVStore, m SerialModel) error {
 		return errors.Wrap(err, "model type is not supported")
 	}
 
-	if err := m.Validate(); err != nil {
-		return errors.Wrap(err, "invalid serialmodel")
-	}
-
 	// If key is provided use it otherwise generate auto-incremented key
 	key := m.GetPrimaryKey()
 	if len(key) == 0 {
@@ -328,6 +324,10 @@ func (smb *serialModelBucket) Save(db weave.KVStore, m SerialModel) error {
 		if err := m.SetPrimaryKey(key); err != nil {
 			return errors.Wrap(err, "cannot set ID")
 		}
+	}
+
+	if err := m.Validate(); err != nil {
+		return errors.Wrap(err, "invalid serialmodel")
 	}
 
 	obj := NewSimpleObj(key, m)
