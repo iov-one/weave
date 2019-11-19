@@ -302,7 +302,7 @@ func TestSerialModelBucketByIndex(t *testing.T) {
 		"find none": {
 			IndexName:  "value",
 			QueryKey:   "124089710947120",
-			WantErr:    nil,
+			WantErr:    errors.ErrNotFound,
 			WantResPtr: nil,
 			WantRes:    nil,
 		},

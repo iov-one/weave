@@ -262,7 +262,7 @@ func (smb *serialModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string
 		return err
 	}
 	if len(objs) == 0 {
-		return nil
+		return errors.Wrap(errors.ErrNotFound, "no objects found")
 	}
 
 	dest := reflect.ValueOf(destination)
