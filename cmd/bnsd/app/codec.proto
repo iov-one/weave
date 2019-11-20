@@ -76,6 +76,7 @@ message Tx {
     blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
     blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
     blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
+    blueaccount.FlushDomainMsg blueaccount_delete_all_accounts_msg = 90;
   }
 }
 
@@ -112,6 +113,7 @@ message ExecuteBatchMsg {
       blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
       blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
       blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
+      blueaccount.FlushDomainMsg blueaccount_delete_all_accounts_msg = 90;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];
@@ -149,6 +151,7 @@ message ProposalOptions {
     blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
     blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
     blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
+    blueaccount.FlushDomainMsg blueaccount_delete_all_accounts_msg = 90;
   }
 }
 
@@ -182,6 +185,7 @@ message ExecuteProposalBatchMsg {
       blueaccount.ReplaceAccountTargetsMsg blueaccount_replace_account_target_msg = 87;
       blueaccount.DeleteAccountMsg blueaccount_delete_account_msg = 88;
       blueaccount.UpdateConfigurationMsg blueaccount_update_configuration_msg = 89;
+      blueaccount.FlushDomainMsg blueaccount_flush_domain_msg = 90;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];
