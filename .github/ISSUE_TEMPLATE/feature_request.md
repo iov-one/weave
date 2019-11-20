@@ -1,20 +1,18 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Suggest an idea for this project. Have a look at how [a good feature request](https://github.com/iov-one/weave/issues/1031) looks like.
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is.
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+As ___ I want to ___, so that ___.
 
-**Describe alternatives you've considered**
-Describe alternative solutions or workarounds you've considered. 
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+Describe the problem you want to address.
+If possible, describe all possible solutions that you have in mind.
+List acceptance criteria.
 
-**Acceptance criteria**
-Clear set of statements and conditions that must pass. 
+
+## Acceptance criteria
+
+- [ ]
