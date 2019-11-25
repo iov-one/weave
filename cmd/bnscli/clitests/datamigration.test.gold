@@ -1,0 +1,10 @@
+{
+	"Sum": {
+		"DatamigrationExecuteMigrationMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"migration_id": "initialize x/msgfee configuration"
+		}
+	}
+}

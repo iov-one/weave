@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package datamigration;
+
+import "codec.proto";
+import "gogoproto/gogo.proto";
+
+message ExecutedMigration {
+  weave.Metadata metadata = 1;
+}
+
+message ExecuteMigrationMsg {
+  weave.Metadata metadata = 1;
+  string migration_id = 2 [(gogoproto.customname) = "MigrationID"];
+}

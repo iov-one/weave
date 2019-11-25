@@ -83,6 +83,10 @@ var (
 	// ErrIteratorDone is returned when an iterator hits the end of the data source.
 	ErrIteratorDone = Register(22, "iterator done")
 
+	// ErrChain is returned when an operation cannot be completed because
+	// it cannot be executed on the current chain
+	ErrChain = Register(23, "invalid chain")
+
 	// ErrNetwork is returned on network failure (only for client libraries)
 	ErrNetwork = Register(100200, "network")
 
