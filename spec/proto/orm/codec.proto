@@ -24,4 +24,7 @@ message VersionedIDRef {
 message CounterWithID {
   bytes primary_key = 1;
   int64 count = 2;
+  // for testing string indexes
+  string index = 3;
+  string sindex = 4;
 }
