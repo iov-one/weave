@@ -11,8 +11,6 @@
 - `cmd/bnscli` can create a schema upgrade transaction.
 - Blue Account functionality was implememented in `cmd/bnsd/x/blueaccount` but
   not integrated into `cmd/bnsd` application.
-- `x/msgfee` was extended to provide a message to set a fee for a given message
-  path.  `bnscli` and `bnsd` were extended to support this change.
 - `orm`: implement `SerialModelBucket` that provides a better API to interact with datastore.
 - `migration`: implement migration for `SerialModelBucket`.
 
