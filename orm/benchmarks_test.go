@@ -1,10 +1,11 @@
 package orm
 
 import (
-"github.com/iov-one/weave"
-"github.com/iov-one/weave/errors"
-"github.com/iov-one/weave/store"
-"testing"
+	"github.com/iov-one/weave"
+	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/store"
+	"testing"
 )
 
 func LoadAllBySecondaryIndex(db weave.ReadOnlyKVStore, domain string) (weave.Iterator, error) {
@@ -46,34 +47,41 @@ func BenchmarkSecondaryIndex(b *testing.B) {
 		name     string
 		amount   int
 		indexLen int
+		isInMem bool
 	}{
-		{"index length 2 amount 1", 1, 2},
-		{"index length 2 amount 10", 10, 2},
-		{"index length 2 amount 100", 100, 2},
-		{"index length 2 amount 1000", 1000, 2},
-		{"index length 2 amount 10000", 10000, 2},
-		{"index length 2 amount 50000", 50000, 2},
+		{"mem store, index length 2 amount 1", 1, 2, true},
+		{"mem store, index length 2 amount 10", 10, 2, true},
+		{"mem store, index length 2 amount 100", 100, 2, true},
+		{"mem store, index length 2 amount 1000", 1000, 2, true},
+		{"mem store, index length 2 amount 10000", 10000, 2, true},
+		{"mem store, index length 2 amount 50000", 50000, 2, true},
 
-		{"index length 5 amount 1", 1, 5},
-		{"index length 5 amount 10", 10, 5},
-		{"index length 5 amount 100", 100, 5},
-		{"index length 5 amount 1000", 1000, 5},
-		{"index length 5 amount 10000", 10000, 5},
-		{"index length 5 amount 50000", 50000, 5},
+		{"real store index length 5 amount 1", 1, 5, false},
+		{"real store index length 5 amount 10", 10, 5, false},
+		{"real store index length 5 amount 100", 100, 5, false},
+		{"real store index length 5 amount 1000", 1000, 5, false},
+		{"real store index length 5 amount 10000", 10000, 5, false},
+		{"real store index length 5 amount 50000", 50000, 5, false},
 	}
 
 	for _, bm := range benchmarks {
 		b.Run(bm.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				db := store.MemStore()
+				var db weave.KVStore
+				if bm.isInMem {
+					db = store.MemStore()
+				} else {
+					db, err = bnsd.CommitKVStore(dbPath)
+				}
+
 				bucket := NewModelBucket("counter", &CounterWithID{})
 
 				index := ""
-				for i := 0; i < bm.indexLen; i ++ {
+				for i := 0; i < bm.indexLen; i++ {
 					index = index + "a"
 				}
 				sindex := ""
-				for i := 0; i < bm.indexLen; i ++ {
+				for i := 0; i < bm.indexLen; i++ {
 					sindex = sindex + "a"
 				}
 				data := &CounterWithID{Index: index, Sindex: sindex}
