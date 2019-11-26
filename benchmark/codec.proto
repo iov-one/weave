@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-package benchmark;
-
-message Data {
-  string index = 1;
-  string sindex = 2;
-}
