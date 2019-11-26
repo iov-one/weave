@@ -2,6 +2,9 @@
 
 ## HEAD
 
+
+## 0.22.0
+
 - `x/username`: allow to change configuration via message
 - `gconf`: allow to provide an optional authentication address that will be
   used to authenticate a configuration creation message. This solves a
