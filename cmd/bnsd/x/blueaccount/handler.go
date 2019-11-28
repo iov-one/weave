@@ -91,7 +91,7 @@ func (h *registerDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx 
 
 	owner := msg.Owner
 	if len(owner) == 0 {
-		owner = x.MainSigner(ctx, h.auth).Address()
+		owner = x.AnySigner(ctx, h.auth).Address()
 	}
 
 	now, err := weave.BlockTime(ctx)

@@ -56,7 +56,7 @@ func (h *bumpSequenceHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
-	pubkey := x.MainSigner(ctx, h.auth)
+	pubkey := x.AnySigner(ctx, h.auth)
 	if pubkey == nil {
 		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "missing signature")
 	}

@@ -66,7 +66,7 @@ func (h CreateMsgHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.
 // validate does all common pre-processing between Check and Deliver.
 func (h CreateMsgHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateMsg, error) {
 	// Retrieve tx main signer in this context.
-	sender := x.MainSigner(ctx, h.auth)
+	sender := x.AnySigner(ctx, h.auth)
 	if sender == nil {
 		return nil, errors.Wrap(errors.ErrUnauthorized, "no signer")
 	}

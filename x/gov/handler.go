@@ -138,7 +138,7 @@ func (h VoteHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 
 	voter := msg.Voter
 	if voter == nil {
-		voter = x.MainSigner(ctx, h.auth).Address()
+		voter = x.AnySigner(ctx, h.auth).Address()
 	}
 	obj, err := h.elecBucket.GetVersion(db, proposal.ElectorateRef)
 	if err != nil {
@@ -412,7 +412,7 @@ func (h CreateProposalHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 			return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "author's signature required")
 		}
 	} else {
-		author = x.MainSigner(ctx, h.auth).Address()
+		author = x.AnySigner(ctx, h.auth).Address()
 	}
 	msg.Author = author
 
