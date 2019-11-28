@@ -189,7 +189,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 	var finfo *FeeInfo
 	ftx, ok := tx.(FeeTx)
 	if ok {
-		payer := x.MainSigner(ctx, d.auth).Address()
+		payer := x.AnySigner(ctx, d.auth).Address()
 		finfo = ftx.GetFees().DefaultPayer(payer)
 	}
 

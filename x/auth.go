@@ -61,13 +61,20 @@ func GetAddresses(ctx weave.Context, auth Authenticator) []weave.Address {
 	return addrs
 }
 
-// MainSigner returns the first permission if any, otherwise nil
-func MainSigner(ctx weave.Context, auth Authenticator) weave.Condition {
-	signers := auth.GetConditions(ctx)
-	if len(signers) == 0 {
-		return nil
+// AnySigner returns a permission or nil.
+//
+// This function returns always the first condition as defined in the
+// transaction. Using this function can introduce a security hole. One must
+// never assume the order of transaction signatures, because those are not part
+// of signed content. Order of signatures in transaction can be altered at any
+// time.
+//
+// This function is deprecated and must not be used for new implementations.
+func AnySigner(ctx weave.Context, auth Authenticator) weave.Condition {
+	if sigs := auth.GetConditions(ctx); len(sigs) > 0 {
+		return sigs[0]
 	}
-	return signers[0]
+	return nil
 }
 
 // HasAllAddresses returns true if all elements in required are

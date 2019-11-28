@@ -69,7 +69,7 @@ func (h CreateEscrowHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	// apply a default for source
 	source := msg.Source
 	if source == nil {
-		source = x.MainSigner(ctx, h.auth).Address()
+		source = x.AnySigner(ctx, h.auth).Address()
 	}
 
 	key, err := escrowSeq.NextVal(db)
@@ -109,7 +109,7 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 		return nil, errors.Wrap(errors.ErrInput, "timeout in the past")
 	}
 
-	// Source must authorize this (if not set, defaults to MainSigner).
+	// Source must authorize this (if not set, defaults to AnySigner).
 	if msg.Source != nil {
 		if !h.auth.HasAddress(ctx, msg.Source) {
 			return nil, errors.ErrUnauthorized

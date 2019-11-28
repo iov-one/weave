@@ -2,6 +2,8 @@
 
 ## HEAD
 
+- deprecate and rename `x.MainSigner` to `x.AnySigner` to better describe
+  provided functionality.
 
 ## 0.22.0
 

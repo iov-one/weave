@@ -20,7 +20,7 @@ func TestAuth(t *testing.T) {
 	cases := map[string]struct {
 		ctx          weave.Context
 		auth         Authenticator
-		mainSigner   weave.Condition
+		aSigner      weave.Condition
 		wantInCtx    weave.Condition
 		wantNotInCtx weave.Condition
 		wantAll      []weave.Condition
@@ -33,7 +33,7 @@ func TestAuth(t *testing.T) {
 		"signer a": {
 			ctx:          context.Background(),
 			auth:         &weavetest.Auth{Signer: a},
-			mainSigner:   a,
+			aSigner:      a,
 			wantInCtx:    a,
 			wantNotInCtx: b,
 			wantAll:      []weave.Condition{a},
@@ -43,7 +43,7 @@ func TestAuth(t *testing.T) {
 			auth: ChainAuth(
 				&weavetest.Auth{Signer: b},
 				&weavetest.Auth{Signer: a}),
-			mainSigner:   b,
+			aSigner:      b,
 			wantInCtx:    b,
 			wantNotInCtx: c,
 			wantAll:      []weave.Condition{b, a},
@@ -51,7 +51,7 @@ func TestAuth(t *testing.T) {
 		"ctxAuth checks what is set by same key": {
 			ctx:          ctx1.SetConditions(context.Background(), a, b),
 			auth:         ctx1,
-			mainSigner:   a,
+			aSigner:      a,
 			wantInCtx:    b,
 			wantNotInCtx: c,
 			wantAll:      []weave.Condition{a, b},
@@ -65,7 +65,7 @@ func TestAuth(t *testing.T) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			assert.Equal(t, tc.mainSigner, MainSigner(tc.ctx, tc.auth))
+			assert.Equal(t, tc.aSigner, AnySigner(tc.ctx, tc.auth))
 			if tc.wantInCtx != nil && !tc.auth.HasAddress(tc.ctx, tc.wantInCtx.Address()) {
 				t.Fatal("condition address that was expected in context not found")
 			}
