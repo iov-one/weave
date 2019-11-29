@@ -2,12 +2,18 @@
 
 ## HEAD
 
-- deprecate and rename `x.MainSigner` to `x.AnySigner` to better describe
-  provided functionality.
+
+## 0.23.0
+
 - `x/sigs` allow to explicitly specify which user to bump the sequence for
   instead of relying on the transaction signatures.
 - `x/username` when registering a token, allow to explicitly specify the new
   token owner instead of relying only on the transaction signatures.
+
+Breaking changes
+
+- deprecate and rename `x.MainSigner` to `x.AnySigner` to better describe
+  provided functionality.
 
 ## 0.22.0
 
@@ -22,7 +28,6 @@
   not integrated into `cmd/bnsd` application.
 - `orm`: implement `SerialModelBucket` that provides a better API to interact with datastore.
 - `migration`: implement migration for `SerialModelBucket`.
-
 
 ## 0.21.3
 
