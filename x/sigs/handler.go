@@ -56,11 +56,20 @@ func (h *bumpSequenceHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
-	pubkey := x.AnySigner(ctx, h.auth)
-	if pubkey == nil {
-		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "missing signature")
+	var address weave.Address
+	if len(msg.User) != 0 {
+		address = msg.User
+		if !h.auth.HasAddress(ctx, address) {
+			return nil, nil, errors.Wrap(errors.ErrUnauthorized, "no signature")
+		}
+	} else {
+		pubkey := x.AnySigner(ctx, h.auth)
+		if pubkey == nil {
+			return nil, nil, errors.Wrap(errors.ErrUnauthorized, "missing signature")
+		}
+		address = pubkey.Address()
 	}
-	obj, err := h.b.Get(db, pubkey.Address())
+	obj, err := h.b.Get(db, address)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "bucket")
 	}

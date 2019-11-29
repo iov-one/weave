@@ -2427,6 +2427,13 @@ namespace label must match (a username is &lt;name&gt;*&lt;label&gt;) </p></td>
                   <td><p>Targets is a blockchain address list that this token should point to. </p></td>
                 </tr>
               
+                <tr>
+                  <td>owner</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Owner is the address that the newly created token will belong to. </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -5750,7 +5757,7 @@ expired: [timeout, infinity) </p></td>
 
       
         <h3 id="sigs.BumpSequenceMsg">BumpSequenceMsg</h3>
-        <p>BumpSequenceMsg increments a sequence counter by given amount for a user</p><p>that signed the transaction.</p>
+        <p>BumpSequenceMsg increments a sequence counter by given amount for a user.</p>
 
         
           <table class="field-table">
@@ -5775,6 +5782,13 @@ increased. Minumum value is one and maxium value must not be greater than
 1000.
 Each transaction increments the sequence by one. This value represents the
 total increment value, including the default increment. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>User is the address of a user that sequence is to be incremented for. </p></td>
                 </tr>
               
             </tbody>
