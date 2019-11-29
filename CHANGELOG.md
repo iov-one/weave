@@ -4,6 +4,10 @@
 
 - deprecate and rename `x.MainSigner` to `x.AnySigner` to better describe
   provided functionality.
+- `x/sigs` allow to explicitly specify which user to bump the sequence for
+  instead of relying on the transaction signatures.
+- `x/username` when registering a token, allow to explicitly specify the new
+  token owner instead of relying only on the transaction signatures.
 
 ## 0.22.0
 
