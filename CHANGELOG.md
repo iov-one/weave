@@ -2,6 +2,9 @@
 
 ## HEAD
 
+
+## 0.22.1
+
 - deprecate and rename `x.MainSigner` to `x.AnySigner` to better describe
   provided functionality.
 - `x/sigs` allow to explicitly specify which user to bump the sequence for
@@ -22,7 +25,6 @@
   not integrated into `cmd/bnsd` application.
 - `orm`: implement `SerialModelBucket` that provides a better API to interact with datastore.
 - `migration`: implement migration for `SerialModelBucket`.
-
 
 ## 0.21.3
 
