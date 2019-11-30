@@ -3,6 +3,7 @@ syntax = "proto3";
 package blueaccount;
 
 import "codec.proto";
+import "coin/codec.proto";
 import "gogoproto/gogo.proto";
 
 // Domain represents a blue account domain.
@@ -26,11 +27,11 @@ message Domain {
   // domain can be used of modified as well.
   int64 valid_until = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
   bool is_open = 5;
-  int64 account_creation_fee = 6;
-  int64 account_renewal_fee = 7;
-  int64 account_edition_fee = 8;
-  int64 account_transfer_fee = 9;
-  int64 account_deletion_fee = 10;
+  coin.Coin account_creation_fee = 6 [(gogoproto.nullable) = false];
+  coin.Coin account_renewal_fee = 7 [(gogoproto.nullable) = false];
+  coin.Coin account_edition_fee = 8 [(gogoproto.nullable) = false];
+  coin.Coin account_transfer_fee = 9 [(gogoproto.nullable) = false];
+  coin.Coin account_deletion_fee = 10 [(gogoproto.nullable) = false];
 }
 
 // Account represents a blue account name.
@@ -90,6 +91,11 @@ message Configuration {
   int64 domain_renew = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
   // Account review defines the duration of the domain renewal period.
   int64 account_renew = 7 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
+  int64 account_creation_fee = 8;
+  int64 account_renewal_fee = 9;
+  int64 account_edition_fee = 10;
+  int64 account_transfer_fee = 11;
+  int64 account_deletion_fee = 12;
 }
 
 // UpdateConfigurationMsg is used by the gconf extension to update the
