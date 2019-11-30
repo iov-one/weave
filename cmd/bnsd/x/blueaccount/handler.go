@@ -346,7 +346,7 @@ func (h *registerAccountHandler) Deliver(ctx weave.Context, db weave.KVStore, tx
 	if _, err := h.accounts.Put(db, accountKey(msg.Name, msg.Domain), &account); err != nil {
 		return nil, errors.Wrap(err, "cannot store account")
 	}
-	return &weave.DeliverResult{Data: nil}, nil
+	return &weave.DeliverResult{RequiredFee: domain.AccountCreationFee}, nil
 }
 
 func (h *registerAccountHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Domain, *RegisterAccountMsg, error) {
@@ -381,11 +381,6 @@ func (h *registerAccountHandler) validate(ctx weave.Context, db weave.KVStore, t
 		return nil, nil, errors.Wrap(errors.ErrInput, "name is not allowed")
 	}
 
-	// checking fees
-	if domain.IsOpen {
-		// How do we check fees by domain
-	}
-
 	return &domain, &msg, nil
 }
 
@@ -403,7 +398,7 @@ func (h *renewAccountHandler) Check(ctx weave.Context, db weave.KVStore, tx weav
 }
 
 func (h *renewAccountHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	_, account, msg, err := h.validate(ctx, db, tx)
+	domain, account, msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -426,7 +421,9 @@ func (h *renewAccountHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 			return nil, errors.Wrap(err, "cannot store account")
 		}
 	}
-	return &weave.DeliverResult{Data: nil}, nil
+
+	// return the required fee for Account Renewal
+	return &weave.DeliverResult{RequiredFee: domain.AccountRenewalFee}, nil
 }
 
 func (h *renewAccountHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Domain, *Account, *RenewAccountMsg, error) {
