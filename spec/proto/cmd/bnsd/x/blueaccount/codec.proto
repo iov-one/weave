@@ -90,11 +90,11 @@ message Configuration {
   int64 domain_renew = 6 ;
   // Account review defines the duration of the domain renewal period.
   int64 account_renew = 7 ;
-  int64 account_creation_fee = 8;
-  int64 account_renewal_fee = 9;
-  int64 account_edition_fee = 10;
-  int64 account_transfer_fee = 11;
-  int64 account_deletion_fee = 12;
+  coin.Coin account_creation_fee = 8 ;
+  coin.Coin account_renewal_fee = 9 ;
+  coin.Coin account_edition_fee = 10 ;
+  coin.Coin account_transfer_fee = 11 ;
+  coin.Coin account_deletion_fee = 12 ;
 }
 
 // UpdateConfigurationMsg is used by the gconf extension to update the
