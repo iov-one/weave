@@ -269,6 +269,10 @@
                 </li>
               
                 <li>
+                  <a href="#blueaccount.RenewAccountMsg"><span class="badge">M</span>RenewAccountMsg</a>
+                </li>
+              
+                <li>
                   <a href="#blueaccount.RenewDomainMsg"><span class="badge">M</span>RenewDomainMsg</a>
                 </li>
               
@@ -1710,6 +1714,13 @@ to manage selected account. </p></td>
                   <td><p> </p></td>
                 </tr>
               
+                <tr>
+                  <td>valid_until</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -1799,7 +1810,49 @@ account must match. Rule must not include the asterisk (*) character. </p></td>
                   <td>domain_renew</td>
                   <td><a href="#int64">int64</a></td>
                   <td></td>
-                  <td><p>Domain review defines the duration of the domain renewal period. </p></td>
+                  <td><p>Domain renew defines the duration of the domain renewal period. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_renew</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>Account review defines the duration of the domain renewal period. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_creation_fee</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_renewal_fee</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_edition_fee</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_transfer_fee</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_deletion_fee</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -1916,6 +1969,48 @@ cannot be used or modified. None of the accounts that belong to an expired
 domain can be used of modified as well. </p></td>
                 </tr>
               
+                <tr>
+                  <td>is_open</td>
+                  <td><a href="#bool">bool</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_creation_fee</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_renewal_fee</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_edition_fee</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_transfer_fee</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_deletion_fee</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -2008,6 +2103,13 @@ transaction, helped a user to renew a domain. Storing a client token helps
 identify contribution of such party later. </p></td>
                 </tr>
               
+                <tr>
+                  <td>valid_until</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -2054,6 +2156,43 @@ main signer is used. </p></td>
 (i.e. retailer) that although does not participate directly in the
 transaction, helped a user to register a domain. Storing a client token
 helps identify contribution of such party later. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="blueaccount.RenewAccountMsg">RenewAccountMsg</h3>
+        <p>RenewDomainMsg is issuing a domain expiration time extension. Extension</p><p>period is defined by the configuration entity.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>domain</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Name of the domain that is transferred. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>name</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Name that a new account is the be registered with. </p></td>
                 </tr>
               
             </tbody>

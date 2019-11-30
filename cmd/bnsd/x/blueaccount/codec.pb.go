@@ -43,7 +43,13 @@ type Domain struct {
 	// Valid until defines the expiration date for the domain. Expired domain
 	// cannot be used or modified. None of the accounts that belong to an expired
 	// domain can be used of modified as well.
-	ValidUntil github_com_iov_one_weave.UnixTime `protobuf:"varint,4,opt,name=valid_until,json=validUntil,proto3,casttype=github.com/iov-one/weave.UnixTime" json:"valid_until,omitempty"`
+	ValidUntil         github_com_iov_one_weave.UnixTime `protobuf:"varint,4,opt,name=valid_until,json=validUntil,proto3,casttype=github.com/iov-one/weave.UnixTime" json:"valid_until,omitempty"`
+	IsOpen             bool                              `protobuf:"varint,5,opt,name=is_open,json=isOpen,proto3" json:"is_open,omitempty"`
+	AccountCreationFee int64                             `protobuf:"varint,6,opt,name=account_creation_fee,json=accountCreationFee,proto3" json:"account_creation_fee,omitempty"`
+	AccountRenewalFee  int64                             `protobuf:"varint,7,opt,name=account_renewal_fee,json=accountRenewalFee,proto3" json:"account_renewal_fee,omitempty"`
+	AccountEditionFee  int64                             `protobuf:"varint,8,opt,name=account_edition_fee,json=accountEditionFee,proto3" json:"account_edition_fee,omitempty"`
+	AccountTransferFee int64                             `protobuf:"varint,9,opt,name=account_transfer_fee,json=accountTransferFee,proto3" json:"account_transfer_fee,omitempty"`
+	AccountDeletionFee int64                             `protobuf:"varint,10,opt,name=account_deletion_fee,json=accountDeletionFee,proto3" json:"account_deletion_fee,omitempty"`
 }
 
 func (m *Domain) Reset()         { *m = Domain{} }
@@ -107,6 +113,48 @@ func (m *Domain) GetValidUntil() github_com_iov_one_weave.UnixTime {
 	return 0
 }
 
+func (m *Domain) GetIsOpen() bool {
+	if m != nil {
+		return m.IsOpen
+	}
+	return false
+}
+
+func (m *Domain) GetAccountCreationFee() int64 {
+	if m != nil {
+		return m.AccountCreationFee
+	}
+	return 0
+}
+
+func (m *Domain) GetAccountRenewalFee() int64 {
+	if m != nil {
+		return m.AccountRenewalFee
+	}
+	return 0
+}
+
+func (m *Domain) GetAccountEditionFee() int64 {
+	if m != nil {
+		return m.AccountEditionFee
+	}
+	return 0
+}
+
+func (m *Domain) GetAccountTransferFee() int64 {
+	if m != nil {
+		return m.AccountTransferFee
+	}
+	return 0
+}
+
+func (m *Domain) GetAccountDeletionFee() int64 {
+	if m != nil {
+		return m.AccountDeletionFee
+	}
+	return 0
+}
+
 // Account represents a blue account name.
 //
 // String representation of an account is `<name>*<domain>`. Empty name is an
@@ -124,8 +172,9 @@ type Account struct {
 	// An account is always owned by the domain owner. In addition, ownership can
 	// be assigned to one more address to share ownership and allow another party
 	// to manage selected account.
-	Owner   github_com_iov_one_weave.Address `protobuf:"bytes,4,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
-	Targets []BlockchainAddress              `protobuf:"bytes,5,rep,name=targets,proto3" json:"targets"`
+	Owner      github_com_iov_one_weave.Address  `protobuf:"bytes,4,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
+	Targets    []BlockchainAddress               `protobuf:"bytes,5,rep,name=targets,proto3" json:"targets"`
+	ValidUntil github_com_iov_one_weave.UnixTime `protobuf:"varint,6,opt,name=valid_until,json=validUntil,proto3,casttype=github.com/iov-one/weave.UnixTime" json:"valid_until,omitempty"`
 }
 
 func (m *Account) Reset()         { *m = Account{} }
@@ -194,6 +243,13 @@ func (m *Account) GetTargets() []BlockchainAddress {
 		return m.Targets
 	}
 	return nil
+}
+
+func (m *Account) GetValidUntil() github_com_iov_one_weave.UnixTime {
+	if m != nil {
+		return m.ValidUntil
+	}
+	return 0
 }
 
 // BlockchainAddress represents a blochain address. This structure clubs together
@@ -274,8 +330,15 @@ type Configuration struct {
 	// Valid name defines a regular expression that every valid name of an
 	// account must match. Rule must not include the asterisk (*) character.
 	ValidName string `protobuf:"bytes,4,opt,name=valid_name,json=validName,proto3" json:"valid_name,omitempty"`
-	// Domain review defines the duration of the domain renewal period.
+	// Domain renew defines the duration of the domain renewal period.
 	DomainRenew github_com_iov_one_weave.UnixDuration `protobuf:"varint,6,opt,name=domain_renew,json=domainRenew,proto3,casttype=github.com/iov-one/weave.UnixDuration" json:"domain_renew,omitempty"`
+	// Account review defines the duration of the domain renewal period.
+	AccountRenew       github_com_iov_one_weave.UnixDuration `protobuf:"varint,7,opt,name=account_renew,json=accountRenew,proto3,casttype=github.com/iov-one/weave.UnixDuration" json:"account_renew,omitempty"`
+	AccountCreationFee int64                                 `protobuf:"varint,8,opt,name=account_creation_fee,json=accountCreationFee,proto3" json:"account_creation_fee,omitempty"`
+	AccountRenewalFee  int64                                 `protobuf:"varint,9,opt,name=account_renewal_fee,json=accountRenewalFee,proto3" json:"account_renewal_fee,omitempty"`
+	AccountEditionFee  int64                                 `protobuf:"varint,10,opt,name=account_edition_fee,json=accountEditionFee,proto3" json:"account_edition_fee,omitempty"`
+	AccountTransferFee int64                                 `protobuf:"varint,11,opt,name=account_transfer_fee,json=accountTransferFee,proto3" json:"account_transfer_fee,omitempty"`
+	AccountDeletionFee int64                                 `protobuf:"varint,12,opt,name=account_deletion_fee,json=accountDeletionFee,proto3" json:"account_deletion_fee,omitempty"`
 }
 
 func (m *Configuration) Reset()         { *m = Configuration{} }
@@ -342,6 +405,48 @@ func (m *Configuration) GetValidName() string {
 func (m *Configuration) GetDomainRenew() github_com_iov_one_weave.UnixDuration {
 	if m != nil {
 		return m.DomainRenew
+	}
+	return 0
+}
+
+func (m *Configuration) GetAccountRenew() github_com_iov_one_weave.UnixDuration {
+	if m != nil {
+		return m.AccountRenew
+	}
+	return 0
+}
+
+func (m *Configuration) GetAccountCreationFee() int64 {
+	if m != nil {
+		return m.AccountCreationFee
+	}
+	return 0
+}
+
+func (m *Configuration) GetAccountRenewalFee() int64 {
+	if m != nil {
+		return m.AccountRenewalFee
+	}
+	return 0
+}
+
+func (m *Configuration) GetAccountEditionFee() int64 {
+	if m != nil {
+		return m.AccountEditionFee
+	}
+	return 0
+}
+
+func (m *Configuration) GetAccountTransferFee() int64 {
+	if m != nil {
+		return m.AccountTransferFee
+	}
+	return 0
+}
+
+func (m *Configuration) GetAccountDeletionFee() int64 {
+	if m != nil {
+		return m.AccountDeletionFee
 	}
 	return 0
 }
@@ -682,7 +787,8 @@ type RegisterAccountMsg struct {
 	// (i.e. retailer) that although does not participate directly in the
 	// transaction, helped a user to renew a domain. Storing a client token helps
 	// identify contribution of such party later.
-	ThirdPartyToken []byte `protobuf:"bytes,6,opt,name=third_party_token,json=thirdPartyToken,proto3" json:"third_party_token,omitempty"`
+	ThirdPartyToken []byte                            `protobuf:"bytes,6,opt,name=third_party_token,json=thirdPartyToken,proto3" json:"third_party_token,omitempty"`
+	ValidUntil      github_com_iov_one_weave.UnixTime `protobuf:"varint,7,opt,name=valid_until,json=validUntil,proto3,casttype=github.com/iov-one/weave.UnixTime" json:"valid_until,omitempty"`
 }
 
 func (m *RegisterAccountMsg) Reset()         { *m = RegisterAccountMsg{} }
@@ -760,6 +866,13 @@ func (m *RegisterAccountMsg) GetThirdPartyToken() []byte {
 	return nil
 }
 
+func (m *RegisterAccountMsg) GetValidUntil() github_com_iov_one_weave.UnixTime {
+	if m != nil {
+		return m.ValidUntil
+	}
+	return 0
+}
+
 // TransferAccountMsg is issuing an ownership transfer over specified account.
 // Transfering an account ownership does not affect related domain owner
 // permissions to administrate that account.
@@ -833,6 +946,70 @@ func (m *TransferAccountMsg) GetNewOwner() github_com_iov_one_weave.Address {
 	return nil
 }
 
+// RenewDomainMsg is issuing a domain expiration time extension. Extension
+// period is defined by the configuration entity.
+type RenewAccountMsg struct {
+	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// Name of the domain that is transferred.
+	Domain string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	// Name that a new account is the be registered with.
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (m *RenewAccountMsg) Reset()         { *m = RenewAccountMsg{} }
+func (m *RenewAccountMsg) String() string { return proto.CompactTextString(m) }
+func (*RenewAccountMsg) ProtoMessage()    {}
+func (*RenewAccountMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_df2ac0ab2dae2b1e, []int{11}
+}
+func (m *RenewAccountMsg) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RenewAccountMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RenewAccountMsg.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RenewAccountMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RenewAccountMsg.Merge(m, src)
+}
+func (m *RenewAccountMsg) XXX_Size() int {
+	return m.Size()
+}
+func (m *RenewAccountMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_RenewAccountMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RenewAccountMsg proto.InternalMessageInfo
+
+func (m *RenewAccountMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *RenewAccountMsg) GetDomain() string {
+	if m != nil {
+		return m.Domain
+	}
+	return ""
+}
+
+func (m *RenewAccountMsg) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
 // ReplaceAccountTargetsMsg is issuing rewrite of all targets that given
 // account points to.
 type ReplaceAccountTargetsMsg struct {
@@ -846,7 +1023,7 @@ func (m *ReplaceAccountTargetsMsg) Reset()         { *m = ReplaceAccountTargetsM
 func (m *ReplaceAccountTargetsMsg) String() string { return proto.CompactTextString(m) }
 func (*ReplaceAccountTargetsMsg) ProtoMessage()    {}
 func (*ReplaceAccountTargetsMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_df2ac0ab2dae2b1e, []int{11}
+	return fileDescriptor_df2ac0ab2dae2b1e, []int{12}
 }
 func (m *ReplaceAccountTargetsMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -915,7 +1092,7 @@ func (m *DeleteAccountMsg) Reset()         { *m = DeleteAccountMsg{} }
 func (m *DeleteAccountMsg) String() string { return proto.CompactTextString(m) }
 func (*DeleteAccountMsg) ProtoMessage()    {}
 func (*DeleteAccountMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_df2ac0ab2dae2b1e, []int{12}
+	return fileDescriptor_df2ac0ab2dae2b1e, []int{13}
 }
 func (m *DeleteAccountMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -977,7 +1154,7 @@ func (m *FlushDomainMsg) Reset()         { *m = FlushDomainMsg{} }
 func (m *FlushDomainMsg) String() string { return proto.CompactTextString(m) }
 func (*FlushDomainMsg) ProtoMessage()    {}
 func (*FlushDomainMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_df2ac0ab2dae2b1e, []int{13}
+	return fileDescriptor_df2ac0ab2dae2b1e, []int{14}
 }
 func (m *FlushDomainMsg) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1032,6 +1209,7 @@ func init() {
 	proto.RegisterType((*DeleteDomainMsg)(nil), "blueaccount.DeleteDomainMsg")
 	proto.RegisterType((*RegisterAccountMsg)(nil), "blueaccount.RegisterAccountMsg")
 	proto.RegisterType((*TransferAccountMsg)(nil), "blueaccount.TransferAccountMsg")
+	proto.RegisterType((*RenewAccountMsg)(nil), "blueaccount.RenewAccountMsg")
 	proto.RegisterType((*ReplaceAccountTargetsMsg)(nil), "blueaccount.ReplaceAccountTargetsMsg")
 	proto.RegisterType((*DeleteAccountMsg)(nil), "blueaccount.DeleteAccountMsg")
 	proto.RegisterType((*FlushDomainMsg)(nil), "blueaccount.FlushDomainMsg")
@@ -1040,51 +1218,61 @@ func init() {
 func init() { proto.RegisterFile("cmd/bnsd/x/blueaccount/codec.proto", fileDescriptor_df2ac0ab2dae2b1e) }
 
 var fileDescriptor_df2ac0ab2dae2b1e = []byte{
-	// 697 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x56, 0x3f, 0x6f, 0xd3, 0x40,
-	0x14, 0xcf, 0x25, 0x69, 0xda, 0x3c, 0xa7, 0x7f, 0x62, 0xa1, 0xca, 0xaa, 0x44, 0x92, 0x5a, 0x54,
-	0x0a, 0x20, 0x62, 0x54, 0xc4, 0xc2, 0x80, 0xd4, 0x10, 0x2a, 0x55, 0xa2, 0x80, 0xac, 0x84, 0xd5,
-	0xba, 0xd8, 0x57, 0xc7, 0xaa, 0x73, 0x17, 0xd9, 0x97, 0xba, 0x8c, 0x6c, 0x8c, 0x2c, 0x4c, 0x7c,
-	0x09, 0x66, 0x26, 0xc6, 0x8e, 0x65, 0x63, 0x8a, 0x50, 0xfa, 0x2d, 0x3a, 0x21, 0xdf, 0x39, 0x4d,
-	0x22, 0x52, 0xa4, 0x94, 0xa8, 0x62, 0x3b, 0xbf, 0x7b, 0xbf, 0xcb, 0xfb, 0xfd, 0xb9, 0x53, 0x40,
-	0xb7, 0xbb, 0x8e, 0xd1, 0xa6, 0xa1, 0x63, 0x9c, 0x1a, 0x6d, 0xbf, 0x4f, 0xb0, 0x6d, 0xb3, 0x3e,
-	0xe5, 0x86, 0xcd, 0x1c, 0x62, 0xd7, 0x7a, 0x01, 0xe3, 0x4c, 0x55, 0x26, 0x36, 0xb6, 0x94, 0x89,
-	0x9d, 0xad, 0x3b, 0x2e, 0x73, 0x99, 0x58, 0x1a, 0xf1, 0x4a, 0x56, 0xf5, 0x1f, 0x08, 0x72, 0x0d,
-	0xd6, 0xc5, 0x1e, 0x55, 0x1f, 0xc2, 0x4a, 0x97, 0x70, 0xec, 0x60, 0x8e, 0x35, 0x54, 0x41, 0x55,
-	0x65, 0x77, 0xbd, 0x16, 0x11, 0x7c, 0x42, 0x6a, 0x87, 0x49, 0xd9, 0xbc, 0x6a, 0x50, 0x37, 0x21,
-	0xe7, 0x08, 0x98, 0x96, 0xae, 0xa0, 0x6a, 0xde, 0x4c, 0xbe, 0xd4, 0x67, 0xb0, 0xc4, 0x22, 0x4a,
-	0x02, 0x2d, 0x53, 0x41, 0xd5, 0x42, 0xfd, 0xde, 0xe5, 0xa0, 0x5c, 0x71, 0x3d, 0xde, 0xe9, 0xb7,
-	0x6b, 0x36, 0xeb, 0x1a, 0x1e, 0x3b, 0x79, 0xc4, 0x28, 0x31, 0xe4, 0xb9, 0x7b, 0x8e, 0x13, 0x90,
-	0x30, 0x34, 0x25, 0x44, 0xdd, 0x07, 0xe5, 0x04, 0xfb, 0x9e, 0x63, 0xf5, 0x29, 0xf7, 0x7c, 0x2d,
-	0x5b, 0x41, 0xd5, 0x4c, 0x7d, 0xe7, 0x72, 0x50, 0xde, 0xbe, 0xf6, 0x84, 0x16, 0xf5, 0x4e, 0x9b,
-	0x5e, 0x97, 0x98, 0x20, 0x90, 0xad, 0x18, 0xa8, 0x0f, 0x10, 0x2c, 0xef, 0x49, 0x09, 0x16, 0x43,
-	0x4a, 0x85, 0x2c, 0xc5, 0x5d, 0x22, 0x38, 0xe5, 0x4d, 0xb1, 0x1e, 0x13, 0xcd, 0xce, 0x4f, 0xf4,
-	0x39, 0x2c, 0x73, 0x1c, 0xb8, 0x84, 0x87, 0xda, 0x52, 0x25, 0x53, 0x55, 0x76, 0x4b, 0xb5, 0x09,
-	0xdb, 0x6a, 0x75, 0x9f, 0xd9, 0xc7, 0x76, 0x07, 0x7b, 0x34, 0xc1, 0xd5, 0xb3, 0x67, 0x83, 0x72,
-	0xca, 0x1c, 0x81, 0x74, 0x07, 0x8a, 0x7f, 0xf4, 0xa8, 0x4f, 0x61, 0xb5, 0x7d, 0x55, 0xb4, 0x3c,
-	0x47, 0xd0, 0xcd, 0xd7, 0x37, 0x86, 0x83, 0x72, 0x61, 0xdc, 0x7d, 0xd0, 0x30, 0x0b, 0xe3, 0xb6,
-	0x03, 0x47, 0xd5, 0x60, 0x19, 0xcb, 0x13, 0x12, 0xd2, 0xa3, 0x4f, 0xfd, 0x63, 0x1a, 0x56, 0x5f,
-	0x30, 0x7a, 0xe4, 0xb9, 0xfd, 0x00, 0x73, 0x8f, 0xcd, 0x99, 0x90, 0x2b, 0x81, 0xd2, 0xf3, 0x0b,
-	0xb4, 0x0d, 0x05, 0x99, 0x84, 0xc4, 0x0e, 0x29, 0xbc, 0x4c, 0x47, 0x92, 0xd6, 0xbb, 0x20, 0x2d,
-	0xb7, 0x84, 0x33, 0x59, 0xd1, 0x90, 0x17, 0x95, 0xd7, 0xb1, 0x3d, 0xaf, 0xa0, 0x20, 0xb1, 0x56,
-	0x40, 0x28, 0x89, 0xb4, 0x9c, 0x08, 0xd3, 0xfd, 0xcb, 0x41, 0x79, 0xe7, 0xaf, 0x61, 0x6a, 0x24,
-	0x5c, 0x4d, 0x45, 0xc2, 0xcd, 0x18, 0xad, 0x47, 0xb0, 0xd9, 0xea, 0x39, 0x98, 0x93, 0x29, 0x3d,
-	0x0e, 0x43, 0x77, 0x3e, 0x49, 0x1e, 0xc3, 0x52, 0x0f, 0x73, 0xbb, 0x23, 0x24, 0x51, 0x76, 0xb7,
-	0xa6, 0x5c, 0x9f, 0x3a, 0xda, 0x94, 0x8d, 0xfa, 0x77, 0x04, 0x45, 0x93, 0xb8, 0x5e, 0xc8, 0x49,
-	0x20, 0x89, 0xcf, 0xfd, 0xa3, 0xff, 0xe2, 0xc3, 0xf8, 0x42, 0x64, 0xa6, 0x2e, 0xc4, 0x03, 0x28,
-	0xf2, 0x8e, 0x17, 0x38, 0x56, 0x0f, 0x07, 0xfc, 0xbd, 0xc5, 0xd9, 0x31, 0xa1, 0xf2, 0x22, 0x98,
-	0xeb, 0x62, 0xe3, 0x6d, 0x5c, 0x6f, 0xc6, 0x65, 0xfd, 0x0b, 0x82, 0x62, 0x33, 0xc0, 0x34, 0x3c,
-	0xba, 0x31, 0x85, 0xeb, 0xee, 0xe5, 0x1e, 0xe4, 0x29, 0x89, 0xac, 0xf9, 0x1f, 0x9c, 0x15, 0x4a,
-	0xa2, 0x37, 0x31, 0x4a, 0xff, 0x80, 0x60, 0x4d, 0x78, 0xbc, 0xe0, 0xd1, 0x66, 0x2a, 0x94, 0x99,
-	0xad, 0xd0, 0x3b, 0x58, 0x6f, 0x10, 0x9f, 0x70, 0xb2, 0xd8, 0x19, 0xf4, 0xcf, 0x69, 0x50, 0x47,
-	0xe1, 0x49, 0xde, 0xc3, 0x85, 0xf1, 0xfb, 0xcf, 0x9e, 0xc4, 0xd9, 0x7a, 0xe7, 0x66, 0xeb, 0xfd,
-	0x15, 0x81, 0x3a, 0x4a, 0xe4, 0x6d, 0xe8, 0x32, 0x15, 0xd3, 0xec, 0x8d, 0x62, 0xfa, 0x0d, 0x81,
-	0x66, 0x92, 0x9e, 0x8f, 0x6d, 0x92, 0x4c, 0xdc, 0x94, 0xc4, 0x17, 0x3e, 0x78, 0x76, 0x62, 0xf0,
-	0x97, 0xa0, 0xc4, 0x83, 0xdf, 0xc4, 0x18, 0xa0, 0x24, 0x4a, 0x46, 0xd4, 0x8f, 0x61, 0x43, 0xe6,
-	0xfb, 0x16, 0xc4, 0xd6, 0x5b, 0xb0, 0xb6, 0xef, 0xf7, 0xc3, 0xce, 0x62, 0xef, 0x52, 0x5d, 0x3b,
-	0x1b, 0x96, 0xd0, 0xf9, 0xb0, 0x84, 0x7e, 0x0d, 0x4b, 0xe8, 0xd3, 0x45, 0x29, 0x75, 0x7e, 0x51,
-	0x4a, 0xfd, 0xbc, 0x28, 0xa5, 0xda, 0x39, 0xf1, 0x47, 0xea, 0xc9, 0xef, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x57, 0x9f, 0xde, 0x0a, 0x9e, 0x09, 0x00, 0x00,
+	// 858 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x57, 0xcf, 0x6f, 0xe3, 0x44,
+	0x14, 0xae, 0x1b, 0x37, 0x3f, 0x9e, 0xd3, 0xed, 0xc6, 0xac, 0x16, 0xab, 0x12, 0x49, 0xd6, 0x62,
+	0xa5, 0x00, 0x22, 0x59, 0x15, 0x71, 0xe1, 0x80, 0xd4, 0x6c, 0xb7, 0xd2, 0x4a, 0xec, 0x2e, 0xb2,
+	0x5a, 0xae, 0xd6, 0xc4, 0x7e, 0x4d, 0x86, 0x3a, 0x33, 0x91, 0x3d, 0x69, 0x96, 0x23, 0xff, 0x01,
+	0x77, 0xee, 0x9c, 0x39, 0x73, 0xe2, 0xb8, 0x27, 0xb4, 0x47, 0x2e, 0x44, 0x55, 0xfb, 0x5f, 0xf4,
+	0x84, 0x3c, 0x33, 0x49, 0xe3, 0x92, 0x20, 0x39, 0x44, 0x15, 0x37, 0xe7, 0xbd, 0xf7, 0xcd, 0x9b,
+	0xf9, 0xde, 0xf7, 0xcd, 0x28, 0xe0, 0x06, 0xc3, 0xb0, 0xd3, 0x63, 0x49, 0xd8, 0x79, 0xdb, 0xe9,
+	0x45, 0x63, 0x24, 0x41, 0xc0, 0xc7, 0x4c, 0x74, 0x02, 0x1e, 0x62, 0xd0, 0x1e, 0xc5, 0x5c, 0x70,
+	0xdb, 0x5a, 0x48, 0xec, 0x5b, 0x0b, 0x99, 0xfd, 0x47, 0x7d, 0xde, 0xe7, 0xf2, 0xb3, 0x93, 0x7e,
+	0xa9, 0xa8, 0x7b, 0x59, 0x80, 0xe2, 0x11, 0x1f, 0x12, 0xca, 0xec, 0xcf, 0xa0, 0x3c, 0x44, 0x41,
+	0x42, 0x22, 0x88, 0x63, 0x34, 0x8d, 0x96, 0x75, 0xb0, 0xd7, 0x9e, 0x20, 0xb9, 0xc0, 0xf6, 0x2b,
+	0x1d, 0xf6, 0xe6, 0x05, 0xf6, 0x63, 0x28, 0x86, 0x12, 0xe6, 0x6c, 0x37, 0x8d, 0x56, 0xc5, 0xd3,
+	0xbf, 0xec, 0xaf, 0x60, 0x87, 0x4f, 0x18, 0xc6, 0x4e, 0xa1, 0x69, 0xb4, 0xaa, 0xdd, 0x8f, 0x6f,
+	0xa6, 0x8d, 0x66, 0x9f, 0x8a, 0xc1, 0xb8, 0xd7, 0x0e, 0xf8, 0xb0, 0x43, 0xf9, 0xc5, 0xe7, 0x9c,
+	0x61, 0x47, 0xad, 0x7b, 0x18, 0x86, 0x31, 0x26, 0x89, 0xa7, 0x20, 0xf6, 0x31, 0x58, 0x17, 0x24,
+	0xa2, 0xa1, 0x3f, 0x66, 0x82, 0x46, 0x8e, 0xd9, 0x34, 0x5a, 0x85, 0xee, 0xd3, 0x9b, 0x69, 0xe3,
+	0xc9, 0xca, 0x15, 0x4e, 0x19, 0x7d, 0x7b, 0x42, 0x87, 0xe8, 0x81, 0x44, 0x9e, 0xa6, 0x40, 0xfb,
+	0x43, 0x28, 0xd1, 0xc4, 0xe7, 0x23, 0x64, 0xce, 0x4e, 0xd3, 0x68, 0x95, 0xbd, 0x22, 0x4d, 0xde,
+	0x8c, 0x90, 0xd9, 0xcf, 0xe0, 0x91, 0xa6, 0xc6, 0x0f, 0x62, 0x24, 0x82, 0x72, 0xe6, 0x9f, 0x21,
+	0x3a, 0xc5, 0xb4, 0x93, 0x67, 0xeb, 0xdc, 0x73, 0x9d, 0x3a, 0x46, 0xb4, 0xdb, 0xf0, 0xc1, 0x0c,
+	0x11, 0x23, 0xc3, 0x09, 0x89, 0x24, 0xa0, 0x24, 0x01, 0x35, 0x9d, 0xf2, 0x54, 0xe6, 0x4e, 0x3d,
+	0x86, 0x74, 0xde, 0xa0, 0x9c, 0xa9, 0x7f, 0xa1, 0x32, 0x69, 0xfd, 0xc2, 0x8e, 0x44, 0x4c, 0x58,
+	0x72, 0x86, 0xb1, 0x04, 0x54, 0x32, 0x3b, 0x3a, 0xd1, 0xa9, 0x3b, 0x88, 0x10, 0x23, 0x9c, 0xb7,
+	0x80, 0x0c, 0xe2, 0x48, 0xa7, 0x8e, 0x11, 0xdd, 0x5f, 0xb6, 0xa1, 0x74, 0xa8, 0xc2, 0x9b, 0x99,
+	0xb1, 0x0d, 0x26, 0x23, 0x43, 0x94, 0x23, 0xae, 0x78, 0xf2, 0xfb, 0x76, 0xee, 0x66, 0xfe, 0xb9,
+	0x7f, 0x0d, 0x25, 0x41, 0xe2, 0x3e, 0x8a, 0xc4, 0xd9, 0x69, 0x16, 0x5a, 0xd6, 0x41, 0xbd, 0xbd,
+	0xa0, 0xe2, 0x76, 0x37, 0xe2, 0xc1, 0x79, 0x30, 0x20, 0x94, 0x69, 0x5c, 0xd7, 0x7c, 0x37, 0x6d,
+	0x6c, 0x79, 0x33, 0xd0, 0x5d, 0xdd, 0x14, 0xd7, 0xd4, 0x8d, 0x1b, 0x42, 0xed, 0x1f, 0xbd, 0xec,
+	0x2f, 0x61, 0xb7, 0x37, 0x0f, 0xfa, 0x34, 0x94, 0xb4, 0x55, 0xba, 0x0f, 0xaf, 0xa6, 0x8d, 0xea,
+	0x6d, 0xf5, 0xcb, 0x23, 0xaf, 0x7a, 0x5b, 0xf6, 0x32, 0xb4, 0x1d, 0x28, 0x11, 0xb5, 0x82, 0x26,
+	0x6f, 0xf6, 0xd3, 0xfd, 0xc3, 0x84, 0xdd, 0xe7, 0x9c, 0x9d, 0xd1, 0xfe, 0x38, 0x96, 0x3a, 0xcb,
+	0x37, 0x94, 0x39, 0xd1, 0xdb, 0xf9, 0x89, 0x7e, 0x02, 0x55, 0x45, 0x94, 0x1e, 0xab, 0x1a, 0xa0,
+	0x22, 0x4f, 0x5f, 0x02, 0x1f, 0x81, 0x62, 0xc4, 0x97, 0x13, 0x36, 0x65, 0x41, 0x45, 0x46, 0x5e,
+	0xa7, 0x63, 0xfe, 0x06, 0xaa, 0x0a, 0xab, 0xec, 0xa0, 0xb9, 0xfe, 0xe4, 0x66, 0xda, 0x78, 0xfa,
+	0xaf, 0x5c, 0x1f, 0xe9, 0xb3, 0x7a, 0x96, 0x82, 0x4b, 0xcb, 0xd8, 0xaf, 0x61, 0x37, 0xe3, 0x2e,
+	0xe5, 0xab, 0x3c, 0xcb, 0x55, 0x17, 0x2d, 0xb8, 0xd2, 0xdf, 0xe5, 0xbc, 0xfe, 0xae, 0xe4, 0xf4,
+	0x37, 0xe4, 0xf5, 0xb7, 0x95, 0xdb, 0xdf, 0xd5, 0x95, 0xfe, 0x9e, 0xc0, 0xe3, 0xd3, 0x51, 0x48,
+	0x04, 0x66, 0x54, 0xf5, 0x2a, 0xe9, 0xe7, 0x13, 0xd6, 0x33, 0xd8, 0x19, 0x11, 0x11, 0x0c, 0xa4,
+	0xb0, 0xac, 0x83, 0xfd, 0x8c, 0x07, 0x33, 0x4b, 0x7b, 0xaa, 0xd0, 0xfd, 0xdd, 0x80, 0x9a, 0x87,
+	0x7d, 0x9a, 0x08, 0x8c, 0x95, 0x7c, 0x72, 0x37, 0xfd, 0x2f, 0x6a, 0xbe, 0xbd, 0x9e, 0x0a, 0x99,
+	0xeb, 0xe9, 0x53, 0xa8, 0x89, 0x01, 0x8d, 0x43, 0x7f, 0x44, 0x62, 0xf1, 0x83, 0x2f, 0xf8, 0x39,
+	0x32, 0x75, 0x2d, 0x79, 0x7b, 0x32, 0xf1, 0x6d, 0x1a, 0x3f, 0x49, 0xc3, 0xee, 0xcf, 0x06, 0xd4,
+	0x66, 0xec, 0xaf, 0x79, 0x84, 0x55, 0xb7, 0xe4, 0x21, 0x54, 0x18, 0x4e, 0xfc, 0xfc, 0xaf, 0x61,
+	0x99, 0xe1, 0xe4, 0x4d, 0x8a, 0x72, 0x7f, 0x34, 0xe0, 0x81, 0x14, 0xdf, 0x86, 0xb7, 0xb6, 0x94,
+	0xa1, 0xc2, 0x72, 0x86, 0xbe, 0x83, 0x3d, 0x29, 0x36, 0xdc, 0xec, 0x1e, 0xdc, 0xbf, 0xb6, 0xc1,
+	0x9e, 0x89, 0x47, 0xbf, 0x4e, 0x1b, 0x3b, 0xdf, 0xff, 0xed, 0x81, 0x5a, 0xca, 0x77, 0x71, 0x29,
+	0xdf, 0x77, 0x1f, 0xb3, 0xd2, 0xba, 0x8f, 0xd9, 0xaf, 0x06, 0xd8, 0x33, 0x65, 0xdf, 0x07, 0xbf,
+	0x19, 0xb9, 0x9b, 0x6b, 0xc9, 0xfd, 0x7b, 0xd8, 0x93, 0x6a, 0xbf, 0x87, 0xed, 0xba, 0xbf, 0x19,
+	0xe0, 0x78, 0x38, 0x8a, 0x48, 0x80, 0xba, 0xdd, 0x89, 0x1a, 0xd6, 0xc6, 0xbb, 0x9a, 0x0b, 0x24,
+	0xbd, 0x00, 0x2b, 0x25, 0x69, 0x1d, 0x31, 0x01, 0xc3, 0x89, 0xde, 0xa2, 0x7b, 0x0e, 0x0f, 0x95,
+	0x27, 0xef, 0x83, 0xa9, 0x53, 0x78, 0x70, 0x1c, 0x8d, 0x93, 0xc1, 0x66, 0xfd, 0xdf, 0x75, 0xde,
+	0x5d, 0xd5, 0x8d, 0xf7, 0x57, 0x75, 0xe3, 0xf2, 0xaa, 0x6e, 0xfc, 0x74, 0x5d, 0xdf, 0x7a, 0x7f,
+	0x5d, 0xdf, 0xfa, 0xf3, 0xba, 0xbe, 0xd5, 0x2b, 0xca, 0x7f, 0x26, 0x5f, 0xfc, 0x1d, 0x00, 0x00,
+	0xff, 0xff, 0x17, 0x12, 0x95, 0x5c, 0xef, 0x0c, 0x00, 0x00,
 }
 
 func (m *Domain) Marshal() (dAtA []byte, err error) {
@@ -1128,6 +1316,41 @@ func (m *Domain) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x20
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.ValidUntil))
+	}
+	if m.IsOpen {
+		dAtA[i] = 0x28
+		i++
+		if m.IsOpen {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i++
+	}
+	if m.AccountCreationFee != 0 {
+		dAtA[i] = 0x30
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.AccountCreationFee))
+	}
+	if m.AccountRenewalFee != 0 {
+		dAtA[i] = 0x38
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.AccountRenewalFee))
+	}
+	if m.AccountEditionFee != 0 {
+		dAtA[i] = 0x40
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.AccountEditionFee))
+	}
+	if m.AccountTransferFee != 0 {
+		dAtA[i] = 0x48
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.AccountTransferFee))
+	}
+	if m.AccountDeletionFee != 0 {
+		dAtA[i] = 0x50
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.AccountDeletionFee))
 	}
 	return i, nil
 }
@@ -1186,6 +1409,11 @@ func (m *Account) MarshalTo(dAtA []byte) (int, error) {
 			}
 			i += n
 		}
+	}
+	if m.ValidUntil != 0 {
+		dAtA[i] = 0x30
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.ValidUntil))
 	}
 	return i, nil
 }
@@ -1267,6 +1495,36 @@ func (m *Configuration) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x30
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.DomainRenew))
+	}
+	if m.AccountRenew != 0 {
+		dAtA[i] = 0x38
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.AccountRenew))
+	}
+	if m.AccountCreationFee != 0 {
+		dAtA[i] = 0x40
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.AccountCreationFee))
+	}
+	if m.AccountRenewalFee != 0 {
+		dAtA[i] = 0x48
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.AccountRenewalFee))
+	}
+	if m.AccountEditionFee != 0 {
+		dAtA[i] = 0x50
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.AccountEditionFee))
+	}
+	if m.AccountTransferFee != 0 {
+		dAtA[i] = 0x58
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.AccountTransferFee))
+	}
+	if m.AccountDeletionFee != 0 {
+		dAtA[i] = 0x60
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.AccountDeletionFee))
 	}
 	return i, nil
 }
@@ -1530,6 +1788,11 @@ func (m *RegisterAccountMsg) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.ThirdPartyToken)))
 		i += copy(dAtA[i:], m.ThirdPartyToken)
 	}
+	if m.ValidUntil != 0 {
+		dAtA[i] = 0x38
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.ValidUntil))
+	}
 	return i, nil
 }
 
@@ -1579,6 +1842,46 @@ func (m *TransferAccountMsg) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *RenewAccountMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RenewAccountMsg) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n12, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n12
+	}
+	if len(m.Domain) > 0 {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Domain)))
+		i += copy(dAtA[i:], m.Domain)
+	}
+	if len(m.Name) > 0 {
+		dAtA[i] = 0x1a
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(len(m.Name)))
+		i += copy(dAtA[i:], m.Name)
+	}
+	return i, nil
+}
+
 func (m *ReplaceAccountTargetsMsg) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1598,11 +1901,11 @@ func (m *ReplaceAccountTargetsMsg) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
-		n12, err := m.Metadata.MarshalTo(dAtA[i:])
+		n13, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n12
+		i += n13
 	}
 	if len(m.Domain) > 0 {
 		dAtA[i] = 0x12
@@ -1650,11 +1953,11 @@ func (m *DeleteAccountMsg) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
-		n13, err := m.Metadata.MarshalTo(dAtA[i:])
+		n14, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n13
+		i += n14
 	}
 	if len(m.Domain) > 0 {
 		dAtA[i] = 0x12
@@ -1690,11 +1993,11 @@ func (m *FlushDomainMsg) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
-		n14, err := m.Metadata.MarshalTo(dAtA[i:])
+		n15, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n14
+		i += n15
 	}
 	if len(m.Domain) > 0 {
 		dAtA[i] = 0x12
@@ -1735,6 +2038,24 @@ func (m *Domain) Size() (n int) {
 	if m.ValidUntil != 0 {
 		n += 1 + sovCodec(uint64(m.ValidUntil))
 	}
+	if m.IsOpen {
+		n += 2
+	}
+	if m.AccountCreationFee != 0 {
+		n += 1 + sovCodec(uint64(m.AccountCreationFee))
+	}
+	if m.AccountRenewalFee != 0 {
+		n += 1 + sovCodec(uint64(m.AccountRenewalFee))
+	}
+	if m.AccountEditionFee != 0 {
+		n += 1 + sovCodec(uint64(m.AccountEditionFee))
+	}
+	if m.AccountTransferFee != 0 {
+		n += 1 + sovCodec(uint64(m.AccountTransferFee))
+	}
+	if m.AccountDeletionFee != 0 {
+		n += 1 + sovCodec(uint64(m.AccountDeletionFee))
+	}
 	return n
 }
 
@@ -1765,6 +2086,9 @@ func (m *Account) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovCodec(uint64(l))
 		}
+	}
+	if m.ValidUntil != 0 {
+		n += 1 + sovCodec(uint64(m.ValidUntil))
 	}
 	return n
 }
@@ -1810,6 +2134,24 @@ func (m *Configuration) Size() (n int) {
 	}
 	if m.DomainRenew != 0 {
 		n += 1 + sovCodec(uint64(m.DomainRenew))
+	}
+	if m.AccountRenew != 0 {
+		n += 1 + sovCodec(uint64(m.AccountRenew))
+	}
+	if m.AccountCreationFee != 0 {
+		n += 1 + sovCodec(uint64(m.AccountCreationFee))
+	}
+	if m.AccountRenewalFee != 0 {
+		n += 1 + sovCodec(uint64(m.AccountRenewalFee))
+	}
+	if m.AccountEditionFee != 0 {
+		n += 1 + sovCodec(uint64(m.AccountEditionFee))
+	}
+	if m.AccountTransferFee != 0 {
+		n += 1 + sovCodec(uint64(m.AccountTransferFee))
+	}
+	if m.AccountDeletionFee != 0 {
+		n += 1 + sovCodec(uint64(m.AccountDeletionFee))
 	}
 	return n
 }
@@ -1947,6 +2289,9 @@ func (m *RegisterAccountMsg) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
+	if m.ValidUntil != 0 {
+		n += 1 + sovCodec(uint64(m.ValidUntil))
+	}
 	return n
 }
 
@@ -1969,6 +2314,27 @@ func (m *TransferAccountMsg) Size() (n int) {
 		n += 1 + l + sovCodec(uint64(l))
 	}
 	l = len(m.NewOwner)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+
+func (m *RenewAccountMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Domain)
+	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	l = len(m.Name)
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
@@ -2203,6 +2569,121 @@ func (m *Domain) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IsOpen", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.IsOpen = bool(v != 0)
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountCreationFee", wireType)
+			}
+			m.AccountCreationFee = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AccountCreationFee |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountRenewalFee", wireType)
+			}
+			m.AccountRenewalFee = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AccountRenewalFee |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountEditionFee", wireType)
+			}
+			m.AccountEditionFee = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AccountEditionFee |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountTransferFee", wireType)
+			}
+			m.AccountTransferFee = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AccountTransferFee |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountDeletionFee", wireType)
+			}
+			m.AccountDeletionFee = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AccountDeletionFee |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -2424,6 +2905,25 @@ func (m *Account) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidUntil", wireType)
+			}
+			m.ValidUntil = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ValidUntil |= github_com_iov_one_weave.UnixTime(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -2743,6 +3243,120 @@ func (m *Configuration) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.DomainRenew |= github_com_iov_one_weave.UnixDuration(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountRenew", wireType)
+			}
+			m.AccountRenew = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AccountRenew |= github_com_iov_one_weave.UnixDuration(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountCreationFee", wireType)
+			}
+			m.AccountCreationFee = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AccountCreationFee |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountRenewalFee", wireType)
+			}
+			m.AccountRenewalFee = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AccountRenewalFee |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountEditionFee", wireType)
+			}
+			m.AccountEditionFee = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AccountEditionFee |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 11:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountTransferFee", wireType)
+			}
+			m.AccountTransferFee = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AccountTransferFee |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 12:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccountDeletionFee", wireType)
+			}
+			m.AccountDeletionFee = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.AccountDeletionFee |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -3747,6 +4361,25 @@ func (m *RegisterAccountMsg) Unmarshal(dAtA []byte) error {
 				m.ThirdPartyToken = []byte{}
 			}
 			iNdEx = postIndex
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidUntil", wireType)
+			}
+			m.ValidUntil = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ValidUntil |= github_com_iov_one_weave.UnixTime(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])
@@ -3933,6 +4566,159 @@ func (m *TransferAccountMsg) Unmarshal(dAtA []byte) error {
 			if m.NewOwner == nil {
 				m.NewOwner = []byte{}
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RenewAccountMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RenewAccountMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RenewAccountMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Domain", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Domain = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

@@ -116,6 +116,18 @@ func (TransferAccountMsg) Path() string {
 	return "blueaccount/transfer_account_msg"
 }
 
+var _ weave.Msg = (*RenewAccountMsg)(nil)
+
+func (RenewAccountMsg) Path() string {
+	return "blueaccount/renew_account_msg"
+}
+
+func (msg *RenewAccountMsg) Validate() error {
+	var errs error
+	errs = errors.AppendField(errs, "Domain", validateDomain(msg.Domain))
+	return errs
+}
+
 func (msg *TransferAccountMsg) Validate() error {
 	var errs error
 	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())

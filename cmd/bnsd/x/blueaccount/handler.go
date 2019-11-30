@@ -50,6 +50,11 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		domains:  domains,
 		accounts: accounts,
 	})
+	r.Handle(&RenewAccountMsg{}, &renewAccountHandler{
+		auth:     auth,
+		domains:  domains,
+		accounts: accounts,
+	})
 	r.Handle(&ReplaceAccountTargetsMsg{}, &replaceAccountTargetHandler{
 		auth:     auth,
 		domains:  domains,
@@ -103,6 +108,13 @@ func (h *registerDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx 
 		Owner:      owner,
 		Domain:     msg.Domain,
 		ValidUntil: weave.AsUnixTime(now.Add(conf.DomainRenew.Duration())),
+		// defaulting
+		IsOpen:             false,
+		AccountCreationFee: conf.AccountCreationFee,
+		AccountRenewalFee:  conf.AccountRenewalFee,
+		AccountEditionFee:  conf.AccountEditionFee,
+		AccountTransferFee: conf.AccountTransferFee,
+		AccountDeletionFee: conf.AccountDeletionFee,
 	}
 	if _, err := h.domains.Put(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, errors.Wrap(err, "cannot store domain entity")
@@ -304,7 +316,7 @@ func (h *registerAccountHandler) Check(ctx weave.Context, db weave.KVStore, tx w
 }
 
 func (h *registerAccountHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	_, msg, err := h.validate(ctx, db, tx)
+	domain, msg, err := h.validate(ctx, db, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -316,6 +328,21 @@ func (h *registerAccountHandler) Deliver(ctx weave.Context, db weave.KVStore, tx
 		Name:     msg.Name,
 		Targets:  msg.Targets,
 	}
+
+	if domain.IsOpen {
+		now, err := weave.BlockTime(ctx)
+		if err != nil {
+			return nil, errors.Wrap(errors.ErrState, "block time not present in context")
+		}
+
+		conf, err := loadConf(db)
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot load configuration")
+		}
+
+		account.ValidUntil = weave.AsUnixTime(now.Add(conf.AccountRenew.Duration()))
+	}
+
 	if _, err := h.accounts.Put(db, accountKey(msg.Name, msg.Domain), &account); err != nil {
 		return nil, errors.Wrap(err, "cannot store account")
 	}
@@ -331,12 +358,13 @@ func (h *registerAccountHandler) validate(ctx weave.Context, db weave.KVStore, t
 	if err := h.domains.One(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, nil, errors.Wrap(err, "cannot get domain")
 	}
-	if !h.auth.HasAddress(ctx, domain.Owner) {
+	if !domain.IsOpen && !h.auth.HasAddress(ctx, domain.Owner) {
 		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "only domain owner can register an account")
 	}
-	if weave.IsExpired(ctx, domain.ValidUntil) {
+	if !domain.IsOpen && weave.IsExpired(ctx, domain.ValidUntil) {
 		return nil, nil, errors.Wrap(errors.ErrExpired, "domain is expired")
 	}
+
 	switch err := h.accounts.Has(db, accountKey(msg.Name, msg.Domain)); {
 	case errors.ErrNotFound.Is(err):
 		// All good.
@@ -352,7 +380,74 @@ func (h *registerAccountHandler) validate(ctx weave.Context, db weave.KVStore, t
 	if ok, err := regexp.MatchString(conf.ValidName, msg.Name); err != nil || !ok {
 		return nil, nil, errors.Wrap(errors.ErrInput, "name is not allowed")
 	}
+
+	// checking fees
+	if domain.IsOpen {
+		// How do we check fees by domain
+	}
+
 	return &domain, &msg, nil
+}
+
+type renewAccountHandler struct {
+	auth     x.Authenticator
+	domains  orm.ModelBucket
+	accounts orm.ModelBucket
+}
+
+func (h *renewAccountHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	if _, _, _, err := h.validate(ctx, db, tx); err != nil {
+		return nil, err
+	}
+	return &weave.CheckResult{GasAllocated: 0}, nil
+}
+
+func (h *renewAccountHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	_, account, msg, err := h.validate(ctx, db, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	now, err := weave.BlockTime(ctx)
+	if err != nil {
+		return nil, errors.Wrap(errors.ErrState, "block time not present in context")
+	}
+	conf, err := loadConf(db)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot load configuration")
+	}
+	nextValidUntil := now.Add(conf.AccountRenew.Duration())
+	// ValidUntil time is only extended. We want to avoid the situation when
+	// the configuration is changed, limiting the expiration time period
+	// and renewing a domain by shortening its expiration date.
+	if nextValidUntil.After(account.ValidUntil.Time()) {
+		account.ValidUntil = weave.AsUnixTime(nextValidUntil)
+		if _, err := h.accounts.Put(db, []byte(msg.Name), account); err != nil {
+			return nil, errors.Wrap(err, "cannot store account")
+		}
+	}
+	return &weave.DeliverResult{Data: nil}, nil
+}
+
+func (h *renewAccountHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*Domain, *Account, *RenewAccountMsg, error) {
+	var msg RenewAccountMsg
+	if err := weave.LoadMsg(tx, &msg); err != nil {
+		return nil, nil, nil, errors.Wrap(err, "load msg")
+	}
+	var domain Domain
+	if err := h.domains.One(db, []byte(msg.Domain), &domain); err != nil {
+		return nil, nil, nil, errors.Wrap(err, "cannot get domain")
+	}
+	if !domain.IsOpen {
+		return nil, nil, nil, errors.Wrap(errors.ErrInput, "cannot renew accounts on closed domains at account level")
+	}
+
+	var account Account
+	if err := h.accounts.One(db, []byte(msg.Name), &account); err != nil {
+		return nil, nil, nil, errors.Wrap(err, "cannot get account")
+	}
+
+	return &domain, &account, &msg, nil
 }
 
 type transferAccountHandler struct {
@@ -402,11 +497,28 @@ func (h *transferAccountHandler) validate(ctx weave.Context, db weave.KVStore, t
 	if err := h.accounts.One(db, accountKey(msg.Name, msg.Domain), &account); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "cannot get account")
 	}
-	// Only the domain owner can transfer an account. An account owner
-	// (account.Owner) cannot transfer.
-	if !h.auth.HasAddress(ctx, domain.Owner) {
-		return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "only domain owner can transfer an account")
+	if domain.IsOpen {
+		if weave.IsExpired(ctx, account.ValidUntil) {
+			return nil, nil, nil, errors.Wrap(errors.ErrExpired, "cannot update expired account")
+		}
+
+		// Only the domain owner can transfer an account. An account owner
+		// (account.Owner) cannot transfer.
+		if !h.auth.HasAddress(ctx, account.Owner) {
+			return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "only account owner can transfer an account")
+		}
+	} else {
+		if weave.IsExpired(ctx, domain.ValidUntil) {
+			return nil, nil, nil, errors.Wrap(errors.ErrExpired, "cannot update account in an expired domain")
+		}
+
+		// Only the domain owner can transfer an account. An account owner
+		// (account.Owner) cannot transfer.
+		if !h.auth.HasAddress(ctx, domain.Owner) {
+			return nil, nil, nil, errors.Wrap(errors.ErrUnauthorized, "only domain owner can transfer an account")
+		}
 	}
+
 	if msg.Name == "" {
 		return nil, nil, nil, errors.Wrap(errors.ErrInput, "empty name account cannot be trasfered separately from domain")
 	}
@@ -447,13 +559,20 @@ func (h *replaceAccountTargetHandler) validate(ctx weave.Context, db weave.KVSto
 	if err := h.domains.One(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, nil, errors.Wrap(err, "cannot get domain")
 	}
-	if weave.IsExpired(ctx, domain.ValidUntil) {
-		return nil, nil, errors.Wrap(errors.ErrExpired, "cannot update account in an expired domain")
-	}
 	var account Account
 	if err := h.accounts.One(db, accountKey(msg.Name, msg.Domain), &account); err != nil {
 		return nil, nil, errors.Wrap(err, "cannot get account")
 	}
+	if domain.IsOpen {
+		if weave.IsExpired(ctx, account.ValidUntil) {
+			return nil, nil, errors.Wrap(errors.ErrExpired, "cannot update expired account")
+		}
+	} else {
+		if weave.IsExpired(ctx, domain.ValidUntil) {
+			return nil, nil, errors.Wrap(errors.ErrExpired, "cannot update account in an expired domain")
+		}
+	}
+
 	// Authenticated by either Account owner (if set) or by the Domain owner.
 	authenticated := (len(account.Owner) != 0 && h.auth.HasAddress(ctx, account.Owner)) || h.auth.HasAddress(ctx, domain.Owner)
 	if !authenticated {
@@ -502,6 +621,21 @@ func (h *deleteAccountHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 	if err := h.accounts.One(db, accountKey(msg.Name, msg.Domain), &account); err != nil {
 		return nil, errors.Wrap(err, "cannot get account")
 	}
+
+	if domain.IsOpen {
+		// Only the domain owner can transfer an account. An account owner
+		// (account.Owner) cannot transfer.
+		if !h.auth.HasAddress(ctx, account.Owner) {
+			return nil, errors.Wrap(errors.ErrUnauthorized, "only account owner can transfer an account")
+		}
+	} else {
+		// Only the domain owner can transfer an account. An account owner
+		// (account.Owner) cannot transfer.
+		if !h.auth.HasAddress(ctx, domain.Owner) {
+			return nil, errors.Wrap(errors.ErrUnauthorized, "only domain owner can transfer an account")
+		}
+	}
+
 	// Authenticated by either Account owner (if set) or by the Domain owner.
 	authenticated := (len(account.Owner) != 0 && h.auth.HasAddress(ctx, account.Owner)) || h.auth.HasAddress(ctx, domain.Owner)
 	if !authenticated {
