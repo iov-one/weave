@@ -3,6 +3,21 @@
 ## HEAD
 
 - `datamigration` package added.
+- `orm` package was updated and provides a new index implementation, that is
+  using a native database store in order to maintain and iterate through an
+  index.
+  - `orm.Bucket` and `orm.ModelBucket` were updated to allow for the use of the
+    new index implementation.
+
+Breaking changes
+- `orm.Index` is an interface now to allow multiple implementations. The new
+  interface is a subset of the old structure, simplified and updated to support
+  lazy loading:
+  - `Keys` method returns an iterator,
+  - `GetLike` method was removed,
+- `orm.Bucket` interface was simplified. `GetIndexedLike` was removed,
+- `orm.WithIndex` supports multiple indexer types,
+- `orm.NewIndex` function was removed,
 
 
 ## 0.23.0

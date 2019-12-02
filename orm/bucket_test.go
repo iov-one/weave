@@ -165,11 +165,9 @@ func bc(i int64) []byte {
 }
 
 func TestBucketSecondaryIndex(t *testing.T) {
-	const uniq, mini = "uniq", "mini"
-
 	bucket := NewBucket("special", &Counter{}).
-		WithIndex(uniq, count, true).
-		WithIndex(mini, countByte, false)
+		WithIndex("value", count, true).
+		WithIndex("byte", countByte, false)
 
 	a, b, c := []byte("a"), []byte("b"), []byte("c")
 	oa := NewSimpleObj(a, NewCounter(5))
@@ -187,7 +185,6 @@ func TestBucketSecondaryIndex(t *testing.T) {
 	// verifies that the proper results are returned
 	type query struct {
 		index   string
-		like    Object
 		at      []byte
 		res     []Object
 		wantErr *errors.Error
@@ -203,9 +200,9 @@ func TestBucketSecondaryIndex(t *testing.T) {
 			bucket: bucket,
 			save:   []savecall{{obj: oa}},
 			queries: []query{
-				{uniq, oa, nil, []Object{oa}, nil},
-				{mini, oa, nil, []Object{oa}, nil},
-				{"foo", oa, nil, nil, ErrInvalidIndex},
+				{"value", encodeSequence(5), []Object{oa}, nil},
+				{"byte", []byte{5}, []Object{oa}, nil},
+				{"foo", []byte("does not matter"), nil, ErrInvalidIndex},
 			},
 		},
 		"add a second object and move one": {
@@ -216,11 +213,11 @@ func TestBucketSecondaryIndex(t *testing.T) {
 				{obj: oa2},
 			},
 			queries: []query{
-				{uniq, oa, nil, nil, nil},
-				{uniq, oa2, nil, []Object{oa2}, nil},
-				{uniq, ob, nil, []Object{ob}, nil},
-				{mini, nil, []byte{5}, []Object{ob}, nil},
-				{mini, nil, []byte{245}, []Object{oa2}, nil},
+				{"value", encodeSequence(5), nil, nil},
+				{"value", encodeSequence(245), []Object{oa2}, nil},
+				{"value", encodeSequence(256 + 5), []Object{ob}, nil},
+				{"byte", []byte{5}, []Object{ob}, nil},
+				{"byte", []byte{245}, []Object{oa2}, nil},
 			},
 		},
 		"prevent a conflicting save": {
@@ -239,11 +236,11 @@ func TestBucketSecondaryIndex(t *testing.T) {
 			},
 			remove: [][]byte{b},
 			queries: []query{
-				{uniq, oa, nil, []Object{oa}, nil},
-				{uniq, ob2, nil, nil, nil},
-				{uniq, oc, nil, []Object{oc}, nil},
-				{mini, nil, []byte{5}, []Object{oa}, nil},
-				{mini, nil, []byte{245}, []Object{oc}, nil},
+				{"value", encodeSequence(5), []Object{oa}, nil},
+				{"value", encodeSequence(245), nil, nil},
+				{"value", encodeSequence(512 + 245), []Object{oc}, nil},
+				{"byte", []byte{5}, []Object{oa}, nil},
+				{"byte", []byte{245}, []Object{oc}, nil},
 			},
 		},
 	}
@@ -269,11 +266,7 @@ func TestBucketSecondaryIndex(t *testing.T) {
 					res []Object
 					err error
 				)
-				if q.like != nil {
-					res, err = tc.bucket.GetIndexedLike(db, q.index, q.like)
-				} else {
-					res, err = tc.bucket.GetIndexed(db, q.index, q.at)
-				}
+				res, err = tc.bucket.GetIndexed(db, q.index, q.at)
 				if !q.wantErr.Is(err) {
 					t.Fatalf("unexpected %d query error: %s", i, err)
 				}
