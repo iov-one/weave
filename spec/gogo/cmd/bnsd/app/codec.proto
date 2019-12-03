@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package bnsd;
 
+import "cmd/bnsd/x/account/codec.proto";
 import "cmd/bnsd/x/username/codec.proto";
 import "datamigration/codec.proto";
 import "gogoproto/gogo.proto";
@@ -68,6 +69,20 @@ message Tx {
     // 79 is reserved (see ProposalOptions: TextResolutionMsg)
     msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
     datamigration.ExecuteMigrationMsg datamigration_execute_migration_msg = 81;
+    account.UpdateConfigurationMsg account_update_configuration_msg = 82;
+    account.RegisterDomainMsg account_register_domain_msg = 83;
+    account.ReplaceAccountMsgFeesMsg account_replace_account_msg_fees_msg = 84;
+    account.TransferDomainMsg account_transfer_domain_msg = 85;
+    account.RenewDomainMsg account_renew_domain_msg = 86;
+    account.DeleteDomainMsg account_delete_domain_msg = 87;
+    account.RegisterAccountMsg account_register_account_msg = 88;
+    account.TransferAccountMsg account_transfer_account_msg = 89;
+    account.ReplaceAccountTargetsMsg account_replace_account_targets_msg = 90;
+    account.DeleteAccountMsg account_delete_account_msg = 91;
+    account.FlushDomainMsg account_flush_domain_msg = 92;
+    account.RenewAccountMsg account_renew_account_msg = 93;
+    account.AddAccountCertificateMsg account_add_account_certificate_msg = 94;
+    account.DeleteAccountCertificateMsg account_delete_account_certificate_msg = 95;
   }
 }
 
@@ -96,6 +111,20 @@ message ExecuteBatchMsg {
       // aswap and gov don't make much sense as part of a batch (no vote buying)
       msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
       datamigration.ExecuteMigrationMsg datamigration_execute_migration_msg = 81;
+      account.UpdateConfigurationMsg account_update_configuration_msg = 82;
+      account.RegisterDomainMsg account_register_domain_msg = 83;
+      account.ReplaceAccountMsgFeesMsg account_replace_account_msg_fees_msg = 84;
+      account.TransferDomainMsg account_transfer_domain_msg = 85;
+      account.RenewDomainMsg account_renew_domain_msg = 86;
+      account.DeleteDomainMsg account_delete_domain_msg = 87;
+      account.RegisterAccountMsg account_register_account_msg = 88;
+      account.TransferAccountMsg account_transfer_account_msg = 89;
+      account.ReplaceAccountTargetsMsg account_replace_account_targets_msg = 90;
+      account.DeleteAccountMsg account_delete_account_msg = 91;
+      account.FlushDomainMsg account_flush_domain_msg = 92;
+      account.RenewAccountMsg account_renew_account_msg = 93;
+      account.AddAccountCertificateMsg account_add_account_certificate_msg = 94;
+      account.DeleteAccountCertificateMsg account_delete_account_certificate_msg = 95;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];
@@ -125,6 +154,8 @@ message ProposalOptions {
     gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
     msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
     datamigration.ExecuteMigrationMsg datamigration_execute_migration_msg = 81;
+    // 82-94 are reserved for the account extension messages
+
   }
 }
 
@@ -150,6 +181,8 @@ message ExecuteProposalBatchMsg {
       gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
       msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
       datamigration.ExecuteMigrationMsg datamigration_execute_migration_msg = 81;
+      // 82-94 are reserved for the account extension messages
+
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];

@@ -1,0 +1,12 @@
+{
+	"Sum": {
+		"AccountDeleteAccountCertificateMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"name": "myaccount",
+			"certificate_hash": "1mU0HpQwhdctnELL7VrFMgM8YNFRNF1rqrXwgKQMwvE="
+		}
+	}
+}

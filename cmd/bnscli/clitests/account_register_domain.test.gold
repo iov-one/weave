@@ -1,0 +1,45 @@
+{
+	"Sum": {
+		"AccountRegisterDomainMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"admin": "92066456B2BE7F1934624087D98C203A87F7752C",
+			"has_superuser": true,
+			"third_party_token": "M3AtdG9rZW4=",
+			"msg_fees": null,
+			"account_renew": 44442000
+		}
+	}
+}
+
+{
+	"Sum": {
+		"AccountRegisterDomainMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "another-domain",
+			"admin": "92066456B2BE7F1934624087D98C203A87F7752C",
+			"has_superuser": true,
+			"msg_fees": [
+				{
+					"msg_path": "account/first_msg",
+					"fee": {
+						"whole": 5,
+						"ticker": "IOV"
+					}
+				},
+				{
+					"msg_path": "account/second_msg",
+					"fee": {
+						"whole": 9,
+						"ticker": "IOV"
+					}
+				}
+			],
+			"account_renew": 2592000
+		}
+	}
+}

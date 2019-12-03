@@ -9,6 +9,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	account "github.com/iov-one/weave/cmd/bnsd/x/account"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
@@ -103,6 +104,7 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 		&escrow.Initializer{Minter: cash.NewController(cash.NewBucket())},
 		&gov.Initializer{},
 		&username.Initializer{},
+		&account.Initializer{},
 	))
 	application.WithLogger(logger)
 	return application

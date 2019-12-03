@@ -1,0 +1,34 @@
+{
+	"Sum": {
+		"AccountRegisterAccountMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"name": "myaccount",
+			"targets": null
+		}
+	}
+}
+
+{
+	"Sum": {
+		"AccountRegisterAccountMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"name": "myaccount",
+			"targets": [
+				{
+					"blockchain_id": "unichain",
+					"address": "xyz123"
+				},
+				{
+					"blockchain_id": "rainbow",
+					"address": "983abc"
+				}
+			]
+		}
+	}
+}

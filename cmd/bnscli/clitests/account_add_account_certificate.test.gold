@@ -1,0 +1,12 @@
+{
+	"Sum": {
+		"AccountAddAccountCertificateMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"name": "myaccount",
+			"certificate": "bXkgY2VydGlmaWNhdGUK"
+		}
+	}
+}

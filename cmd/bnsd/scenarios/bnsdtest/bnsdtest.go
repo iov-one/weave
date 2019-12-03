@@ -290,6 +290,7 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 		"username": usernames,
 		"msgfee":   msgfees,
 		"initialize_schema": []dict{
+			{"ver": 1, "pkg": "account"},
 			{"ver": 1, "pkg": "batch"},
 			{"ver": 1, "pkg": "cash"},
 			{"ver": 1, "pkg": "cron"},

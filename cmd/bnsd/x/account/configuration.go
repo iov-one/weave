@@ -1,4 +1,4 @@
-package blueaccount
+package account
 
 import (
 	"regexp"
@@ -22,6 +22,15 @@ func (c *Configuration) Validate() error {
 	if err := validateRegexp(c.ValidName); err != nil {
 		errs = errors.AppendField(errs, "ValidName", err)
 	}
+	if err := validateRegexp(c.ValidBlockchainID); err != nil {
+		errs = errors.AppendField(errs, "ValidBlockchainID", err)
+	}
+	if err := validateRegexp(c.ValidBlockchainAddress); err != nil {
+		errs = errors.AppendField(errs, "ValidBlockchainAddress", err)
+	}
+	if c.DomainRenew <= 0 {
+		errs = errors.AppendField(errs, "DomainRenew", errors.Wrap(errors.ErrInput, "must be greater than zero"))
+	}
 	return errs
 }
 
@@ -31,7 +40,7 @@ func (c *Configuration) Validate() error {
 // by ensuring ^ and $ presence.
 func validateRegexp(rx string) error {
 	if rx == "" {
-		return nil
+		return errors.Wrap(errors.ErrEmpty, "cannot be empty")
 	}
 	if len(rx) > 1024 {
 		return errors.Wrap(errors.ErrInput, "too long")
@@ -50,7 +59,7 @@ func validateRegexp(rx string) error {
 
 func loadConf(db gconf.Store) (*Configuration, error) {
 	var conf Configuration
-	if err := gconf.Load(db, "blueaccount", &conf); err != nil {
+	if err := gconf.Load(db, "account", &conf); err != nil {
 		return nil, errors.Wrap(err, "load")
 	}
 	return &conf, nil

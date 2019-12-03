@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+certfile=`mktemp`
+echo "my certificate" > $certfile
+
+bnscli add-account-certificate \
+		-domain mydomain \
+		-name myaccount \
+		-cert-file $certfile \
+	| bnscli view
+
+rm $certfile
+

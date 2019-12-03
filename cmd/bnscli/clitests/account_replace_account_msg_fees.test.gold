@@ -1,0 +1,38 @@
+{
+	"Sum": {
+		"AccountReplaceAccountMsgFeesMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "do-main",
+			"new_msg_fees": null
+		}
+	}
+}
+
+{
+	"Sum": {
+		"AccountReplaceAccountMsgFeesMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "do-main",
+			"new_msg_fees": [
+				{
+					"msg_path": "account/first_msg",
+					"fee": {
+						"whole": 2,
+						"ticker": "IOV"
+					}
+				},
+				{
+					"msg_path": "account/second_msg",
+					"fee": {
+						"whole": 421,
+						"ticker": "IOV"
+					}
+				}
+			]
+		}
+	}
+}

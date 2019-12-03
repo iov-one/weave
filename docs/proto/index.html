@@ -229,63 +229,83 @@
         
           
           <li>
-            <a href="#cmd%2fbnsd%2fx%2fblueaccount%2fcodec.proto">cmd/bnsd/x/blueaccount/codec.proto</a>
+            <a href="#cmd%2fbnsd%2fx%2faccount%2fcodec.proto">cmd/bnsd/x/account/codec.proto</a>
             <ul>
               
                 <li>
-                  <a href="#blueaccount.Account"><span class="badge">M</span>Account</a>
+                  <a href="#account.Account"><span class="badge">M</span>Account</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.BlockchainAddress"><span class="badge">M</span>BlockchainAddress</a>
+                  <a href="#account.AccountMsgFee"><span class="badge">M</span>AccountMsgFee</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.Configuration"><span class="badge">M</span>Configuration</a>
+                  <a href="#account.AddAccountCertificateMsg"><span class="badge">M</span>AddAccountCertificateMsg</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.DeleteAccountMsg"><span class="badge">M</span>DeleteAccountMsg</a>
+                  <a href="#account.BlockchainAddress"><span class="badge">M</span>BlockchainAddress</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.DeleteDomainMsg"><span class="badge">M</span>DeleteDomainMsg</a>
+                  <a href="#account.Configuration"><span class="badge">M</span>Configuration</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.Domain"><span class="badge">M</span>Domain</a>
+                  <a href="#account.DeleteAccountCertificateMsg"><span class="badge">M</span>DeleteAccountCertificateMsg</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.FlushDomainMsg"><span class="badge">M</span>FlushDomainMsg</a>
+                  <a href="#account.DeleteAccountMsg"><span class="badge">M</span>DeleteAccountMsg</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.RegisterAccountMsg"><span class="badge">M</span>RegisterAccountMsg</a>
+                  <a href="#account.DeleteDomainMsg"><span class="badge">M</span>DeleteDomainMsg</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.RegisterDomainMsg"><span class="badge">M</span>RegisterDomainMsg</a>
+                  <a href="#account.Domain"><span class="badge">M</span>Domain</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.RenewDomainMsg"><span class="badge">M</span>RenewDomainMsg</a>
+                  <a href="#account.FlushDomainMsg"><span class="badge">M</span>FlushDomainMsg</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.ReplaceAccountTargetsMsg"><span class="badge">M</span>ReplaceAccountTargetsMsg</a>
+                  <a href="#account.RegisterAccountMsg"><span class="badge">M</span>RegisterAccountMsg</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.TransferAccountMsg"><span class="badge">M</span>TransferAccountMsg</a>
+                  <a href="#account.RegisterDomainMsg"><span class="badge">M</span>RegisterDomainMsg</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.TransferDomainMsg"><span class="badge">M</span>TransferDomainMsg</a>
+                  <a href="#account.RenewAccountMsg"><span class="badge">M</span>RenewAccountMsg</a>
                 </li>
               
                 <li>
-                  <a href="#blueaccount.UpdateConfigurationMsg"><span class="badge">M</span>UpdateConfigurationMsg</a>
+                  <a href="#account.RenewDomainMsg"><span class="badge">M</span>RenewDomainMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#account.ReplaceAccountMsgFeesMsg"><span class="badge">M</span>ReplaceAccountMsgFeesMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#account.ReplaceAccountTargetsMsg"><span class="badge">M</span>ReplaceAccountTargetsMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#account.TransferAccountMsg"><span class="badge">M</span>TransferAccountMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#account.TransferDomainMsg"><span class="badge">M</span>TransferDomainMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#account.UpdateConfigurationMsg"><span class="badge">M</span>UpdateConfigurationMsg</a>
                 </li>
               
               
@@ -1138,6 +1158,104 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td><p> </p></td>
                 </tr>
               
+                <tr>
+                  <td>account_update_configuration_msg</td>
+                  <td><a href="#account.UpdateConfigurationMsg">account.UpdateConfigurationMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_register_domain_msg</td>
+                  <td><a href="#account.RegisterDomainMsg">account.RegisterDomainMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_replace_account_msg_fees_msg</td>
+                  <td><a href="#account.ReplaceAccountMsgFeesMsg">account.ReplaceAccountMsgFeesMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_transfer_domain_msg</td>
+                  <td><a href="#account.TransferDomainMsg">account.TransferDomainMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_renew_domain_msg</td>
+                  <td><a href="#account.RenewDomainMsg">account.RenewDomainMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_delete_domain_msg</td>
+                  <td><a href="#account.DeleteDomainMsg">account.DeleteDomainMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_register_account_msg</td>
+                  <td><a href="#account.RegisterAccountMsg">account.RegisterAccountMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_transfer_account_msg</td>
+                  <td><a href="#account.TransferAccountMsg">account.TransferAccountMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_replace_account_targets_msg</td>
+                  <td><a href="#account.ReplaceAccountTargetsMsg">account.ReplaceAccountTargetsMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_delete_account_msg</td>
+                  <td><a href="#account.DeleteAccountMsg">account.DeleteAccountMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_flush_domain_msg</td>
+                  <td><a href="#account.FlushDomainMsg">account.FlushDomainMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_renew_account_msg</td>
+                  <td><a href="#account.RenewAccountMsg">account.RenewAccountMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_add_account_certificate_msg</td>
+                  <td><a href="#account.AddAccountCertificateMsg">account.AddAccountCertificateMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_delete_account_certificate_msg</td>
+                  <td><a href="#account.DeleteAccountCertificateMsg">account.DeleteAccountCertificateMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -1293,7 +1411,7 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td>datamigration_execute_migration_msg</td>
                   <td><a href="#datamigration.ExecuteMigrationMsg">datamigration.ExecuteMigrationMsg</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>82-94 are reserved for the account extension messages </p></td>
                 </tr>
               
             </tbody>
@@ -1449,7 +1567,7 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td>datamigration_execute_migration_msg</td>
                   <td><a href="#datamigration.ExecuteMigrationMsg">datamigration.ExecuteMigrationMsg</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>82-94 are reserved for the account extension messages </p></td>
                 </tr>
               
             </tbody>
@@ -1688,6 +1806,104 @@ gov.TallyMsg gov_tally_msg = 76; </p></td>
                   <td><p> </p></td>
                 </tr>
               
+                <tr>
+                  <td>account_update_configuration_msg</td>
+                  <td><a href="#account.UpdateConfigurationMsg">account.UpdateConfigurationMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_register_domain_msg</td>
+                  <td><a href="#account.RegisterDomainMsg">account.RegisterDomainMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_replace_account_msg_fees_msg</td>
+                  <td><a href="#account.ReplaceAccountMsgFeesMsg">account.ReplaceAccountMsgFeesMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_transfer_domain_msg</td>
+                  <td><a href="#account.TransferDomainMsg">account.TransferDomainMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_renew_domain_msg</td>
+                  <td><a href="#account.RenewDomainMsg">account.RenewDomainMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_delete_domain_msg</td>
+                  <td><a href="#account.DeleteDomainMsg">account.DeleteDomainMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_register_account_msg</td>
+                  <td><a href="#account.RegisterAccountMsg">account.RegisterAccountMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_transfer_account_msg</td>
+                  <td><a href="#account.TransferAccountMsg">account.TransferAccountMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_replace_account_targets_msg</td>
+                  <td><a href="#account.ReplaceAccountTargetsMsg">account.ReplaceAccountTargetsMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_delete_account_msg</td>
+                  <td><a href="#account.DeleteAccountMsg">account.DeleteAccountMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_flush_domain_msg</td>
+                  <td><a href="#account.FlushDomainMsg">account.FlushDomainMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_renew_account_msg</td>
+                  <td><a href="#account.RenewAccountMsg">account.RenewAccountMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_add_account_certificate_msg</td>
+                  <td><a href="#account.AddAccountCertificateMsg">account.AddAccountCertificateMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_delete_account_certificate_msg</td>
+                  <td><a href="#account.DeleteAccountCertificateMsg">account.DeleteAccountCertificateMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -1703,13 +1919,13 @@ gov.TallyMsg gov_tally_msg = 76; </p></td>
     
       
       <div class="file-heading">
-        <h2 id="cmd/bnsd/x/blueaccount/codec.proto">cmd/bnsd/x/blueaccount/codec.proto</h2><a href="#title">Top</a>
+        <h2 id="cmd/bnsd/x/account/codec.proto">cmd/bnsd/x/account/codec.proto</h2><a href="#title">Top</a>
       </div>
       <p></p>
 
       
-        <h3 id="blueaccount.Account">Account</h3>
-        <p>Account represents a blue account name.</p><p>String representation of an account is `<name>*<domain>`. Empty name is an</p><p>acceptable account string. Complete validation rules for name and domain are</p><p>declared by configuration entity.</p><p>An account must always belong to an existing domain.</p>
+        <h3 id="account.Account">Account</h3>
+        <p>Account represents an account that belongs to a domain.</p><p>String representation of an account is `<name>*<domain>`. Empty name is an</p><p>acceptable account string. Complete validation rules for name and domain are</p><p>declared by configuration entity.</p><p>An account must always belong to an existing domain.</p>
 
         
           <table class="field-table">
@@ -1745,14 +1961,31 @@ gov.TallyMsg gov_tally_msg = 76; </p></td>
                   <td></td>
                   <td><p>Owner is a weave.Address that controls this account. Can be empty.
 
-An account is always owned by the domain owner. In addition, ownership can
-be assigned to one more address to share ownership and allow another party
-to manage selected account. </p></td>
+An account can be administrated by the domain admin. In addition,
+ownership can be assigned to an address to allow another party to manage
+selected account. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>valid_until</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>Valid until defines the expiration date for the account. Expired account
+cannot be used or modified. This date is always considered in context of
+the domain that this account belongs. Expired domain expires all belonging
+accounts as well, event if that account valid until date is not yet due. </p></td>
                 </tr>
               
                 <tr>
                   <td>targets</td>
-                  <td><a href="#blueaccount.BlockchainAddress">BlockchainAddress</a></td>
+                  <td><a href="#account.BlockchainAddress">BlockchainAddress</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>certificates</td>
+                  <td><a href="#bytes">bytes</a></td>
                   <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
@@ -1763,7 +1996,81 @@ to manage selected account. </p></td>
 
         
       
-        <h3 id="blueaccount.BlockchainAddress">BlockchainAddress</h3>
+        <h3 id="account.AccountMsgFee">AccountMsgFee</h3>
+        <p>AccountMsgFee defines a fee for processing a message of a given type,</p><p>determined by that message path. This is a way to declare an additional</p><p>price for processing a message in a scope of a domain.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>msg_path</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>fee</td>
+                  <td><a href="#coin.Coin">coin.Coin</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="account.AddAccountCertificateMsg">AddAccountCertificateMsg</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>domain</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Domain that account belongs to. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>name</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Account name. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>certificate</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Certificate content. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="account.BlockchainAddress">BlockchainAddress</h3>
         <p>BlockchainAddress represents a blochain address. This structure clubs together</p><p>blokchain ID together with an address on that network. It is used to point</p><p>to an address on any blockchain network.</p>
 
         
@@ -1800,7 +2107,7 @@ to use. </p></td>
 
         
       
-        <h3 id="blueaccount.Configuration">Configuration</h3>
+        <h3 id="account.Configuration">Configuration</h3>
         <p>Configuration is a dynamic configuration used by this extension, managed by</p><p>the functionality provided by gconf package.</p>
 
         
@@ -1843,6 +2150,22 @@ account must match. Rule must not include the asterisk (*) character. </p></td>
                 </tr>
               
                 <tr>
+                  <td>valid_blockchain_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Valid blockchain ID defines a regular expression that a valid target
+blockchain ID must match. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>valid_blockchain_address</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Valid blockchain address defines a regular expression that a valid target
+blockchain address must match. </p></td>
+                </tr>
+              
+                <tr>
                   <td>domain_renew</td>
                   <td><a href="#int64">int64</a></td>
                   <td></td>
@@ -1855,7 +2178,54 @@ account must match. Rule must not include the asterisk (*) character. </p></td>
 
         
       
-        <h3 id="blueaccount.DeleteAccountMsg">DeleteAccountMsg</h3>
+        <h3 id="account.DeleteAccountCertificateMsg">DeleteAccountCertificateMsg</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>domain</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Domain that account belongs to. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>name</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Account name. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>certificate_hash</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Certificate hash is a sha256 checksum of the certificate content.
+Certificates are bytes without any identifier. They are also not parsed by
+the application. We optimize transferred data by sending only a checksum
+of a certificate in order to identify it. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="account.DeleteAccountMsg">DeleteAccountMsg</h3>
         <p>DeleteAccountMsg issues deletion of a name that belongs to given domain.</p><p>Message must be signed by the domain owner.</p>
 
         
@@ -1892,7 +2262,7 @@ account must match. Rule must not include the asterisk (*) character. </p></td>
 
         
       
-        <h3 id="blueaccount.DeleteDomainMsg">DeleteDomainMsg</h3>
+        <h3 id="account.DeleteDomainMsg">DeleteDomainMsg</h3>
         <p>DeleteDomainMsg issues deletion of a domain and all accounts that belong to</p><p>that domain.</p>
 
         
@@ -1922,8 +2292,8 @@ account must match. Rule must not include the asterisk (*) character. </p></td>
 
         
       
-        <h3 id="blueaccount.Domain">Domain</h3>
-        <p>Domain represents a blue account domain.</p><p>Domain is a container for accounts. Account representation is</p><p>`<name>*<domain>`.</p><p>Each domain owner controls all accounts that belong to that domain.</p><p>Each domain controls expiration of all accounts that belong to that domain.</p><p>Because of the functionality that the Red Account provides, Blue Account</p><p>domain must not be `iov` as this is a domain used by Red Account</p><p>functionality.</p>
+        <h3 id="account.Domain">Domain</h3>
+        <p>Domain represents an account domain.</p><p>Domain is a container for accounts. Account representation is</p><p>`<name>*<domain>`.</p><p>Each domain admin controls all accounts that belong to that domain.</p><p>Each domain controls expiration of all accounts that belong to that domain.</p>
 
         
           <table class="field-table">
@@ -1947,10 +2317,10 @@ account must match. Rule must not include the asterisk (*) character. </p></td>
                 </tr>
               
                 <tr>
-                  <td>owner</td>
+                  <td>admin</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>Owner is a weave.Address that controls this domain and all accounts that
+                  <td><p>Admin is a weave.Address that controls this domain and all accounts that
 belong to this domain. </p></td>
                 </tr>
               
@@ -1963,14 +2333,37 @@ cannot be used or modified. None of the accounts that belong to an expired
 domain can be used of modified as well. </p></td>
                 </tr>
               
+                <tr>
+                  <td>has_superuser</td>
+                  <td><a href="#bool">bool</a></td>
+                  <td></td>
+                  <td><p>Has Superuser is a feature switch flag. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>msg_fees</td>
+                  <td><a href="#account.AccountMsgFee">AccountMsgFee</a></td>
+                  <td>repeated</td>
+                  <td><p>Msg fees declares an optional list of additional fees that paying is
+required when processing a message within this domain. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_renew</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p>Account review defines the duration of the account renewal period for each
+account that belongs to this domain. </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
 
         
       
-        <h3 id="blueaccount.FlushDomainMsg">FlushDomainMsg</h3>
-        <p>FlushDomainMsg issues deletion of all names (except the one with an empty</p><p>name) that belongs to given domain.</p><p>Message must be signed by the domain owner.</p>
+        <h3 id="account.FlushDomainMsg">FlushDomainMsg</h3>
+        <p>FlushDomainMsg issues deletion of all names (except the one with an empty</p><p>name) that belongs to given domain.</p><p>Message must be signed by the domain admin.</p>
 
         
           <table class="field-table">
@@ -1999,8 +2392,8 @@ domain can be used of modified as well. </p></td>
 
         
       
-        <h3 id="blueaccount.RegisterAccountMsg">RegisterAccountMsg</h3>
-        <p>RegisterAccountMsg issues registration of an account. Requested domain must</p><p>exist and belong to the same user that signs this message.</p>
+        <h3 id="account.RegisterAccountMsg">RegisterAccountMsg</h3>
+        <p>RegisterAccountMsg issues registration of an account. Requested domain must</p><p>exist and belong to the same user that signs this message.</p><p>If domain does not have a public registration enabled, transaction must be</p><p>signed by the domain admin.</p>
 
         
           <table class="field-table">
@@ -2040,7 +2433,7 @@ leave the administration to the domain owner only. </p></td>
               
                 <tr>
                   <td>targets</td>
-                  <td><a href="#blueaccount.BlockchainAddress">BlockchainAddress</a></td>
+                  <td><a href="#account.BlockchainAddress">BlockchainAddress</a></td>
                   <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
@@ -2061,7 +2454,7 @@ identify contribution of such party later. </p></td>
 
         
       
-        <h3 id="blueaccount.RegisterDomainMsg">RegisterDomainMsg</h3>
+        <h3 id="account.RegisterDomainMsg">RegisterDomainMsg</h3>
         <p>RegisterDomainMsg is issuing registration of a new domain. Requested</p><p>domain name must be available (not yet registed) in order for the request to</p><p>succeed.</p><p>Registering a domain creates an account with no name that belongs to this</p><p>domain.</p>
 
         
@@ -2079,18 +2472,24 @@ identify contribution of such party later. </p></td>
                 </tr>
               
                 <tr>
-                  <td>owner</td>
-                  <td><a href="#bytes">bytes</a></td>
-                  <td></td>
-                  <td><p>Owner holds the address of the newly registered domain. If not provided,
-main signer is used. </p></td>
-                </tr>
-              
-                <tr>
                   <td>domain</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p>Domain part of the account that should be registered. </p></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>admin</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Admin holds the address of the newly registered domain. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>has_superuser</td>
+                  <td><a href="#bool">bool</a></td>
+                  <td></td>
+                  <td><p>Has Superuser is a feature switch flag. </p></td>
                 </tr>
               
                 <tr>
@@ -2099,7 +2498,68 @@ main signer is used. </p></td>
                   <td></td>
                   <td><p>Third party token is an arbitrary data that can be provided by a middleman
 (i.e. retailer) that although does not participate directly in the
-transaction, helped a user to register a domain. Storing a client token
+transaction, helped a user to register a domain. Storing a third party
+token helps identify contribution of such party later. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>msg_fees</td>
+                  <td><a href="#account.AccountMsgFee">AccountMsgFee</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_renew</td>
+                  <td><a href="#int64">int64</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="account.RenewAccountMsg">RenewAccountMsg</h3>
+        <p>RenewAccountMsg is issuing an account expiration time extension. Extension</p><p>period is defined by the domain that this account belongs to.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>domain</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Name of the domain that is transferred. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>name</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>third_party_token</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p>Third party token is an arbitrary data that can be provided by a middleman
+(i.e. retailer) that although does not participate directly in the
+transaction, helped a user to renew a domain. Storing a third party token
 helps identify contribution of such party later. </p></td>
                 </tr>
               
@@ -2109,7 +2569,7 @@ helps identify contribution of such party later. </p></td>
 
         
       
-        <h3 id="blueaccount.RenewDomainMsg">RenewDomainMsg</h3>
+        <h3 id="account.RenewDomainMsg">RenewDomainMsg</h3>
         <p>RenewDomainMsg is issuing a domain expiration time extension. Extension</p><p>period is defined by the configuration entity.</p>
 
         
@@ -2149,7 +2609,44 @@ identify contribution of such party later. </p></td>
 
         
       
-        <h3 id="blueaccount.ReplaceAccountTargetsMsg">ReplaceAccountTargetsMsg</h3>
+        <h3 id="account.ReplaceAccountMsgFeesMsg">ReplaceAccountMsgFeesMsg</h3>
+        <p>ReplaceMsgFeesMsg is configuring a set of additional prices that must be</p><p>paid in order to process messages for accounts that belong to this domain.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>domain</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Name of the domain that is configured. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_msg_fees</td>
+                  <td><a href="#account.AccountMsgFee">AccountMsgFee</a></td>
+                  <td>repeated</td>
+                  <td><p>A set of message fees that will replacce existing configuration. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="account.ReplaceAccountTargetsMsg">ReplaceAccountTargetsMsg</h3>
         <p>ReplaceAccountTargetsMsg is issuing rewrite of all targets that given</p><p>account points to.</p>
 
         
@@ -2182,7 +2679,7 @@ identify contribution of such party later. </p></td>
               
                 <tr>
                   <td>new_targets</td>
-                  <td><a href="#blueaccount.BlockchainAddress">BlockchainAddress</a></td>
+                  <td><a href="#account.BlockchainAddress">BlockchainAddress</a></td>
                   <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
@@ -2193,8 +2690,8 @@ identify contribution of such party later. </p></td>
 
         
       
-        <h3 id="blueaccount.TransferAccountMsg">TransferAccountMsg</h3>
-        <p>TransferAccountMsg is issuing an ownership transfer over specified account.</p><p>Transfering an account ownership does not affect related domain owner</p><p>permissions to administrate that account.</p>
+        <h3 id="account.TransferAccountMsg">TransferAccountMsg</h3>
+        <p>TransferAccountMsg is issuing an ownership transfer over specified account.</p><p>Transfering an account ownership does not affect related domain owner</p><p>permissions to administrate that account.</p><p>Domain that this account belongs to determines if the account owner can</p><p>transfer ownership. Domain admin can always transfer ownership.</p>
 
         
           <table class="field-table">
@@ -2238,8 +2735,8 @@ transferred to. </p></td>
 
         
       
-        <h3 id="blueaccount.TransferDomainMsg">TransferDomainMsg</h3>
-        <p>TransferDomainMsg is issuing an ownership transfer over specified domain.</p>
+        <h3 id="account.TransferDomainMsg">TransferDomainMsg</h3>
+        <p>TransferDomainMsg is issuing a change of the admin for the specified domain.</p>
 
         
           <table class="field-table">
@@ -2263,10 +2760,10 @@ transferred to. </p></td>
                 </tr>
               
                 <tr>
-                  <td>new_owner</td>
+                  <td>new_admin</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>New owner holds the address that the ownership of the domain is
+                  <td><p>New admin holds the address that the ownership of the domain is
 transferred to. </p></td>
                 </tr>
               
@@ -2276,7 +2773,7 @@ transferred to. </p></td>
 
         
       
-        <h3 id="blueaccount.UpdateConfigurationMsg">UpdateConfigurationMsg</h3>
+        <h3 id="account.UpdateConfigurationMsg">UpdateConfigurationMsg</h3>
         <p>UpdateConfigurationMsg is used by the gconf extension to update the</p><p>configuration.</p>
 
         
@@ -2295,7 +2792,7 @@ transferred to. </p></td>
               
                 <tr>
                   <td>patch</td>
-                  <td><a href="#blueaccount.Configuration">Configuration</a></td>
+                  <td><a href="#account.Configuration">Configuration</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>

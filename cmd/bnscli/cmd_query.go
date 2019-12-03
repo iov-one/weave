@@ -15,7 +15,7 @@ import (
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
-	"github.com/iov-one/weave/cmd/bnsd/x/blueaccount"
+	"github.com/iov-one/weave/cmd/bnsd/x/account"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/cash"
@@ -183,13 +183,13 @@ var queries = map[string]struct {
 		decKey: sequenceKey,
 		encID:  numericID,
 	},
-	"/bluedomains": {
-		newObj: func() model { return &blueaccount.Domain{} },
+	"/accounts": {
+		newObj: func() model { return &account.Account{} },
 		decKey: strKey,
 		encID:  strID,
 	},
-	"/blueaccounts": {
-		newObj: func() model { return &blueaccount.Account{} },
+	"/domains": {
+		newObj: func() model { return &account.Domain{} },
 		decKey: strKey,
 		encID:  strID,
 	},
