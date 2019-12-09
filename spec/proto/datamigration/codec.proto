@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package datamigration;
+
+import "codec.proto";
+
+message ExecutedMigration {
+  weave.Metadata metadata = 1;
+}
+
+message ExecuteMigrationMsg {
+  weave.Metadata metadata = 1;
+  string migration_id = 2 ;
+}

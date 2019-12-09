@@ -3,6 +3,7 @@ syntax = "proto3";
 package bnsd;
 
 import "cmd/bnsd/x/username/codec.proto";
+import "datamigration/codec.proto";
 import "gogoproto/gogo.proto";
 import "migration/codec.proto";
 import "x/aswap/codec.proto";
@@ -66,6 +67,7 @@ message Tx {
     gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
     // 79 is reserved (see ProposalOptions: TextResolutionMsg)
     msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
+    datamigration.ExecuteMigrationMsg datamigration_execute_migration_msg = 81;
   }
 }
 
@@ -93,6 +95,7 @@ message ExecuteBatchMsg {
       // upgrade schema is important enough, it should be a solo action
       // aswap and gov don't make much sense as part of a batch (no vote buying)
       msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
+      datamigration.ExecuteMigrationMsg datamigration_execute_migration_msg = 81;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];
@@ -121,6 +124,7 @@ message ProposalOptions {
     gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
     gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
     msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
+    datamigration.ExecuteMigrationMsg datamigration_execute_migration_msg = 81;
   }
 }
 
@@ -145,6 +149,7 @@ message ExecuteProposalBatchMsg {
       gov.UpdateElectionRuleMsg gov_update_election_rule_msg = 78;
       gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
       msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
+      datamigration.ExecuteMigrationMsg datamigration_execute_migration_msg = 81;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];

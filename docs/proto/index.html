@@ -400,6 +400,25 @@
         
           
           <li>
+            <a href="#datamigration%2fcodec.proto">datamigration/codec.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#datamigration.ExecuteMigrationMsg"><span class="badge">M</span>ExecuteMigrationMsg</a>
+                </li>
+              
+                <li>
+                  <a href="#datamigration.ExecutedMigration"><span class="badge">M</span>ExecutedMigration</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
             <a href="#migration%2fcodec.proto">migration/codec.proto</a>
             <ul>
               
@@ -1112,6 +1131,13 @@ conditions required for execution, that will be inserted into the context. </p><
 aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p></td>
                 </tr>
               
+                <tr>
+                  <td>datamigration_execute_migration_msg</td>
+                  <td><a href="#datamigration.ExecuteMigrationMsg">datamigration.ExecuteMigrationMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -1263,6 +1289,13 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                   <td><p> </p></td>
                 </tr>
               
+                <tr>
+                  <td>datamigration_execute_migration_msg</td>
+                  <td><a href="#datamigration.ExecuteMigrationMsg">datamigration.ExecuteMigrationMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -1408,6 +1441,13 @@ aswap and gov don&#39;t make much sense as part of a batch (no vote buying) </p>
                 <tr>
                   <td>msgfee_set_msg_fee_msg</td>
                   <td><a href="#msgfee.SetMsgFeeMsg">msgfee.SetMsgFeeMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>datamigration_execute_migration_msg</td>
+                  <td><a href="#datamigration.ExecuteMigrationMsg">datamigration.ExecuteMigrationMsg</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1639,6 +1679,13 @@ gov.TallyMsg gov_tally_msg = 76; </p></td>
                   <td><a href="#msgfee.SetMsgFeeMsg">msgfee.SetMsgFeeMsg</a></td>
                   <td></td>
                   <td><p>79 is reserved (see ProposalOptions: TextResolutionMsg) </p></td>
+                </tr>
+              
+                <tr>
+                  <td>datamigration_execute_migration_msg</td>
+                  <td><a href="#datamigration.ExecuteMigrationMsg">datamigration.ExecuteMigrationMsg</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -2792,6 +2839,73 @@ all Coins of the same currency can be combined </p></td>
                 <tr>
                   <td>ed25519</td>
                   <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="datamigration/codec.proto">datamigration/codec.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="datamigration.ExecuteMigrationMsg">ExecuteMigrationMsg</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>migration_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="datamigration.ExecutedMigration">ExecutedMigration</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>metadata</td>
+                  <td><a href="#weave.Metadata">weave.Metadata</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>

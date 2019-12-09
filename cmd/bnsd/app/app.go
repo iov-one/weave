@@ -15,6 +15,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/datamigration"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
@@ -89,6 +90,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	gov.RegisterRoutes(r, authFn, decodeProposalOptions, proposalOptionsExecutor(ctrl), scheduler)
 	username.RegisterRoutes(r, authFn)
 	msgfee.RegisterRoutes(r, authFn)
+	datamigration.RegisterRoutes(r, authFn)
 	return r
 }
 
@@ -112,6 +114,7 @@ func QueryRouter(minFee coin.Coin) weave.QueryRouter {
 		gov.RegisterQuery,
 		username.RegisterQuery,
 		cron.RegisterQuery,
+		datamigration.RegisterQuery,
 	)
 	return r
 }
