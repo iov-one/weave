@@ -41,6 +41,10 @@ type Indexer func(Object) ([]byte, error)
 // MultiKeyIndexer calculates the secondary index keys for a given object
 type MultiKeyIndexer func(Object) ([][]byte, error)
 
+// compactIndex is an index implementation that stores all indexed entities as
+// a set, serialized and stored under single key. This implmentation should be
+// used only for small sized index collection. Use nativeIndex for big indexes.
+//
 // compactIndex represents a secondary index on some data.
 // It is indexed by an arbitrary key returned by Indexer.
 // The value is one primary key (unique),
@@ -277,7 +281,6 @@ func (i compactIndex) getPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([][]by
 
 // Query handles queries from the QueryRouter
 func (i compactIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weave.Model, error) {
-
 	switch mod {
 	case weave.KeyQueryMod:
 		refs, err := consumeIteratorKeys(i.Keys(db, data))
@@ -296,9 +299,7 @@ func (i compactIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) (
 	}
 }
 
-func (i compactIndex) loadRefs(db weave.ReadOnlyKVStore,
-	refs [][]byte) ([]weave.Model, error) {
-
+func (i compactIndex) loadRefs(db weave.ReadOnlyKVStore, refs [][]byte) ([]weave.Model, error) {
 	if len(refs) == 0 {
 		return nil, nil
 	}
@@ -471,6 +472,9 @@ func (i compactIndex) insert(db weave.KVStore, index []byte, pk []byte) error {
 
 const nativeIdxPrefix = "_x."
 
+// NewNativeIndex returns an index implementation that is using a database
+// native storage and query in order to maintain and provide access to an
+// index.
 func NewNativeIndex(name string, indexer MultiKeyIndexer) Index {
 	return &nativeIndex{
 		name:    name,
@@ -478,6 +482,8 @@ func NewNativeIndex(name string, indexer MultiKeyIndexer) Index {
 	}
 }
 
+// nativeIndex is an index implementation that is using a database native
+// storage and query in order to maintain and provide access to an index.
 type nativeIndex struct {
 	name    string
 	indexer MultiKeyIndexer
@@ -601,7 +607,12 @@ func (it *nativeIndexIterator) Next() ([]byte, []byte, error) {
 }
 
 func (ix *nativeIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weave.Model, error) {
-	panic("not implemented")
+	// Query method is required by the Index interface. This implementation
+	// can build huge indexes. While compactIndex can always return all
+	// results in a single response, nativeIndex should never do this.
+	// Native index implementation expects huge result sets and returning
+	// them could enable DDOS attack.
+	return nil, errors.Wrap(errors.ErrHuman, "not implemented: "+mod)
 }
 
 func packNativeIdxKey(chunks [][]byte) ([]byte, error) {
