@@ -615,6 +615,20 @@ func (ix *nativeIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) 
 	return nil, errors.Wrap(errors.ErrHuman, "not implemented: "+mod)
 }
 
+// packNativeIndexKey serialize a native index key from a set of values to a
+// single key. This process can be reversed using unpackNativeIdxKey function.
+//
+// Native index key is a byte array. After the same for every native index
+// prefix, a collection of bytes is serialized in order. Each element of the
+// collection must be at most 254 bytes long.
+//
+// When serialized, each chunk is prefixed with its length, encoded as a uint8
+// value.  If a key is created from 3 chunks, "aaa", "" and "c", that key
+// representation is:
+//
+//   _x.<3>aaa<0><1>c
+//
+// where <3>, <0> and <1> are that number values in bytes.
 func packNativeIdxKey(chunks [][]byte) ([]byte, error) {
 	var size int
 	for _, b := range chunks {
@@ -636,6 +650,8 @@ func packNativeIdxKey(chunks [][]byte) ([]byte, error) {
 	return res, nil
 }
 
+// unpackNativeIdxKey decodes native index key and extracts all chunks that
+// compose that key.
 func unpackNativeIdxKey(b []byte) ([][]byte, error) {
 	if len(b) < len(nativeIdxPrefix) {
 		return nil, errors.Wrap(errors.ErrInput, "not a native index key")
