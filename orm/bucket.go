@@ -54,12 +54,15 @@ type Bucket interface {
 	// WithMultiKeyIndex returns a copy of this bucket with given index.
 	// Index is maintained as a single set. This implementation is suitable
 	// for small collections.
+	//
 	// Panics if it an index with that name is already registered.
 	WithMultiKeyIndex(name string, indexer MultiKeyIndexer, unique bool) Bucket
 
 	// WithNativeIndex returns a copy of this bucket with given index.
-	// Index is maintained using database native support. This
-	// implementation is suitable for big collections.
+	// Index is maintained using database native support. Each index entry
+	// is stored as a separate database entry, lookups are using database
+	// iterator. This implementation is suitable for big collections.
+	//
 	// Panics if it an index with that name is already registered.
 	WithNativeIndex(name string, indexer MultiKeyIndexer) Bucket
 }
