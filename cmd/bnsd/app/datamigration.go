@@ -7,6 +7,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/x/account"
+	"github.com/iov-one/weave/cmd/bnsd/x/preregistration"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/datamigration"
 	"github.com/iov-one/weave/errors"
@@ -16,21 +17,6 @@ import (
 )
 
 func init() {
-	technicalExecutors, err := weave.ParseAddress("cond:gov/rule/0000000000000003")
-	if err != nil {
-		panic(err)
-	}
-	governingBoard, err := weave.ParseAddress("cond:gov/rule/0000000000000001")
-	if err != nil {
-		panic(err)
-	}
-
-	// This has nothing to do with "cond:gov/rule/0000000000000002" from
-	// mainnet because locally we use a different genesis file.
-	devnetRule2, err := weave.ParseAddress("cond:gov/rule/0000000000000002")
-	if err != nil {
-		panic(err)
-	}
 	datamigration.MustRegister("no-op test", datamigration.Migration{
 		RequiredSigners: []weave.Address{devnetRule2},
 		ChainIDs:        []string{"local-iov-devnet"},
@@ -42,28 +28,8 @@ func init() {
 		ChainIDs: []string{
 			"iov-mainnet",
 		},
-		Migrate: func(ctx context.Context, db weave.KVStore) error {
-			var conf msgfee.Configuration
-			switch err := gconf.Load(db, "msgfee", &msgfee.Configuration{}); {
-			case errors.ErrNotFound.Is(err):
-				conf.Metadata = &weave.Metadata{Schema: 1}
-				conf.Owner = technicalExecutors
-			case err == nil:
-				if len(conf.Owner) != 0 {
-					return errors.Wrap(errors.ErrState, "configuration owner already set")
-				}
-				conf.Owner = technicalExecutors
-			default:
-				return errors.Wrap(err, "load")
-			}
-
-			if err := gconf.Save(db, "msgfee", &conf); err != nil {
-				return errors.Wrap(err, "save")
-			}
-			return nil
-		},
+		Migrate: initializeMsgfeeConfiguration,
 	})
-
 	datamigration.MustRegister("rewrite username accounts", datamigration.Migration{
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
@@ -71,14 +37,69 @@ func init() {
 		},
 		Migrate: rewriteUsernameAccounts,
 	})
+	datamigration.MustRegister("initialize preregistration configuration", datamigration.Migration{
+		RequiredSigners: []weave.Address{governingBoard},
+		ChainIDs: []string{
+			"iov-mainnet",
+		},
+		Migrate: initializePreregistrationConfiguration,
+	})
+	datamigration.MustRegister("rewrite preregistration records", datamigration.Migration{
+		RequiredSigners: []weave.Address{governingBoard},
+		ChainIDs: []string{
+			"iov-mainnet",
+		},
+		Migrate: rewritePreregistrationRecords,
+	})
 }
 
-func rewriteUsernameAccounts(ctx context.Context, db weave.KVStore) error {
-	governingBoard, err := weave.ParseAddress("cond:gov/rule/0000000000000001")
+var (
+	governingBoard     = mustParse("cond:gov/rule/0000000000000001")
+	devnetRule2        = mustParse("cond:gov/rule/0000000000000002")
+	technicalExecutors = mustParse("cond:gov/rule/0000000000000003")
+)
+
+func mustParse(encodedAddress string) weave.Address {
+	a, err := weave.ParseAddress(encodedAddress)
 	if err != nil {
 		panic(err)
 	}
+	return a
+}
 
+func initializePreregistrationConfiguration(ctx context.Context, db weave.KVStore) error {
+	conf := preregistration.Configuration{
+		Metadata: &weave.Metadata{Schema: 1},
+		Owner:    technicalExecutors,
+	}
+	if err := gconf.Save(db, "preregistration", &conf); err != nil {
+		return errors.Wrap(err, "save")
+	}
+	return nil
+}
+
+func initializeMsgfeeConfiguration(ctx context.Context, db weave.KVStore) error {
+	var conf msgfee.Configuration
+	switch err := gconf.Load(db, "msgfee", &msgfee.Configuration{}); {
+	case errors.ErrNotFound.Is(err):
+		conf.Metadata = &weave.Metadata{Schema: 1}
+		conf.Owner = technicalExecutors
+	case err == nil:
+		if len(conf.Owner) != 0 {
+			return errors.Wrap(errors.ErrState, "configuration owner already set")
+		}
+		conf.Owner = technicalExecutors
+	default:
+		return errors.Wrap(err, "load")
+	}
+
+	if err := gconf.Save(db, "msgfee", &conf); err != nil {
+		return errors.Wrap(err, "save")
+	}
+	return nil
+}
+
+func rewriteUsernameAccounts(ctx context.Context, db weave.KVStore) error {
 	now, err := weave.BlockTime(ctx)
 	if err != nil {
 		return errors.Wrap(err, "block time")
@@ -161,3 +182,40 @@ const (
 	// Around 10 years.
 	tenYears = 10 * 365 * 24 * time.Hour
 )
+
+func rewritePreregistrationRecords(ctx context.Context, db weave.KVStore) error {
+	now, err := weave.BlockTime(ctx)
+	if err != nil {
+		return errors.Wrap(err, "block time")
+	}
+
+	domains := account.NewDomainBucket()
+
+	var conf account.Configuration
+	if err := gconf.Load(db, "account", &conf); err != nil {
+		return errors.Wrap(err, "load account configuration")
+	}
+
+	it := orm.IterAll("records")
+	for {
+		var record preregistration.Record
+		switch _, err := it.Next(db, &record); {
+		case err == nil:
+			domain := account.Domain{
+				Metadata:     &weave.Metadata{Schema: 1},
+				Domain:       record.Domain,
+				Admin:        record.Owner,
+				HasSuperuser: true,
+				AccountRenew: weave.AsUnixDuration(tenYears),
+				ValidUntil:   weave.AsUnixTime(now.Add(conf.DomainRenew.Duration())),
+			}
+			if _, err := domains.Put(db, []byte(record.Domain), &domain); err != nil {
+				return errors.Wrapf(err, "save %q domain", record.Domain)
+			}
+		case errors.ErrIteratorDone.Is(err):
+			return nil
+		default:
+			return errors.Wrap(err, "iterator next")
+		}
+	}
+}

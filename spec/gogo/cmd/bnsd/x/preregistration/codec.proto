@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package preregistration;
+
+import "codec.proto";
+import "gogoproto/gogo.proto";
+
+message Record {
+  weave.Metadata metadata = 1;
+  string domain = 2;
+  bytes owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+}
+
+message RegisterMsg {
+  weave.Metadata metadata = 1;
+  string domain = 2;
+  bytes owner = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+}
+
+message Configuration {
+  weave.Metadata metadata = 1;
+  // Owner is present to implement gconf.OwnedConfig interface
+  // This defines the Address that is allowed to update the Configuration object and is
+  // needed to make use of gconf.NewUpdateConfigurationHandler
+  bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+}

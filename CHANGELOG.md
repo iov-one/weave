@@ -7,8 +7,12 @@
 
 Breaking changes
 
+- `bnsd/x/preregistration` extension created and integrated into `bnsd`. It
+  allows for preregistering account domains that later will be migrated into
+  the `account` implementation using a data migration.
 - `x/escrow`: `CreateMsg.Source` is no longer optional and is now required.
 - `x/sigs`: `BumpSequenceMsg.User` is now required and cannot be empty.
+
 
 ## 0.24.1
 

@@ -7,7 +7,9 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/cmd/bnsd/x/account"
+	"github.com/iov-one/weave/cmd/bnsd/x/preregistration"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
+	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest/assert"
@@ -85,4 +87,74 @@ func TestRewriteUsernameAccounts(t *testing.T) {
 	assert.Equal(t, bob.Name, "bob")
 	assert.Equal(t, bob.Owner, bobCond.Address())
 	assert.Equal(t, len(bob.Targets), 0)
+}
+
+func TestRewritePreregistrationRecords(t *testing.T) {
+	db := store.MemStore()
+	migration.MustInitPkg(db, "datamigration", "preregistration", "account")
+
+	ctx := context.Background()
+	now := time.Now().UTC()
+	ctx = weave.WithBlockTime(ctx, now)
+
+	var (
+		adminCond = weave.NewCondition("admin", "test", []byte{1})
+		aliceCond = weave.NewCondition("alice", "test", []byte{1})
+		bobCond   = weave.NewCondition("bob", "test", []byte{1})
+	)
+
+	err := gconf.Save(db, "account", &account.Configuration{
+		Metadata:               &weave.Metadata{Schema: 1},
+		Owner:                  adminCond.Address(),
+		ValidDomain:            `^[a-z]+$`,
+		ValidName:              `^[a-z]+$`,
+		ValidBlockchainID:      `^[a-z]+$`,
+		ValidBlockchainAddress: `^[a-z]+$`,
+		DomainRenew:            weave.AsUnixDuration(time.Hour),
+	})
+	if err != nil {
+		t.Fatalf("save account configuration: %s", err)
+	}
+
+	records := preregistration.NewRecordBucket()
+	_, err = records.Put(db, []byte("alicedomain"), &preregistration.Record{
+		Metadata: &weave.Metadata{Schema: 1},
+		Domain:   "alicedomain",
+		Owner:    aliceCond.Address(),
+	})
+	if err != nil {
+		t.Fatalf("register alice domain: %s", err)
+	}
+	_, err = records.Put(db, []byte("bobdomain"), &preregistration.Record{
+		Metadata: &weave.Metadata{Schema: 1},
+		Domain:   "bobdomain",
+		Owner:    bobCond.Address(),
+	})
+	if err != nil {
+		t.Fatalf("register bob domain: %s", err)
+	}
+
+	if err := rewritePreregistrationRecords(ctx, db); err != nil {
+		t.Fatalf("rewrite preregistration records: %s", err)
+	}
+
+	domains := account.NewDomainBucket()
+
+	var alice account.Domain
+	if err := domains.One(db, []byte("alicedomain"), &alice); err != nil {
+		t.Fatalf("cannot get alice account: %s", err)
+	}
+	assert.Equal(t, alice.Domain, "alicedomain")
+	assert.Equal(t, alice.Admin, aliceCond.Address())
+	assert.Equal(t, alice.HasSuperuser, true)
+	assert.Equal(t, alice.ValidUntil, weave.AsUnixTime(now.Add(time.Hour))) // See Configuration.DomainRenew.
+
+	var bob account.Domain
+	if err := domains.One(db, []byte("bobdomain"), &bob); err != nil {
+		t.Fatalf("cannot get bob account: %s", err)
+	}
+	assert.Equal(t, bob.Domain, "bobdomain")
+	assert.Equal(t, bob.Admin, bobCond.Address())
+	assert.Equal(t, bob.HasSuperuser, true)
+	assert.Equal(t, bob.ValidUntil, weave.AsUnixTime(now.Add(time.Hour))) // See Configuration.DomainRenew.
 }

@@ -3,6 +3,7 @@ syntax = "proto3";
 package bnsd;
 
 import "cmd/bnsd/x/account/codec.proto";
+import "cmd/bnsd/x/preregistration/codec.proto";
 import "cmd/bnsd/x/username/codec.proto";
 import "datamigration/codec.proto";
 import "migration/codec.proto";
@@ -83,6 +84,7 @@ message Tx {
     account.RenewAccountMsg account_renew_account_msg = 93;
     account.AddAccountCertificateMsg account_add_account_certificate_msg = 94;
     account.DeleteAccountCertificateMsg account_delete_account_certificate_msg = 95;
+    preregistration.RegisterMsg preregistration_register_msg = 96;
     cash.UpdateConfigurationMsg cash_update_configuration_msg = 97;
     txfee.UpdateConfigurationMsg txfee_update_configuration_msg = 98;
   }
@@ -127,6 +129,7 @@ message ExecuteBatchMsg {
       account.RenewAccountMsg account_renew_account_msg = 93;
       account.AddAccountCertificateMsg account_add_account_certificate_msg = 94;
       account.DeleteAccountCertificateMsg account_delete_account_certificate_msg = 95;
+      // 96 is used by preregistration
       cash.UpdateConfigurationMsg cash_update_configuration_msg = 97;
       txfee.UpdateConfigurationMsg txfee_update_configuration_msg = 98;
     }
