@@ -162,11 +162,6 @@ message RenewDomainMsg {
   weave.Metadata metadata = 1;
   // Name of the domain that is transferred.
   string domain = 2;
-  // Third party token is an arbitrary data that can be provided by a middleman
-  // (i.e. retailer) that although does not participate directly in the
-  // transaction, helped a user to renew a domain. Storing a client token helps
-  // identify contribution of such party later.
-  bytes third_party_token = 3;
 }
 
 // DeleteDomainMsg issues deletion of a domain and all accounts that belong to
@@ -193,8 +188,8 @@ message RegisterAccountMsg {
   repeated BlockchainAddress targets = 5 ;
   // Third party token is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
-  // transaction, helped a user to renew a domain. Storing a client token helps
-  // identify contribution of such party later.
+  // transaction, helped a user to renew a domain. Storing a third party token
+  // helps identify contribution of such party later.
   bytes third_party_token = 6;
 }
 
@@ -244,11 +239,6 @@ message RenewAccountMsg {
   // Name of the domain that is transferred.
   string domain = 2;
   string name = 3;
-  // Third party token is an arbitrary data that can be provided by a middleman
-  // (i.e. retailer) that although does not participate directly in the
-  // transaction, helped a user to renew a domain. Storing a third party token
-  // helps identify contribution of such party later.
-  bytes third_party_token = 4;
 }
 
 message AddAccountCertificateMsg {

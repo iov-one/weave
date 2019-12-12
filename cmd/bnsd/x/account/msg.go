@@ -80,7 +80,6 @@ func (msg *RenewDomainMsg) Validate() error {
 	var errs error
 	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())
 	errs = errors.AppendField(errs, "Domain", validateDomain(msg.Domain))
-	errs = errors.AppendField(errs, "ThirdPartyToken", validateThirdPartyToken(msg.ThirdPartyToken))
 	return errs
 }
 

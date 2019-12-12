@@ -295,15 +295,13 @@ Create a transaction to renew a domain by extending its expiration time.
 		fl.PrintDefaults()
 	}
 	var (
-		domainFl          = fl.String("domain", "", "Domain.")
-		thirdPartyTokenFl = fl.String("third-party-token", "", "Third party token.")
+		domainFl = fl.String("domain", "", "Domain.")
 	)
 	fl.Parse(args)
 
 	msg := account.RenewDomainMsg{
-		Metadata:        &weave.Metadata{Schema: 1},
-		Domain:          *domainFl,
-		ThirdPartyToken: []byte(*thirdPartyTokenFl),
+		Metadata: &weave.Metadata{Schema: 1},
+		Domain:   *domainFl,
 	}
 	if err := msg.Validate(); err != nil {
 		return fmt.Errorf("given data produce an invalid message: %s", err)
@@ -326,17 +324,15 @@ Create a transaction to renew a domain by extending its expiration time.
 		fl.PrintDefaults()
 	}
 	var (
-		domainFl          = fl.String("domain", "", "Domain that this account belongs to.")
-		nameFl            = fl.String("name", "", "Account name")
-		thirdPartyTokenFl = fl.String("third-party-token", "", "Third party token.")
+		domainFl = fl.String("domain", "", "Domain that this account belongs to.")
+		nameFl   = fl.String("name", "", "Account name")
 	)
 	fl.Parse(args)
 
 	msg := account.RenewAccountMsg{
-		Metadata:        &weave.Metadata{Schema: 1},
-		Domain:          *domainFl,
-		Name:            *nameFl,
-		ThirdPartyToken: []byte(*thirdPartyTokenFl),
+		Metadata: &weave.Metadata{Schema: 1},
+		Domain:   *domainFl,
+		Name:     *nameFl,
 	}
 	if err := msg.Validate(); err != nil {
 		return fmt.Errorf("given data produce an invalid message: %s", err)
