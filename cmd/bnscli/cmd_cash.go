@@ -12,6 +12,37 @@ import (
 	"github.com/iov-one/weave/x/cash"
 )
 
+func cmdUpdateCashConfiguration(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Create a transaction for updating cash extension configuration.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		ownerFl     = flAddress(fl, "owner", "", "A new configuration owner.")
+		collectorFl = flAddress(fl, "collector", "", "A new collector address.")
+		minFeeFl    = flCoin(fl, "min-fee", "1 IOV", "A new minimal fee value.")
+	)
+	fl.Parse(args)
+
+	tx := &bnsd.Tx{
+		Sum: &bnsd.Tx_CashUpdateConfigurationMsg{
+			CashUpdateConfigurationMsg: &cash.UpdateConfigurationMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Patch: &cash.Configuration{
+					Owner:            *ownerFl,
+					CollectorAddress: *collectorFl,
+					MinimalFee:       *minFeeFl,
+				},
+			},
+		},
+	}
+	_, err := writeTx(output, tx)
+	return err
+}
+
 func cmdSendTokens(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {

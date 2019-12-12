@@ -1,0 +1,32 @@
+{
+	"Sum": {
+		"CashUpdateConfigurationMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"patch": {
+				"minimal_fee": {
+					"ticker": "IOV"
+				}
+			}
+		}
+	}
+}
+
+{
+	"Sum": {
+		"CashUpdateConfigurationMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"patch": {
+				"owner": "497FC2900ECA31B662691DD8B14F87BAF3C841DF",
+				"collector_address": "532286374CB9C9442FA1EAF0B352F91F1D79540B",
+				"minimal_fee": {
+					"whole": 42,
+					"ticker": "IOV"
+				}
+			}
+		}
+	}
+}

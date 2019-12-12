@@ -2,6 +2,7 @@
 
 ## HEAD
 
+- add cash configuration update message to `bnsd` transaction
 - `x/account` extension added and installed in `cmd/bnsd`. `cmd/bnscli` was
   updated to support the new extension.
 - `datamigration` package added.
