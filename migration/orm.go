@@ -112,6 +112,10 @@ func (m *ModelBucket) One(db weave.ReadOnlyKVStore, key []byte, dest orm.Model) 
 	return nil
 }
 
+func (m *ModelBucket) Index(name string) (orm.Index, error) {
+	return m.b.Index(name)
+}
+
 func (m *ModelBucket) ByIndex(db weave.ReadOnlyKVStore, indexName string, key []byte, dest orm.ModelSlicePtr) ([][]byte, error) {
 	keys, err := m.b.ByIndex(db, indexName, key, dest)
 	if err != nil {
