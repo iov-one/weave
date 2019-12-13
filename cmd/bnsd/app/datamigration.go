@@ -21,7 +21,7 @@ func init() {
 	}
 
 	datamigration.MustRegister("initialize x/msgfee configuration owner", datamigration.Migration{
-		RequiredSigners: []weave.Address{technicalExecutors, governingBoard},
+		RequiredSigners: []weave.Address{governingBoard},
 		ChainID:         "iov-mainnet",
 		Migrate: func(ctx context.Context, db weave.KVStore) error {
 			var conf msgfee.Configuration
