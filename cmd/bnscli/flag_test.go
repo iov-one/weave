@@ -290,9 +290,10 @@ func TestAddressFlag(t *testing.T) {
 			setup: func(fl *flag.FlagSet) *weave.Address {
 				return flAddress(fl, "x", "8d0d55645f1241a7a16d84fc9561a51d518c0d36", "")
 			},
-			args:    []string{"-x", "zzzzzzzzzzzzz"},
-			wantDie: 0,
-			wantVal: fromHex(t, "8d0d55645f1241a7a16d84fc9561a51d518c0d36"),
+			args:      []string{"-x", "zzzzzzzzzzzzz"},
+			wantDie:   0,
+			wantError: true,
+			wantVal:   fromHex(t, "8d0d55645f1241a7a16d84fc9561a51d518c0d36"),
 		},
 	}
 
