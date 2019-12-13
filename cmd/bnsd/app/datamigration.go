@@ -11,25 +11,29 @@ import (
 )
 
 func init() {
-	admin, err := weave.ParseAddress("cond:gov/rule/0000000000000003")
+	technicalExecutors, err := weave.ParseAddress("cond:gov/rule/0000000000000003")
+	if err != nil {
+		panic(err)
+	}
+	governingBoard, err := weave.ParseAddress("cond:gov/rule/0000000000000001")
 	if err != nil {
 		panic(err)
 	}
 
 	datamigration.MustRegister("initialize x/msgfee configuration owner", datamigration.Migration{
-		RequiredSigners: []weave.Address{admin},
+		RequiredSigners: []weave.Address{governingBoard},
 		ChainID:         "iov-mainnet",
 		Migrate: func(ctx context.Context, db weave.KVStore) error {
 			var conf msgfee.Configuration
 			switch err := gconf.Load(db, "msgfee", &msgfee.Configuration{}); {
 			case errors.ErrNotFound.Is(err):
 				conf.Metadata = &weave.Metadata{Schema: 1}
-				conf.Owner = admin
+				conf.Owner = technicalExecutors
 			case err == nil:
 				if len(conf.Owner) != 0 {
 					return errors.Wrap(errors.ErrState, "configuration owner already set")
 				}
-				conf.Owner = admin
+				conf.Owner = technicalExecutors
 			default:
 				return errors.Wrap(err, "load")
 			}
