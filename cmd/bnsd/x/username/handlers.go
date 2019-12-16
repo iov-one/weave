@@ -44,15 +44,9 @@ func (h *registerTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 		return nil, err
 	}
 
-	var owner weave.Address
-	if len(msg.Owner) != 0 {
-		// Permission is not required.
-		owner = msg.Owner
-	} else {
-		owner = x.AnySigner(ctx, h.auth).Address()
-		if len(owner) == 0 {
-			return nil, errors.Wrap(errors.ErrUnauthorized, "message must be signed")
-		}
+	owner := x.AnySigner(ctx, h.auth).Address()
+	if len(owner) == 0 {
+		return nil, errors.Wrap(errors.ErrUnauthorized, "message must be signed")
 	}
 
 	token := Token{

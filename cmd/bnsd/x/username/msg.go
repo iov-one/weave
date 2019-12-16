@@ -35,13 +35,6 @@ func (m *RegisterTokenMsg) Validate() error {
 
 	// Username should but cannot be validated here.
 
-	// Owner field is optional.
-	if len(m.Owner) != 0 {
-		if err := m.Owner.Validate(); err != nil {
-			return errors.Wrap(err, "owner")
-		}
-	}
-
 	if err := validateTargets(m.Targets); err != nil {
 		return errors.Wrap(err, "targets")
 	}

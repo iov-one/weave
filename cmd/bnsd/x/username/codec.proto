@@ -50,8 +50,12 @@ message RegisterTokenMsg {
   string username = 2;
   // Targets is a blockchain address list that this token should point to.
   repeated BlockchainAddress targets = 3 [(gogoproto.nullable) = false];
+  // This change was reverted because we do not want to support additional
+  // functionality in a deprecated module.
+  //
   // Owner is the address that the newly created token will belong to.
-  bytes owner = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // bytes owner = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+
 }
 
 // TransferTokenMsg is a request to transfer an ownership of a token. The
