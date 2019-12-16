@@ -2,6 +2,10 @@
 
 ## HEAD
 
+- a new `orm.IterAll` iterator was implemented to allow iterating through all
+  entities of a given bucket.
+- a `bnsd` data migration was added that rewrites all accounts from
+  `x/username` extension to `x/account`.
 
 ## 0.24.0
 

@@ -2,9 +2,11 @@ package orm
 
 import (
 	"bytes"
+	"reflect"
 	"strconv"
 	"testing"
 
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
 	"github.com/iov-one/weave/weavetest"
@@ -251,5 +253,92 @@ func TestModelBucketHas(t *testing.T) {
 
 	if err := b.Has(db, []byte("does-not-exist")); !errors.ErrNotFound.Is(err) {
 		t.Fatalf("a non exists entity must return ErrNotFound: %s", err)
+	}
+}
+
+func TestIterAll(t *testing.T) {
+	type obj struct {
+		Key   string
+		Model Counter
+	}
+
+	cases := map[string]struct {
+		Objs         []obj
+		WantKeys     []string
+		WantCounters []Counter
+	}{
+		"empty": {
+			Objs:         nil,
+			WantKeys:     nil,
+			WantCounters: nil,
+		},
+		"single element": {
+			Objs: []obj{
+				{Key: "a", Model: Counter{Count: 1}},
+			},
+			WantKeys:     []string{"a"},
+			WantCounters: []Counter{{Count: 1}},
+		},
+		"multiple elements": {
+			Objs: []obj{
+				{Key: "a", Model: Counter{Count: 1}},
+				{Key: "c", Model: Counter{Count: 3}},
+				{Key: "b", Model: Counter{Count: 2}},
+			},
+			WantKeys:     []string{"a", "b", "c"},
+			WantCounters: []Counter{{Count: 1}, {Count: 2}, {Count: 3}},
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			db := store.MemStore()
+
+			b := NewModelBucket("cnts", &Counter{})
+			for i, o := range tc.Objs {
+				if _, err := b.Put(db, []byte(o.Key), &o.Model); err != nil {
+					t.Fatalf("%d: cannot put %q token: %s", i, o.Key, err)
+				}
+			}
+
+			// Add some rubbish to the database, so that any
+			// unexected result can be detected.
+			db.Set([]byte{0}, []byte("xyz"))
+			db.Set([]byte{255}, []byte("z"))
+			db.Set([]byte("mystuff:abc"), []byte("mystuff"))
+
+			keys, counters := consumeIterAll(t, db, IterAll("cnts"))
+			if !reflect.DeepEqual(keys, tc.WantKeys) {
+				t.Logf("want: %q", tc.WantKeys)
+				t.Logf(" got: %q", keys)
+				t.Error("unexpected iterator keys")
+			}
+			if !reflect.DeepEqual(counters, tc.WantCounters) {
+				t.Logf("want: %+v", tc.WantCounters)
+				t.Logf(" got: %+v", counters)
+				t.Error("unexpected iterator values")
+			}
+		})
+	}
+}
+
+func consumeIterAll(t testing.TB, db weave.ReadOnlyKVStore, it *ModelBucketIterator) ([]string, []Counter) {
+	t.Helper()
+
+	var (
+		counters []Counter
+		keys     []string
+	)
+	for {
+		var c Counter
+		switch key, err := it.Next(db, &c); {
+		case err == nil:
+			keys = append(keys, string(key))
+			counters = append(counters, c)
+		case errors.ErrIteratorDone.Is(err):
+			return keys, counters
+		default:
+			t.Fatalf("next: %s", err)
+		}
 	}
 }
