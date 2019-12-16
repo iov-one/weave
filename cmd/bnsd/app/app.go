@@ -12,6 +12,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	account "github.com/iov-one/weave/cmd/bnsd/x/account"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
@@ -61,6 +62,7 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 		cash.NewDynamicFeeDecorator(authFn, ctrl),
 		msgfee.NewAntispamFeeDecorator(minFee),
 		msgfee.NewFeeDecorator(),
+		account.NewAccountMsgFeeDecorator(),
 		batch.NewDecorator(),
 		utils.NewActionTagger(),
 	)
@@ -91,6 +93,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	username.RegisterRoutes(r, authFn)
 	msgfee.RegisterRoutes(r, authFn)
 	datamigration.RegisterRoutes(r, authFn)
+	account.RegisterRoutes(r, authFn)
 	return r
 }
 
@@ -115,6 +118,7 @@ func QueryRouter(minFee coin.Coin) weave.QueryRouter {
 		username.RegisterQuery,
 		cron.RegisterQuery,
 		datamigration.RegisterQuery,
+		account.RegisterQuery,
 	)
 	return r
 }

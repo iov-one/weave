@@ -1,0 +1,10 @@
+{
+	"Sum": {
+		"AccountDeleteDomainMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain"
+		}
+	}
+}

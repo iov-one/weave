@@ -1,0 +1,10 @@
+{
+	"Sum": {
+		"AccountFlushDomainMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain"
+		}
+	}
+}

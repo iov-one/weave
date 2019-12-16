@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -e
+
+bnscli replace-account-targets -name myaccount -domain mydomain \
+	| bnscli view
+
+echo
+echo
+
+bnscli replace-account-targets -name myaccount -domain -mydomain \
+	| bnscli with-account-target -bc unicoin -address xyz123 \
+	| bnscli with-account-target -bc dognet -address woofwoof \
+	| bnscli view

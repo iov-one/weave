@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+bnscli transfer-account \
+		-domain public \
+		-name account-name \
+		-owner 92066456B2BE7F1934624087D98C203A87F7752C \
+	| bnscli view

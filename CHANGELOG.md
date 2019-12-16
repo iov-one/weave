@@ -2,6 +2,8 @@
 
 ## HEAD
 
+- `x/account` extension added and installed in `cmd/bnsd`. `cmd/bnscli` was
+  updated to support the new extension.
 - `datamigration` package added.
 - `orm` package was updated and provides a new index implementation, that is
   using a native database store in order to maintain and iterate through an

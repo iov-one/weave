@@ -1,0 +1,20 @@
+{
+	"Sum": {
+		"AccountUpdateConfigurationMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"patch": {
+				"metadata": {
+					"schema": 1
+				},
+				"owner": "92066456B2BE7F1934624087D98C203A87F7752C",
+				"valid_domain": "^valid-domain-rule$",
+				"valid_name": "^valid-name-rule$",
+				"valid_blockchain_id": "^valid-bl-id-rule$",
+				"valid_blockchain_address": "^valid-bl-address-rule$",
+				"domain_renew": 151711200
+			}
+		}
+	}
+}
