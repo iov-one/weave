@@ -15,12 +15,12 @@ func TestMigrationCanBeRegisteredOnce(t *testing.T) {
 	noop := func(context.Context, weave.KVStore) error { return nil }
 	sigs := []weave.Address{weavetest.NewCondition().Address()}
 
-	if err := reg.Register("migration name", Migration{ChainID: "chain-a", RequiredSigners: sigs, Migrate: noop}); err != nil {
+	if err := reg.Register("migration name", Migration{ChainIDs: []string{"chain-a"}, RequiredSigners: sigs, Migrate: noop}); err != nil {
 		t.Fatalf("unexpected failure: %+v", err)
 	}
 
 	// Double registration
-	if err := reg.Register("migration name", Migration{ChainID: "chain-a", RequiredSigners: sigs, Migrate: noop}); !errors.ErrState.Is(err) {
+	if err := reg.Register("migration name", Migration{ChainIDs: []string{"chain-a"}, RequiredSigners: sigs, Migrate: noop}); !errors.ErrState.Is(err) {
 		t.Fatalf("expected ErrState, got %+v", err)
 	}
 }

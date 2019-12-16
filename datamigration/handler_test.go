@@ -83,7 +83,7 @@ func TestHandler(t *testing.T) {
 			MustRegister(
 				"zero migration",
 				Migration{
-					ChainID:         "testchain",
+					ChainIDs:        []string{"testchain"},
 					RequiredSigners: []weave.Address{aliceCond.Address()},
 					Migrate:         func(context.Context, weave.KVStore) error { panic("never to be called") },
 				},
@@ -92,7 +92,7 @@ func TestHandler(t *testing.T) {
 			MustRegister(
 				"first migration",
 				Migration{
-					ChainID:         "testchain",
+					ChainIDs:        []string{"staging", "testchain"},
 					RequiredSigners: []weave.Address{aliceCond.Address()},
 					Migrate:         func(context.Context, weave.KVStore) error { return nil },
 				},
@@ -100,7 +100,7 @@ func TestHandler(t *testing.T) {
 			MustRegister(
 				"second migration",
 				Migration{
-					ChainID:         "staging",
+					ChainIDs:        []string{"staging", "production"},
 					RequiredSigners: []weave.Address{aliceCond.Address()},
 					Migrate:         func(context.Context, weave.KVStore) error { return nil },
 				},
@@ -108,7 +108,7 @@ func TestHandler(t *testing.T) {
 			MustRegister(
 				"third migration",
 				Migration{
-					ChainID:         "testchain",
+					ChainIDs:        []string{"testchain", "production"},
 					RequiredSigners: []weave.Address{aliceCond.Address()},
 					Migrate:         func(context.Context, weave.KVStore) error { return errors.ErrHuman },
 				},
