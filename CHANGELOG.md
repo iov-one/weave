@@ -22,6 +22,11 @@ Breaking changes
 - `orm.WithIndex` supports multiple indexer types,
 - `orm.NewIndex` function was removed,
 
+Breaking changes
+
+- `x/username`: rollback of registration change introduced in 0.23.0. When
+  registering a token, do not allow to explicitly specify the new token owner.
+
 
 ## 0.23.0
 

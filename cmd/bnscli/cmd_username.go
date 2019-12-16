@@ -24,7 +24,6 @@ Create a transaction for registering a username.
 	}
 	var (
 		nameFl       = fl.String("name", "", "Name part of the username. For example 'alice'")
-		ownerFl      = flAddress(fl, "owner", "", "An address that the newly registered token will belong to. Transaction does not have to be signed by this address.")
 		namespaceFl  = fl.String("ns", "iov", "Namespace (domain) part of the username. For example 'iov'")
 		blockchainFl = fl.String("bc", "", "Blockchain network ID.")
 		addressFl    = fl.String("addr", "", "String representation of the blochain address on this network.")
@@ -47,7 +46,6 @@ Create a transaction for registering a username.
 		Metadata: &weave.Metadata{Schema: 1},
 		Username: *nameFl + "*" + *namespaceFl,
 		Targets:  targets,
-		Owner:    *ownerFl,
 	}
 	if err := msg.Validate(); err != nil {
 		return fmt.Errorf("given data produce an invalid message: %s", err)
