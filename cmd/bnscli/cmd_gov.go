@@ -11,6 +11,7 @@ import (
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
+	"github.com/iov-one/weave/datamigration"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
@@ -84,10 +85,6 @@ transaction (ie signatures) are being dropped.
 		option.Option = &bnsd.ProposalOptions_CurrencyCreateMsg{
 			CurrencyCreateMsg: msg,
 		}
-	case *msgfee.SetMsgFeeMsg:
-		option.Option = &bnsd.ProposalOptions_MsgfeeSetMsgFeeMsg{
-			MsgfeeSetMsgFeeMsg: msg,
-		}
 	case *bnsd.ExecuteBatchMsg:
 		msgs, err := msg.MsgList()
 		if err != nil {
@@ -96,10 +93,6 @@ transaction (ie signatures) are being dropped.
 		var messages []bnsd.ExecuteProposalBatchMsg_Union
 		for _, m := range msgs {
 			switch m := m.(type) {
-			case *msgfee.SetMsgFeeMsg:
-				option.Option = &bnsd.ProposalOptions_MsgfeeSetMsgFeeMsg{
-					MsgfeeSetMsgFeeMsg: m,
-				}
 			case *cash.SendMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
 					Sum: &bnsd.ExecuteProposalBatchMsg_Union_SendMsg{
@@ -148,6 +141,12 @@ transaction (ie signatures) are being dropped.
 						UsernameChangeTokenTargetsMsg: m,
 					},
 				})
+			case *username.UpdateConfigurationMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_UsernameUpdateConfigurationMsg{
+						UsernameUpdateConfigurationMsg: m,
+					},
+				})
 			case *distribution.CreateMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
 					Sum: &bnsd.ExecuteProposalBatchMsg_Union_DistributionCreateMsg{
@@ -184,6 +183,24 @@ transaction (ie signatures) are being dropped.
 						GovCreateTextResolutionMsg: m,
 					},
 				})
+			case *msgfee.SetMsgFeeMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_MsgfeeSetMsgFeeMsg{
+						MsgfeeSetMsgFeeMsg: m,
+					},
+				})
+			case *datamigration.ExecuteMigrationMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_DatamigrationExecuteMigrationMsg{
+						DatamigrationExecuteMigrationMsg: m,
+					},
+				})
+			case *cash.UpdateConfigurationMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_CashUpdateConfigurationMsg{
+						CashUpdateConfigurationMsg: m,
+					},
+				})
 			}
 		}
 		option.Option = &bnsd.ProposalOptions_ExecuteProposalBatchMsg{
@@ -202,6 +219,10 @@ transaction (ie signatures) are being dropped.
 	case *username.ChangeTokenTargetsMsg:
 		option.Option = &bnsd.ProposalOptions_UsernameChangeTokenTargetsMsg{
 			UsernameChangeTokenTargetsMsg: msg,
+		}
+	case *username.UpdateConfigurationMsg:
+		option.Option = &bnsd.ProposalOptions_UsernameUpdateConfigurationMsg{
+			UsernameUpdateConfigurationMsg: msg,
 		}
 	case *distribution.CreateMsg:
 		option.Option = &bnsd.ProposalOptions_DistributionCreateMsg{
@@ -230,6 +251,18 @@ transaction (ie signatures) are being dropped.
 	case *gov.CreateTextResolutionMsg:
 		option.Option = &bnsd.ProposalOptions_GovCreateTextResolutionMsg{
 			GovCreateTextResolutionMsg: msg,
+		}
+	case *msgfee.SetMsgFeeMsg:
+		option.Option = &bnsd.ProposalOptions_MsgfeeSetMsgFeeMsg{
+			MsgfeeSetMsgFeeMsg: msg,
+		}
+	case *datamigration.ExecuteMigrationMsg:
+		option.Option = &bnsd.ProposalOptions_DatamigrationExecuteMigrationMsg{
+			DatamigrationExecuteMigrationMsg: msg,
+		}
+	case *cash.UpdateConfigurationMsg:
+		option.Option = &bnsd.ProposalOptions_CashUpdateConfigurationMsg{
+			CashUpdateConfigurationMsg: msg,
 		}
 	}
 

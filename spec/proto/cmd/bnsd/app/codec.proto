@@ -82,6 +82,7 @@ message Tx {
     account.RenewAccountMsg account_renew_account_msg = 93;
     account.AddAccountCertificateMsg account_add_account_certificate_msg = 94;
     account.DeleteAccountCertificateMsg account_delete_account_certificate_msg = 95;
+    cash.UpdateConfigurationMsg cash_update_configuration_msg = 97;
   }
 }
 
@@ -124,6 +125,7 @@ message ExecuteBatchMsg {
       account.RenewAccountMsg account_renew_account_msg = 93;
       account.AddAccountCertificateMsg account_add_account_certificate_msg = 94;
       account.DeleteAccountCertificateMsg account_delete_account_certificate_msg = 95;
+      cash.UpdateConfigurationMsg cash_update_configuration_msg = 97;
     }
   }
   repeated Union messages = 1 ;
@@ -153,8 +155,9 @@ message ProposalOptions {
     gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
     msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
     datamigration.ExecuteMigrationMsg datamigration_execute_migration_msg = 81;
-    // 82-94 are reserved for the account extension messages
+    // 82-95 are reserved for the account extension messages
 
+    cash.UpdateConfigurationMsg cash_update_configuration_msg = 97;
   }
 }
 
@@ -180,8 +183,9 @@ message ExecuteProposalBatchMsg {
       gov.CreateTextResolutionMsg gov_create_text_resolution_msg = 79;
       msgfee.SetMsgFeeMsg msgfee_set_msg_fee_msg = 80;
       datamigration.ExecuteMigrationMsg datamigration_execute_migration_msg = 81;
-      // 82-94 are reserved for the account extension messages
+      // 82-95 are reserved for the account extension messages
 
+      cash.UpdateConfigurationMsg cash_update_configuration_msg = 97;
     }
   }
   repeated Union messages = 1 ;

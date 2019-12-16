@@ -1,0 +1,17 @@
+#!/bin/sh
+
+set -e
+
+bnscli update-cash-configuration \
+		-min-fee "0 IOV" \
+	| bnscli view
+
+echo
+echo
+
+bnscli update-cash-configuration \
+		-collector 'seq:coll/bob/1' \
+		-min-fee "42 IOV" \
+		-owner 'seq:coll/alice/1' \
+	| bnscli view
+

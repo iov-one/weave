@@ -234,7 +234,6 @@ func (a Address) String() string {
 	return strings.ToUpper(hex.EncodeToString(a))
 }
 
-
 // Bech32String returns a human reacable bech32 string.
 func (a Address) Bech32String(prefix string) (string, error) {
 	if len(a) == 0 {
@@ -264,7 +263,7 @@ func (a Address) Validate() error {
 func (a *Address) Set(enc string) error {
 	val, err := ParseAddress(enc)
 	if err != nil {
-		return nil
+		return err
 	}
 	*a = val
 	return nil
