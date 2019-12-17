@@ -77,7 +77,7 @@ func rewriteUsernameAccounts(ctx context.Context, db weave.KVStore) error {
 		Domain:       "iov",
 		Admin:        governingBoard,
 		HasSuperuser: false,
-		AccountRenew: weave.AsUnixDuration(30 * 24 * time.Hour),
+		AccountRenew: weave.AsUnixDuration(tenYears),
 		// IOV domain is not supposed to expire. It is
 		// not our problem in 100 years ;)
 		ValidUntil: weave.AsUnixTime(now.Add(oneHundredYears)),
@@ -143,5 +143,9 @@ func parseUsername(u string) (string, string) {
 	return chunks[0], chunks[1]
 }
 
-// Around 100 years.
-const oneHundredYears = 100 * 365 * 24 * time.Hour
+const (
+	// Around 100 years.
+	oneHundredYears = 100 * 365 * 24 * time.Hour
+	// Around 10 years.
+	tenYears = 10 * 365 * 24 * time.Hour
+)

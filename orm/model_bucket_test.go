@@ -303,9 +303,14 @@ func TestIterAll(t *testing.T) {
 
 			// Add some rubbish to the database, so that any
 			// unexected result can be detected.
-			db.Set([]byte{0}, []byte("xyz"))
-			db.Set([]byte{255}, []byte("z"))
-			db.Set([]byte("mystuff:abc"), []byte("mystuff"))
+			mustSet := func(k, v []byte) {
+				if err := db.Set(k, v); err != nil {
+					t.Fatalf("cannot set %q: %s", string(k), err)
+				}
+			}
+			mustSet([]byte{0}, []byte("xyz"))
+			mustSet([]byte{255}, []byte("z"))
+			mustSet([]byte("mystuff:abc"), []byte("mystuff"))
 
 			keys, counters := consumeIterAll(t, db, IterAll("cnts"))
 			if !reflect.DeepEqual(keys, tc.WantKeys) {
