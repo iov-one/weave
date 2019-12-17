@@ -71,8 +71,8 @@ func (h *executeMigrationHandler) validate(ctx weave.Context, db weave.KVStore, 
 		}
 	}
 
-	if m.ChainID != weave.GetChainID(ctx) {
-		return nil, nil, errors.Wrapf(errors.ErrChain, "allowed only on %q chain", m.ChainID)
+	if !containStr(m.ChainIDs, weave.GetChainID(ctx)) {
+		return nil, nil, errors.Wrapf(errors.ErrChain, "allowed only on %q chains", m.ChainIDs)
 	}
 
 	switch err := h.bucket.Has(db, []byte(msg.MigrationID)); {
@@ -84,6 +84,15 @@ func (h *executeMigrationHandler) validate(ctx weave.Context, db weave.KVStore, 
 		return nil, nil, errors.Wrap(err, "cannot check if migration was executed")
 	}
 	return &msg, m, nil
+}
+
+func containStr(collection []string, item string) bool {
+	for _, s := range collection {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
 
 func RegisterQuery(qr weave.QueryRouter) {

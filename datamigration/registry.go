@@ -37,12 +37,12 @@ type Migration struct {
 	// chicken-egg problem.
 	RequiredSigners []weave.Address
 
-	// ChainID specifies which chain this migration can be executed on.
+	// ChainIDs specifies which chains this migration can be executed on.
 	// This is helpful because no two chains are the same and therefore now
 	// two chains should require the same set of data migrations. Usually
 	// we run staging/testing/production setup, each maintaining a
 	// different state.
-	ChainID string
+	ChainIDs []string
 
 	Migrate func(context.Context, weave.KVStore) error
 }
