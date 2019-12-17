@@ -2,6 +2,8 @@
 
 ## HEAD
 
+- `x/msgfee` configuration in genesis is optional. Not providing it no longer
+  fails initialization.
 - a new `orm.IterAll` iterator was implemented to allow iterating through all
   entities of a given bucket.
 - a `bnsd` data migration was added that rewrites all accounts from

@@ -85,3 +85,18 @@ func TestGenesisWithInvalidFee(t *testing.T) {
 	}
 
 }
+
+func TestGenesisConfigurationIsOptional(t *testing.T) {
+	const genesis = `{ "msgfee": [ ], "conf": {} }`
+	var opts weave.Options
+	if err := json.Unmarshal([]byte(genesis), &opts); err != nil {
+		t.Fatalf("cannot unmarshal genesis: %s", err)
+	}
+
+	db := store.MemStore()
+	migration.MustInitPkg(db, "msgfee")
+	var ini Initializer
+	if err := ini.FromGenesis(opts, weave.GenesisParams{}, db); err != nil {
+		t.Fatalf("cannot load genesis: %s", err)
+	}
+}
