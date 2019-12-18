@@ -2,6 +2,9 @@
 
 ## HEAD
 
+
+## 0.24.1
+
 - `x/msgfee` configuration in genesis is optional. Not providing it no longer
   fails initialization.
 - a new `orm.IterAll` iterator was implemented to allow iterating through all
