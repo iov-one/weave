@@ -131,8 +131,7 @@ func (m *Escrow) GetAddress() github_com_iov_one_weave.Address {
 }
 
 // CreateMsg is a request to create an Escrow with some tokens.
-// If source is not defined, it defaults to the first signer
-// The rest must be defined
+// Message must be authorized by the source.
 type CreateMsg struct {
 	Metadata    *weave.Metadata                  `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Source      github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=source,proto3,casttype=github.com/iov-one/weave.Address" json:"source,omitempty"`
@@ -229,9 +228,9 @@ func (m *CreateMsg) GetMemo() string {
 }
 
 // ReleaseMsg releases the content to the destination.
-// Must be authorized by source or arbiter.
-// If amount not provided, defaults to entire escrow,
-// May be a subset of the current balance.
+// Message must be authorized by the source or arbiter.
+// If amount not provided, defaults to entire escrow, May be a subset of the
+// current balance.
 type ReleaseMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	EscrowId []byte          `protobuf:"bytes,2,opt,name=escrow_id,json=escrowId,proto3" json:"escrow_id,omitempty"`
