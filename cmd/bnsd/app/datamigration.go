@@ -177,10 +177,10 @@ func parseUsername(u string) (string, string) {
 }
 
 const (
-	// Around 100 years.
-	oneHundredYears = 100 * 365 * 24 * time.Hour
-	// Around 10 years.
-	tenYears = 10 * 365 * 24 * time.Hour
+	// Below durations are good enough estimations.
+	oneYear         = 365 * 24 * time.Hour
+	tenYears        = 10 * oneYear
+	oneHundredYears = 100 * oneYear
 )
 
 func rewritePreregistrationRecords(ctx context.Context, db weave.KVStore) error {
@@ -206,7 +206,7 @@ func rewritePreregistrationRecords(ctx context.Context, db weave.KVStore) error 
 				Domain:       record.Domain,
 				Admin:        record.Owner,
 				HasSuperuser: true,
-				AccountRenew: weave.AsUnixDuration(tenYears),
+				AccountRenew: weave.AsUnixDuration(oneYear),
 				ValidUntil:   weave.AsUnixTime(now.Add(conf.DomainRenew.Duration())),
 			}
 			if _, err := domains.Put(db, []byte(record.Domain), &domain); err != nil {
