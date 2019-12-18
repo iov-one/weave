@@ -5,6 +5,7 @@
 Breaking changes
 
 - `x/escrow`: `CreateMsg.Source` is no longer optional and is now required.
+- `x/sigs`: `BumpSequenceMsg.User` is now required and cannot be empty.
 
 ## 0.24.1
 

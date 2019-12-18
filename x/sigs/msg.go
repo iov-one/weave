@@ -20,11 +20,7 @@ var _ weave.Msg = (*BumpSequenceMsg)(nil)
 func (msg *BumpSequenceMsg) Validate() error {
 	var errs error
 	errs = errors.AppendField(errs, "Metadata", msg.Metadata.Validate())
-
-	// User field is optional.
-	if len(msg.User) != 0 {
-		errs = errors.AppendField(errs, "User", msg.User.Validate())
-	}
+	errs = errors.AppendField(errs, "User", msg.User.Validate())
 	if msg.Increment < minSequenceIncrement {
 		errs = errors.Append(errs,
 			errors.Field("Increment", errors.ErrMsg, "increment must be at least %d", minSequenceIncrement))
