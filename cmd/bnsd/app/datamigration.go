@@ -25,6 +25,18 @@ func init() {
 		panic(err)
 	}
 
+	// This has nothing to do with "cond:gov/rule/0000000000000002" from
+	// mainnet because locally we use a different genesis file.
+	devnetRule2, err := weave.ParseAddress("cond:gov/rule/0000000000000002")
+	if err != nil {
+		panic(err)
+	}
+	datamigration.MustRegister("no-op test", datamigration.Migration{
+		RequiredSigners: []weave.Address{devnetRule2},
+		ChainIDs:        []string{"local-iov-devnet"},
+		Migrate:         func(ctx context.Context, db weave.KVStore) error { return nil },
+	})
+
 	datamigration.MustRegister("initialize x/msgfee configuration owner", datamigration.Migration{
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
