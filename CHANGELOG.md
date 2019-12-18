@@ -2,6 +2,9 @@
 
 ## HEAD
 
+Breaking changes
+
+- `x/sigs`: `BumpSequenceMsg.User` is now required and cannot be empty.
 
 ## 0.24.1
 

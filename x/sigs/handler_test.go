@@ -38,29 +38,32 @@ func TestBumpSequence(t *testing.T) {
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key2, Sequence: 9},
 			},
 			Signers: []weave.Condition{key1.Condition()},
-			Msg:     BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 2},
+			Msg: BumpSequenceMsg{
+				Metadata:  &weave.Metadata{Schema: 1},
+				Increment: 2,
+				User:      key1.Address(),
+			},
 			WantSequences: []*UserData{
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 2},
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key2, Sequence: 9},
 			},
 		},
-		"incrementing sequence of the main signer": {
-			InitData: []*UserData{
-				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 1},
-				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key2, Sequence: 9},
+		"transaction must be signed by the user": {
+			Msg: BumpSequenceMsg{
+				Metadata:  &weave.Metadata{Schema: 1},
+				Increment: 1,
+				User:      key2.Address(),
 			},
-			Signers: []weave.Condition{
-				key2.Condition(), // Main signer.
-				key1.Condition(),
-			},
-			Msg: BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 2},
-			WantSequences: []*UserData{
-				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 1},
-				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key2, Sequence: 10},
-			},
+			Signers:        []weave.Condition{key1.Condition()},
+			WantCheckErr:   errors.ErrUnauthorized,
+			WantDeliverErr: errors.ErrUnauthorized,
 		},
 		"transaction with a missing signature is rejected": {
-			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 1},
+			Msg: BumpSequenceMsg{
+				Metadata:  &weave.Metadata{Schema: 1},
+				Increment: 1,
+				User:      key1.Address(),
+			},
 			Signers:        nil,
 			WantCheckErr:   errors.ErrUnauthorized,
 			WantDeliverErr: errors.ErrUnauthorized,
@@ -69,7 +72,11 @@ func TestBumpSequence(t *testing.T) {
 			InitData: []*UserData{
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 1},
 			},
-			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 0},
+			Msg: BumpSequenceMsg{
+				Metadata:  &weave.Metadata{Schema: 1},
+				Increment: 0,
+				User:      key1.Address(),
+			},
 			WantCheckErr:   errors.ErrMsg,
 			WantDeliverErr: errors.ErrMsg,
 		},
@@ -77,8 +84,12 @@ func TestBumpSequence(t *testing.T) {
 			InitData: []*UserData{
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key2, Sequence: 4},
 			},
-			Signers:        []weave.Condition{key1.Condition()},
-			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 421},
+			Signers: []weave.Condition{key1.Condition()},
+			Msg: BumpSequenceMsg{
+				Metadata:  &weave.Metadata{Schema: 1},
+				Increment: 421,
+				User:      key1.Address(),
+			},
 			WantCheckErr:   errors.ErrNotFound,
 			WantDeliverErr: errors.ErrNotFound,
 		},
@@ -86,8 +97,12 @@ func TestBumpSequence(t *testing.T) {
 			InitData: []*UserData{
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 4},
 			},
-			Signers:        []weave.Condition{key1.Condition()},
-			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 1001},
+			Signers: []weave.Condition{key1.Condition()},
+			Msg: BumpSequenceMsg{
+				Metadata:  &weave.Metadata{Schema: 1},
+				Increment: 1001,
+				User:      key1.Address(),
+			},
 			WantCheckErr:   errors.ErrMsg,
 			WantDeliverErr: errors.ErrMsg,
 		},
@@ -96,7 +111,11 @@ func TestBumpSequence(t *testing.T) {
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 4},
 			},
 			Signers: []weave.Condition{key1.Condition()},
-			Msg:     BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 1000},
+			Msg: BumpSequenceMsg{
+				Metadata:  &weave.Metadata{Schema: 1},
+				Increment: 1000,
+				User:      key1.Address(),
+			},
 			WantSequences: []*UserData{
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: 1003},
 			},
@@ -106,7 +125,11 @@ func TestBumpSequence(t *testing.T) {
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: math.MaxInt64 - 20},
 			},
 			Signers: []weave.Condition{key1.Condition()},
-			Msg:     BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 20},
+			Msg: BumpSequenceMsg{
+				Metadata:  &weave.Metadata{Schema: 1},
+				Increment: 20,
+				User:      key1.Address(),
+			},
 			WantSequences: []*UserData{
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: math.MaxInt64 - 1},
 			},
@@ -115,8 +138,12 @@ func TestBumpSequence(t *testing.T) {
 			InitData: []*UserData{
 				{Metadata: &weave.Metadata{Schema: 1}, Pubkey: key1, Sequence: math.MaxInt64 - 20},
 			},
-			Signers:        []weave.Condition{key1.Condition()},
-			Msg:            BumpSequenceMsg{Metadata: &weave.Metadata{Schema: 1}, Increment: 21},
+			Signers: []weave.Condition{key1.Condition()},
+			Msg: BumpSequenceMsg{
+				Metadata:  &weave.Metadata{Schema: 1},
+				Increment: 21,
+				User:      key1.Address(),
+			},
 			WantCheckErr:   errors.ErrOverflow,
 			WantDeliverErr: errors.ErrOverflow,
 		},
