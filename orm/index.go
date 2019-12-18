@@ -538,7 +538,7 @@ func (ix *nativeIndex) Update(db weave.KVStore, prev Object, next Object) error 
 			if err != nil {
 				return errors.Wrap(err, "build index key")
 			}
-			if err := db.Set(idxKey, nil); err != nil {
+			if err := db.Set(idxKey, []byte{}); err != nil {
 				return errors.Wrap(err, "db set")
 			}
 		}
