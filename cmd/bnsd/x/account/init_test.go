@@ -76,7 +76,7 @@ func TestGenesisInitializer(t *testing.T) {
 	if err := accounts.One(db, accountKey("", "first-domain"), &empty); err != nil {
 		t.Fatalf("cannot get empty name account from the database: %s", err)
 	}
-	assert.Equal(t, empty.Owner, (weave.Address)(nil))
+	assert.Equal(t, empty.Owner, d.Admin)
 	assert.Equal(t, empty.Name, "")
 	assert.Equal(t, empty.Domain, "first-domain")
 }
