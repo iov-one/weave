@@ -4485,7 +4485,7 @@ distributed to. Must be at least one. </p></td>
 
       
         <h3 id="escrow.CreateMsg">CreateMsg</h3>
-        <p>CreateMsg is a request to create an Escrow with some tokens.</p><p>If source is not defined, it defaults to the first signer</p><p>The rest must be defined</p>
+        <p>CreateMsg is a request to create an Escrow with some tokens.</p><p>Message must be authorized by the source.</p>
 
         
           <table class="field-table">
@@ -4621,7 +4621,7 @@ expired: [timeout, infinity) </p></td>
         
       
         <h3 id="escrow.ReleaseMsg">ReleaseMsg</h3>
-        <p>ReleaseMsg releases the content to the destination.</p><p>Must be authorized by source or arbiter.</p><p>If amount not provided, defaults to entire escrow,</p><p>May be a subset of the current balance.</p>
+        <p>ReleaseMsg releases the content to the destination.</p><p>Message must be authorized by the source or arbiter.</p><p>If amount not provided, defaults to entire escrow, May be a subset of the</p><p>current balance.</p>
 
         
           <table class="field-table">
