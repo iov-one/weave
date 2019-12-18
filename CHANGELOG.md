@@ -2,6 +2,9 @@
 
 ## HEAD
 
+Breaking changes
+
+- `x/escrow`: `CreateMsg.Source` is no longer optional and is now required.
 
 ## 0.24.1
 
@@ -25,6 +28,7 @@
     new index implementation.
 
 Breaking changes
+
 - `orm.Index` is an interface now to allow multiple implementations. The new
   interface is a subset of the old structure, simplified and updated to support
   lazy loading:

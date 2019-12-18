@@ -104,18 +104,12 @@ func (h CreateEscrowHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
 	}
-
 	if weave.IsExpired(ctx, msg.Timeout) {
 		return nil, errors.Wrap(errors.ErrInput, "timeout in the past")
 	}
-
-	// Source must authorize this (if not set, defaults to AnySigner).
-	if msg.Source != nil {
-		if !h.auth.HasAddress(ctx, msg.Source) {
-			return nil, errors.ErrUnauthorized
-		}
+	if !h.auth.HasAddress(ctx, msg.Source) {
+		return nil, errors.ErrUnauthorized
 	}
-
 	return &msg, nil
 }
 

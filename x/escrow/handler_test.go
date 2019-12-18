@@ -190,9 +190,8 @@ func TestHandler(t *testing.T) {
 			all,
 			nil, // no prep, just one action
 			action{
-				perms: []weave.Condition{a},
-				// defaults to source!
-				msg:       NewCreateMsg(nil, b.Address(), c.Address(), all, weave.AsUnixTime(blockNow.Add(-2*time.Hour)), ""),
+				perms:     []weave.Condition{a},
+				msg:       NewCreateMsg(a.Address(), b.Address(), c.Address(), all, weave.AsUnixTime(blockNow.Add(-2*time.Hour)), ""),
 				blockTime: Timeout.Time().Add(-time.Hour),
 			},
 			errors.ErrInput,

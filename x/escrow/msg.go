@@ -49,6 +49,7 @@ func (m *CreateMsg) Validate() error {
 	var errs error
 	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	errs = errors.AppendField(errs, "Arbiter", m.Arbiter.Validate())
+	errs = errors.AppendField(errs, "Source", m.Source.Validate())
 	errs = errors.AppendField(errs, "Destination", m.Destination.Validate())
 	if m.Timeout == 0 {
 		// Zero timeout is a valid value that dates to 1970-01-01. We
