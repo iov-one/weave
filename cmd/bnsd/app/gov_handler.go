@@ -11,6 +11,7 @@ import (
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/gov"
 	"github.com/iov-one/weave/x/msgfee"
+	txfee "github.com/iov-one/weave/x/txfee"
 	"github.com/iov-one/weave/x/utils"
 	"github.com/iov-one/weave/x/validators"
 )
@@ -41,6 +42,7 @@ func proposalOptionsExecutor(ctrl cash.Controller) gov.Executor {
 	migration.RegisterRoutes(r, auth)
 	gov.RegisterBasicProposalRouters(r, auth)
 	msgfee.RegisterRoutes(r, auth)
+	txfee.RegisterRoutes(r, auth)
 
 	// We must wrap with batch middleware so it can process ExecuteProposalBatchMsg.
 	// We add ActionTagger here, so the messages executed as a result of a governance vote also get properly tagged.

@@ -2,6 +2,9 @@
 
 ## HEAD
 
+- `x/txfee` extension created and integrated in `cmd/bnsd`. Txfee add
+  additional fee depending on the transaction binary size.
+
 Breaking changes
 
 - `x/escrow`: `CreateMsg.Source` is no longer optional and is now required.

@@ -36,6 +36,11 @@
       "migration": {
         "admin": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0"
       },
+      "txfee": {
+        "owner": "E28AE9A6EB94FC88B73EB7CBD6B87BF93EB9BEF0",
+        "base_fee": "0.0001 IOV",
+        "free_bytes": 10240
+      },
       "username": {
         "owner": "cond:admin/admin/0000000000000001",
         "valid_username_name": "^[a-z0-9\\-_.]{3,64}$",

@@ -1,0 +1,111 @@
+123 bytes	           0 IOV
+148 bytes	     0.00625 IOV
+223 bytes	         0.1 IOV
+348 bytes	     0.50625 IOV
+523 bytes	         1.6 IOV
+748 bytes	     3.90625 IOV
+1023 bytes	         8.1 IOV
+1348 bytes	    15.00625 IOV
+1723 bytes	        25.6 IOV
+2148 bytes	    41.00625 IOV
+2623 bytes	        62.5 IOV
+3148 bytes	    91.50625 IOV
+3723 bytes	       129.6 IOV
+4348 bytes	   178.50625 IOV
+5023 bytes	       240.1 IOV
+5748 bytes	   316.40625 IOV
+6523 bytes	       409.6 IOV
+7348 bytes	   522.00625 IOV
+8223 bytes	       656.1 IOV
+9148 bytes	   814.50625 IOV
+10123 bytes	        1000 IOV
+11148 bytes	  1215.50625 IOV
+12223 bytes	      1464.1 IOV
+13348 bytes	  1749.00625 IOV
+14523 bytes	      2073.6 IOV
+15748 bytes	  2441.40625 IOV
+17023 bytes	      2856.1 IOV
+18348 bytes	  3321.50625 IOV
+19723 bytes	      3841.6 IOV
+21148 bytes	  4420.50625 IOV
+
+1 bytes	           0 IOV
+26 bytes	771604931250 IOV
+101 bytes	12345678900000 IOV
+226 bytes	62499999431250 IOV
+401 bytes	197530862400000 IOV
+626 bytes	482253082031250 IOV
+901 bytes	999999990900000 IOV
+1226 bytes	1852623439931250 IOV
+1601 bytes	3160493798400000 IOV
+2026 bytes	5062499953931250 IOV
+2501 bytes	7716049312500000 IOV
+3026 bytes	11297067798431250 IOV
+3601 bytes	15999999854400000 IOV
+4226 bytes	22037808441431250 IOV
+4901 bytes	29641975038900000 IOV
+5626 bytes	39062499644531250 IOV
+6401 bytes	50567900774400000 IOV
+7226 bytes	64445215462931250 IOV
+8101 bytes	80999999262900000 IOV
+9026 bytes	100556326245431250 IOV
+10001 bytes	123456789000000000 IOV
+11026 bytes	150062498634431250 IOV
+12101 bytes	180753084774900000 IOV
+13226 bytes	215926695565931250 IOV
+14401 bytes	255999997670400000 IOV
+15626 bytes	301408176269531250 IOV
+16901 bytes	352604935062900000 IOV
+18226 bytes	410062496268431250 IOV
+19601 bytes	474271600622400000 IOV
+21026 bytes	545741507379431250 IOV
+22501 bytes	624999994312500000 IOV
+24026 bytes	712593357712931250 IOV
+25601 bytes	809086412390400000 IOV
+27226 bytes	915062491672931250 IOV
+28901 bytes	1031123447406900000 IOV
+30626 bytes	1157889649957031250 IOV
+32401 bytes	1295999988206400000 IOV
+34226 bytes	1446111869556431250 IOV
+36101 bytes	1608901219926900000 IOV
+38026 bytes	1785062483755931250 IOV
+40001 bytes	1975308624000000000 IOV
+42026 bytes	2180371122133931250 IOV
+44101 bytes	2400999978150900000 IOV
+46226 bytes	2637963710562431250 IOV
+48401 bytes	2892049356398400000 IOV
+50626 bytes	3164062471207031250 IOV
+52901 bytes	3454827129054900000 IOV
+55226 bytes	3765185922526931250 IOV
+57601 bytes	4095999962726400000 IOV
+60026 bytes	4448148879274931250 IOV
+62501 bytes	4822530820312500000 IOV
+65026 bytes	5220062452497431250 IOV
+67601 bytes	5641678961006400000 IOV
+70226 bytes	6088334049534431250 IOV
+72901 bytes	6560999940294900000 IOV
+75626 bytes	7060667374019531250 IOV
+78401 bytes	7588345609958400000 IOV
+81226 bytes	8145062425879931250 IOV
+84101 bytes	8731864118070900000 IOV
+87026 bytes	coin multiply: an operation cannot be completed due to value overflow
+90001 bytes	coin multiply: an operation cannot be completed due to value overflow
+93026 bytes	coin multiply: an operation cannot be completed due to value overflow
+96101 bytes	coin multiply: an operation cannot be completed due to value overflow
+99226 bytes	coin multiply: an operation cannot be completed due to value overflow
+102401 bytes	coin multiply: an operation cannot be completed due to value overflow
+105626 bytes	coin multiply: an operation cannot be completed due to value overflow
+108901 bytes	coin multiply: an operation cannot be completed due to value overflow
+112226 bytes	coin multiply: an operation cannot be completed due to value overflow
+115601 bytes	coin multiply: an operation cannot be completed due to value overflow
+119026 bytes	coin multiply: an operation cannot be completed due to value overflow
+122501 bytes	coin multiply: an operation cannot be completed due to value overflow
+126026 bytes	coin multiply: an operation cannot be completed due to value overflow
+129601 bytes	coin multiply: an operation cannot be completed due to value overflow
+133226 bytes	coin multiply: an operation cannot be completed due to value overflow
+136901 bytes	coin multiply: an operation cannot be completed due to value overflow
+140626 bytes	coin multiply: an operation cannot be completed due to value overflow
+144401 bytes	coin multiply: an operation cannot be completed due to value overflow
+148226 bytes	coin multiply: an operation cannot be completed due to value overflow
+152101 bytes	coin multiply: an operation cannot be completed due to value overflow
+156026 bytes	coin multiply: an operation cannot be completed due to value overflow

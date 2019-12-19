@@ -7,13 +7,16 @@ import (
 	"io"
 
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/cmd/bnsd/x/account"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
+	"github.com/iov-one/weave/datamigration"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/msgfee"
 	"github.com/iov-one/weave/x/multisig"
+	"github.com/iov-one/weave/x/txfee"
 	"github.com/iov-one/weave/x/validators"
 )
 
@@ -126,6 +129,12 @@ original transactions (ie signatures) are being dropped.
 					UsernameChangeTokenTargetsMsg: msg,
 				},
 			})
+		case *username.UpdateConfigurationMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_UsernameUpdateConfigurationMsg{
+					UsernameUpdateConfigurationMsg: msg,
+				},
+			})
 		case *distribution.CreateMsg:
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
 				Sum: &bnsd.ExecuteBatchMsg_Union_DistributionCreateMsg{
@@ -148,6 +157,108 @@ original transactions (ie signatures) are being dropped.
 			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
 				Sum: &bnsd.ExecuteBatchMsg_Union_MsgfeeSetMsgFeeMsg{
 					MsgfeeSetMsgFeeMsg: msg,
+				},
+			})
+		case *datamigration.ExecuteMigrationMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_DatamigrationExecuteMigrationMsg{
+					DatamigrationExecuteMigrationMsg: msg,
+				},
+			})
+		case *account.UpdateConfigurationMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountUpdateConfigurationMsg{
+					AccountUpdateConfigurationMsg: msg,
+				},
+			})
+		case *account.RegisterDomainMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountRegisterDomainMsg{
+					AccountRegisterDomainMsg: msg,
+				},
+			})
+		case *account.ReplaceAccountMsgFeesMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountReplaceAccountMsgFeesMsg{
+					AccountReplaceAccountMsgFeesMsg: msg,
+				},
+			})
+		case *account.TransferDomainMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountTransferDomainMsg{
+					AccountTransferDomainMsg: msg,
+				},
+			})
+		case *account.RenewDomainMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountRenewDomainMsg{
+					AccountRenewDomainMsg: msg,
+				},
+			})
+		case *account.DeleteDomainMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountDeleteDomainMsg{
+					AccountDeleteDomainMsg: msg,
+				},
+			})
+		case *account.RegisterAccountMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountRegisterAccountMsg{
+					AccountRegisterAccountMsg: msg,
+				},
+			})
+		case *account.TransferAccountMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountTransferAccountMsg{
+					AccountTransferAccountMsg: msg,
+				},
+			})
+		case *account.ReplaceAccountTargetsMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountReplaceAccountTargetsMsg{
+					AccountReplaceAccountTargetsMsg: msg,
+				},
+			})
+		case *account.DeleteAccountMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountDeleteAccountMsg{
+					AccountDeleteAccountMsg: msg,
+				},
+			})
+		case *account.FlushDomainMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountFlushDomainMsg{
+					AccountFlushDomainMsg: msg,
+				},
+			})
+		case *account.RenewAccountMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountRenewAccountMsg{
+					AccountRenewAccountMsg: msg,
+				},
+			})
+		case *account.AddAccountCertificateMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountAddAccountCertificateMsg{
+					AccountAddAccountCertificateMsg: msg,
+				},
+			})
+		case *account.DeleteAccountCertificateMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_AccountDeleteAccountCertificateMsg{
+					AccountDeleteAccountCertificateMsg: msg,
+				},
+			})
+		case *cash.UpdateConfigurationMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_CashUpdateConfigurationMsg{
+					CashUpdateConfigurationMsg: msg,
+				},
+			})
+		case *txfee.UpdateConfigurationMsg:
+			batch.Messages = append(batch.Messages, bnsd.ExecuteBatchMsg_Union{
+				Sum: &bnsd.ExecuteBatchMsg_Union_TxfeeUpdateConfigurationMsg{
+					TxfeeUpdateConfigurationMsg: msg,
 				},
 			})
 

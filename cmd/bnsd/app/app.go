@@ -33,6 +33,7 @@ import (
 	"github.com/iov-one/weave/x/msgfee"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
+	txfee "github.com/iov-one/weave/x/txfee"
 	"github.com/iov-one/weave/x/utils"
 	"github.com/iov-one/weave/x/validators"
 )
@@ -63,6 +64,10 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 		msgfee.NewAntispamFeeDecorator(minFee),
 		msgfee.NewFeeDecorator(),
 		account.NewAccountMsgFeeDecorator(),
+		// txfee decorator must be before batch to count the main
+		// transaction once, not for every message present in the
+		// batch.
+		txfee.NewDecorator(),
 		batch.NewDecorator(),
 		utils.NewActionTagger(),
 	)
@@ -94,6 +99,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	msgfee.RegisterRoutes(r, authFn)
 	datamigration.RegisterRoutes(r, authFn)
 	account.RegisterRoutes(r, authFn)
+	txfee.RegisterRoutes(r, authFn)
 	return r
 }
 

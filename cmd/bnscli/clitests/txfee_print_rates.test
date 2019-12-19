@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+bnscli txfee-update-configuration \
+	       -base-fee "0.00001 IOV" \
+	       -free-bytes 123 \
+	| bnscli txfee-print-rates -n 30
+
+echo
+
+bnscli txfee-update-configuration \
+	       -base-fee "1234567890 IOV" \
+	       -free-bytes 1 \
+	| bnscli txfee-print-rates -n 80
