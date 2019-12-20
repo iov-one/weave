@@ -4,15 +4,13 @@ import (
 	"bytes"
 	stderrors "errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"reflect"
 	"testing"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
-	"github.com/iov-one/weave/store/iavl"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
@@ -618,7 +616,7 @@ func testIndexImplementation(t *testing.T, newIdx func(MultiKeyIndexer) Index) {
 			// Do not use MemStore because its implementation is
 			// not fully compatible with a real backend.
 			// db := store.MemStore()
-			store, cleanup := commitKVStore(t)
+			store, cleanup := weavetest.CommitKVStore(t)
 			defer cleanup()
 
 			db := store.CacheWrap()
@@ -654,16 +652,6 @@ func testIndexImplementation(t *testing.T, newIdx func(MultiKeyIndexer) Index) {
 			}
 		})
 	}
-}
-
-func commitKVStore(t testing.TB) (db weave.CommitKVStore, cleanup func()) {
-	dbpath, err := ioutil.TempDir("", "db")
-	if err != nil {
-		t.Fatalf("cannot create a temporary directory: %s", err)
-	}
-
-	db = iavl.NewCommitStore(dbpath, "db")
-	return db, func() { os.RemoveAll(dbpath) }
 }
 
 func iteratorKeys(it weave.Iterator) ([][]byte, error) {
