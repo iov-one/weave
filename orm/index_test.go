@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/store"
+	"github.com/iov-one/weave/weavetest"
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
@@ -612,7 +613,13 @@ func testIndexImplementation(t *testing.T, newIdx func(MultiKeyIndexer) Index) {
 
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
-			db := store.MemStore()
+			// Do not use MemStore because its implementation is
+			// not fully compatible with a real backend.
+			// db := store.MemStore()
+			store, cleanup := weavetest.CommitKVStore(t)
+			defer cleanup()
+
+			db := store.CacheWrap()
 
 			for i, u := range tc.updates {
 				if err := tc.idx.Update(db, u.prev, u.next); !u.wantErr.Is(err) {
@@ -635,6 +642,13 @@ func testIndexImplementation(t *testing.T, newIdx func(MultiKeyIndexer) Index) {
 					t.Logf(" got keys: %q", keys)
 					t.Errorf("%d keys call returned unexpected keys for value %q", i, k.value)
 				}
+			}
+
+			// Write so that the data is persisted in the database.
+			// This is a mandatory step, because in memory
+			// implementation is more permissive.
+			if err := db.Write(); err != nil {
+				t.Fatalf("cache wrap write: %s", err)
 			}
 		})
 	}
