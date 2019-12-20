@@ -38,7 +38,13 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 			Owner  weave.Address
 		}
 	}
-	if err := opts.ReadOptions("account", &input); err != nil {
+	switch err := opts.ReadOptions("account", &input); {
+	case err == nil:
+		// All good.
+	case errors.ErrNotFound.Is(err):
+		// No configuration defined.
+		return nil
+	default:
 		return errors.Wrap(err, "cannot load domains")
 	}
 
@@ -57,6 +63,7 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 		account := Account{
 			Metadata: &weave.Metadata{Schema: 1},
 			Domain:   d.Domain,
+			Owner:    d.Admin,
 			Name:     "",
 		}
 		if _, err := accounts.Put(kv, accountKey("", d.Domain), &account); err != nil {
