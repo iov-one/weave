@@ -43,8 +43,7 @@ tendermint daemon and the state machine that processes
 the transactions, something akin to wsgi as the interface
 between apache/nginx and a django application.
 
- There is an
-`in-depth reference <https://tendermint.readthedocs.io/en/master/app-development.html>`__
+There is an `in-depth reference <https://tendermint.readthedocs.io/en/master/app-development.html>`__
 to the ABCI protocol, but in short, an ABCI application
 is a state machine that responds to messages sent from one
 client (the tendermint consensus engine). It is run in
