@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package txfee;
+
+import "codec.proto";
+import "coin/codec.proto";
+
+message Configuration {
+  weave.Metadata metadata = 1;
+  // Owner is present to implement gconf.OwnedConfig interface
+  // This defines the Address that is allowed to update the Configuration object and is
+  // needed to make use of gconf.NewUpdateConfigurationHandler
+  bytes owner = 2 ;
+  // Free bytes declares the size of the message (in bytes) that is free of
+  // charge. Any additional fee is counted only from the size above the free
+  // bytes threshold.
+  //
+  // Transaction fee is computed using the following equation:
+  //   ((max(0, bytes_size(tx) - free_bytes) ** 2) * base_fee
+  // All computations are done using uint64 precision and only integer values.
+  int32 free_bytes = 3;
+  // Base fee defines the currency and multiplicate for the transaction size
+  // fee amount.
+  coin.Coin base_fee = 4 ;
+}
+
+message UpdateConfigurationMsg {
+  weave.Metadata metadata = 1;
+  Configuration patch = 2;
+}

@@ -72,6 +72,8 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"text-resolution":               cmdTextResolution,
 	"transfer-account":              cmdTransferAccount,
 	"transfer-domain":               cmdTransferDomain,
+	"txfee-print-rates":             cmdTxfeePrintRates,
+	"txfee-update-configuration":    cmdTxfeeUpdateConfiguration,
 	"update-account-configuration":  cmdUpdateAccountConfiguration,
 	"update-cash-configuration":     cmdUpdateCashConfiguration,
 	"update-election-rule":          cmdUpdateElectionRule,

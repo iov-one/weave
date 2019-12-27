@@ -26,6 +26,7 @@ import (
 	"github.com/iov-one/weave/x/distribution"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/multisig"
+	"github.com/iov-one/weave/x/txfee"
 	"github.com/stellar/go/exp/crypto/derivation"
 	"github.com/tendermint/tendermint/libs/log"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -264,6 +265,11 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 				ValidUsernameLabel: `^iov$`,
 				Owner:              mustParseAddr(t, "seq:uname/admin/1"),
 			},
+			"txfee": txfee.Configuration{
+				Owner:     mustParseAddr(t, "seq:txfee/admin/1"),
+				BaseFee:   coin.NewCoin(0, 20, "IOV"),
+				FreeBytes: 10240,
+			},
 		},
 		"governance": dict{
 			"electorate": []interface{}{
@@ -305,6 +311,7 @@ func initGenesis(t testing.TB, env *EnvConf, filename string) {
 			{"ver": 1, "pkg": "username"},
 			{"ver": 1, "pkg": "utils"},
 			{"ver": 1, "pkg": "validators"},
+			{"ver": 1, "pkg": "txfee"},
 		},
 	}, "", "  ")
 	if err != nil {

@@ -1,0 +1,39 @@
+{
+	"Sum": {
+		"TxfeeUpdateConfigurationMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"patch": {
+				"metadata": {
+					"schema": 1
+				},
+				"free_bytes": 1024,
+				"base_fee": {
+					"whole": 123,
+					"ticker": "IOV"
+				}
+			}
+		}
+	}
+}
+{
+	"Sum": {
+		"TxfeeUpdateConfigurationMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"patch": {
+				"metadata": {
+					"schema": 1
+				},
+				"owner": "30E062E0D6DC406CFDF54B96354EC442C101FCE8",
+				"free_bytes": 123,
+				"base_fee": {
+					"fractional": 10000,
+					"ticker": "IOV"
+				}
+			}
+		}
+	}
+}

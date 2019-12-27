@@ -91,7 +91,7 @@ func (d DynamicFeeDecorator) Check(ctx weave.Context, store weave.KVStore, tx we
 	}
 	// if we have success, ensure that we paid at least the RequiredFee (IsGTE enforces the same token)
 	if !cres.RequiredFee.IsZero() && !fee.IsGTE(cres.RequiredFee) {
-		return nil, errors.Wrapf(errors.ErrAmount, "fee less than required fee of %#v", cres.RequiredFee)
+		return nil, errors.Wrapf(errors.ErrAmount, "fee less than required fee of %q", cres.RequiredFee)
 	}
 	return cres, nil
 }
@@ -220,7 +220,7 @@ func (d DynamicFeeDecorator) extractFee(ctx weave.Context, tx weave.Tx, store we
 
 	}
 	if !txFee.IsGTE(minFee) {
-		return nil, errors.Wrapf(errors.ErrAmount, "transaction fee less than minimum: %v", txFee)
+		return nil, errors.Wrapf(errors.ErrAmount, "transaction fee less than minimum %q", txFee)
 	}
 	return finfo, nil
 }
