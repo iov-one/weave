@@ -128,4 +128,8 @@ for their BNS blockchain, as well as a companion to
 [iov-core](https://github.com/iov-one/iov-core)
 client libraries that deprecated `confio/weave-js`
 
+## Audit
+
+Check out our latest [audit report](https://github.com/iov-one/weave/tree/master/audit).
+
 Thanks to [newfinal100](https://github.com/newfinal100) for designing the weave logo.
