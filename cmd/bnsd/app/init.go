@@ -10,6 +10,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/account"
+	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
@@ -107,6 +108,7 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 		&username.Initializer{},
 		&account.Initializer{},
 		&txfee.Initializer{},
+		&termdeposit.Initializer{},
 	))
 	application.WithLogger(logger)
 	return application

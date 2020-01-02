@@ -269,7 +269,7 @@ func (b bucket) WithNativeIndex(name string, indexer MultiKeyIndexer) Bucket {
 
 	iname := b.name + "_" + name
 	idxs := append(b.indexes, bucketBoundIndex{
-		idx:        NewNativeIndex(iname, indexer),
+		idx:        NewNativeIndex(iname, indexer, b.DBKey),
 		publicName: name,
 	})
 	sort.Slice(idxs, func(i int, j int) bool {

@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -16,6 +17,7 @@ import (
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/cmd/bnsd/x/account"
+	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/cash"
@@ -48,6 +50,7 @@ Execute a ABCI query and print JSON encoded result.
 		for p := range queries {
 			paths = append(paths, p)
 		}
+		sort.Strings(paths)
 		return fmt.Errorf("available query paths:\n\t- %s", strings.Join(paths, "\n\t- "))
 	}
 
@@ -71,9 +74,12 @@ Execute a ABCI query and print JSON encoded result.
 
 	result := make([]keyval, 0, len(resp.Models))
 	for i, m := range resp.Models {
-		obj := conf.newObj()
-		if err := obj.Unmarshal(m.Value); err != nil {
-			return fmt.Errorf("failed to unmarshal model %d: %s", i, err)
+		var obj model
+		if len(m.Value) != 0 {
+			obj = conf.newObj()
+			if err := obj.Unmarshal(m.Value); err != nil {
+				return fmt.Errorf("failed to unmarshal model %d: %s", i, err)
+			}
 		}
 		key, err := conf.decKey(m.Key)
 		if err != nil {
@@ -91,7 +97,7 @@ Execute a ABCI query and print JSON encoded result.
 
 type keyval struct {
 	Key   string
-	Value model
+	Value model `json:",omitempty"`
 }
 
 // queries contains a mapping of query path to that query specifics. Each query
@@ -192,6 +198,21 @@ var queries = map[string]struct {
 		newObj: func() model { return &account.Domain{} },
 		decKey: strKey,
 		encID:  strID,
+	},
+	"/depositcontracts": {
+		newObj: func() model { return &termdeposit.DepositContract{} },
+		decKey: sequenceKey,
+		encID:  numericID,
+	},
+	"/deposits": {
+		newObj: func() model { return &termdeposit.Deposit{} },
+		decKey: sequenceKey,
+		encID:  numericID,
+	},
+	"/deposits/contract": {
+		newObj: func() model { return &termdeposit.Deposit{} },
+		decKey: sequenceKey,
+		encID:  numericID,
 	},
 }
 

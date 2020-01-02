@@ -499,7 +499,7 @@ func TestCompactIndexImplementation(t *testing.T) {
 
 func TestNativeIndexImplementation(t *testing.T) {
 	testIndexImplementation(t, func(fn MultiKeyIndexer) Index {
-		return NewNativeIndex("myindex", fn)
+		return NewNativeIndex("myindex", fn, nil)
 	})
 }
 
