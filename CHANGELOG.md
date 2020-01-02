@@ -2,6 +2,9 @@
 
 ## HEAD
 
+
+## 0.25.0
+
 - `x/txfee` extension created and integrated in `cmd/bnsd`. Txfee add
   additional fee depending on the transaction binary size.
 
