@@ -31,6 +31,11 @@ message SendMsg {
 // FeeInfo records who pays what fees to have this
 // message processed
 message FeeInfo {
+  // Payer represents an address that will pay the fee. A fee fund will be
+  // withdrawn from that account in order to process a transaction.
+  // Warning: This field is optional and when not set it will default to any
+  // signer. It is recommended to always explicitely set the value of this
+  // field, as the signer order is not guaranteed.
   bytes payer = 2 ;
   coin.Coin fees = 3;
 }

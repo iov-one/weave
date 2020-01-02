@@ -199,7 +199,10 @@ message CreateProposalMsg {
   // Unix timestamp when the proposal starts. Must be in the future.
   int64 start_time = 6 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
   // Author is an optional field to set the address of the author with a proposal. The author must sign the message.
-  // When not set it will default to the main signer.
+  // The author of the created proposal.
+  // Warning: This field is optional and when not set it will default to any
+  // signer. It is recommended to always explicitely set the value of this
+  // field, as the signer order is not guaranteed.
   bytes author = 7 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
 
@@ -223,8 +226,11 @@ message VoteMsg {
   weave.Metadata metadata = 1;
   // The unique id of the proposal.
   bytes proposal_id = 2 [(gogoproto.customname) = "ProposalID"];
-  // voter address is an optional field. When not set the main signer will be used as default. The voter address
-  // must be included in the electorate for a valid vote.
+  // The address of the voter. The voter address must be part of the electorate
+  // in order to be allowed to vote.
+  // Warning: This field is optional and when not set it will default to any
+  // signer. It is recommended to always explicitely set the value of this
+  // field, as the signer order is not guaranteed.
   bytes voter = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // Option for the vote. Must be Yes, No or Abstain for a valid vote.
   VoteOption selected = 4;

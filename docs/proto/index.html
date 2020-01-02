@@ -4179,7 +4179,11 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
                   <td>payer</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>Payer represents an address that will pay the fee. A fee fund will be
+withdrawn from that account in order to process a transaction.
+Warning: This field is optional and when not set it will default to any
+signer. It is recommended to always explicitely set the value of this
+field, as the signer order is not guaranteed. </p></td>
                 </tr>
               
                 <tr>
@@ -5006,7 +5010,10 @@ expired: [timeout, infinity) </p></td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
                   <td><p>Author is an optional field to set the address of the author with a proposal. The author must sign the message.
-When not set it will default to the main signer. </p></td>
+The author of the created proposal.
+Warning: This field is optional and when not set it will default to any
+signer. It is recommended to always explicitely set the value of this
+field, as the signer order is not guaranteed. </p></td>
                 </tr>
               
             </tbody>
@@ -5705,8 +5712,11 @@ with weight=0. </p></td>
                   <td>voter</td>
                   <td><a href="#bytes">bytes</a></td>
                   <td></td>
-                  <td><p>voter address is an optional field. When not set the main signer will be used as default. The voter address
-must be included in the electorate for a valid vote. </p></td>
+                  <td><p>The address of the voter. The voter address must be part of the electorate
+in order to be allowed to vote.
+Warning: This field is optional and when not set it will default to any
+signer. It is recommended to always explicitely set the value of this
+field, as the signer order is not guaranteed. </p></td>
                 </tr>
               
                 <tr>
