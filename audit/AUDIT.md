@@ -7,12 +7,12 @@ This file contains a brief summary of latest security audits applied to `Weave` 
 - General Conditions / Permission system design
 - Pieces related to money (and int overflow checks)
 - Input parsing and validations (buffer overflow, etc)
-- [x/sigs](./x/sigs)
-- [x/multisig](./x/multisig)
-- [x/gov](./x/gov)
-- [x/cash](./x/cash)
-- [x/distribution](./x/distribution)
-- [x/escrow](./x/escrow)
+- [x/sigs](../x/sigs)
+- [x/multisig](../x/multisig)
+- [x/gov](../x/gov)
+- [x/cash](../x/cash)
+- [x/distribution](../x/distribution)
+- [x/escrow](../x/escrow)
 
 ## Report Summary
 
