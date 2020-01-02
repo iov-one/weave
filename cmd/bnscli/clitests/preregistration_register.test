@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -e
+
+bnscli preregistration-register \
+		-domain mydomain \
+		-owner 'seq:test/bob/1' \
+	| bnscli view

@@ -1,0 +1,11 @@
+{
+	"Sum": {
+		"PreregistrationRegisterMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"owner": "37BE0E5DEB3A58534D709DC04F66D067672993F2"
+		}
+	}
+}

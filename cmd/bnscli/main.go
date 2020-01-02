@@ -53,6 +53,7 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"keygen":                        cmdKeygen,
 	"mnemonic":                      cmdMnemonic,
 	"multisig":                      cmdMultisig,
+	"preregistration-register":      cmdPreregistrationRegister,
 	"query":                         cmdQuery,
 	"register-account":              cmdRegisterAccount,
 	"register-domain":               cmdRegisterDomain,
