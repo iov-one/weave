@@ -173,6 +173,11 @@ func (m *SendMsg) GetRef() []byte {
 // FeeInfo records who pays what fees to have this
 // message processed
 type FeeInfo struct {
+	// Payer represents an address that will pay the fee. A fee fund will be
+	// withdrawn from that account in order to process a transaction.
+	// Warning: This field is optional and when not set it will default to any
+	// signer. It is recommended to always explicitely set the value of this
+	// field, as the signer order is not guaranteed.
 	Payer github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=payer,proto3,casttype=github.com/iov-one/weave.Address" json:"payer,omitempty"`
 	Fees  *coin.Coin                       `protobuf:"bytes,3,opt,name=fees,proto3" json:"fees,omitempty"`
 }

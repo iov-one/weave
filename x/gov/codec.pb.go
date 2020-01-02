@@ -918,7 +918,10 @@ type CreateProposalMsg struct {
 	// Unix timestamp when the proposal starts. Must be in the future.
 	StartTime github_com_iov_one_weave.UnixTime `protobuf:"varint,6,opt,name=start_time,json=startTime,proto3,casttype=github.com/iov-one/weave.UnixTime" json:"start_time,omitempty"`
 	// Author is an optional field to set the address of the author with a proposal. The author must sign the message.
-	// When not set it will default to the main signer.
+	// The author of the created proposal.
+	// Warning: This field is optional and when not set it will default to any
+	// signer. It is recommended to always explicitely set the value of this
+	// field, as the signer order is not guaranteed.
 	Author github_com_iov_one_weave.Address `protobuf:"bytes,7,opt,name=author,proto3,casttype=github.com/iov-one/weave.Address" json:"author,omitempty"`
 }
 
@@ -1063,8 +1066,11 @@ type VoteMsg struct {
 	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// The unique id of the proposal.
 	ProposalID []byte `protobuf:"bytes,2,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
-	// voter address is an optional field. When not set the main signer will be used as default. The voter address
-	// must be included in the electorate for a valid vote.
+	// The address of the voter. The voter address must be part of the electorate
+	// in order to be allowed to vote.
+	// Warning: This field is optional and when not set it will default to any
+	// signer. It is recommended to always explicitely set the value of this
+	// field, as the signer order is not guaranteed.
 	Voter github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=voter,proto3,casttype=github.com/iov-one/weave.Address" json:"voter,omitempty"`
 	// Option for the vote. Must be Yes, No or Abstain for a valid vote.
 	Selected VoteOption `protobuf:"varint,4,opt,name=selected,proto3,enum=gov.VoteOption" json:"selected,omitempty"`
