@@ -109,21 +109,21 @@ type ModelBucketIterator struct {
 	err      error
 }
 
-// Next returns the next item key. Load the value of the item into provided
-// model. For each call a new iterator is created so that database modification
-// can be done between this method calls.
-func (it *ModelBucketIterator) Next(db weave.ReadOnlyKVStore, dest Model) (string, error) {
+// Next returns the next item key. Loads the value of the item into the
+// provided model. For each call a new iterator is created so that a database
+// modification can be done between this method calls.
+func (it *ModelBucketIterator) Next(db weave.ReadOnlyKVStore, dest Model) ([]byte, error) {
 	if it.err != nil {
-		return "", it.err
+		return nil, it.err
 	}
 
 	if bytes.Compare(it.cursor, it.end) >= 0 {
-		return "", errors.ErrIteratorDone
+		return nil, errors.ErrIteratorDone
 	}
 
 	iter, err := db.Iterator(it.cursor, it.end)
 	if err != nil {
-		return "", errors.Wrap(err, "new iterator")
+		return nil, errors.Wrap(err, "new iterator")
 	}
 	// Use iterator as a one time fetch, so that other database operations
 	// can be performed between Next method calls.
@@ -131,11 +131,11 @@ func (it *ModelBucketIterator) Next(db weave.ReadOnlyKVStore, dest Model) (strin
 
 	key, value, err := iter.Next()
 	if err != nil {
-		return "", errors.Wrap(err, "iterator next")
+		return nil, errors.Wrap(err, "iterator next")
 	}
 
 	if err := dest.Unmarshal(value); err != nil {
-		return "", errors.Wrap(err, "cannot unmarshal model value")
+		return nil, errors.Wrap(err, "cannot unmarshal model value")
 	}
 
 	// Key was consumed. Iterator is inclusive, so we must use the very
@@ -143,7 +143,7 @@ func (it *ModelBucketIterator) Next(db weave.ReadOnlyKVStore, dest Model) (strin
 	it.cursor = make([]byte, len(key)+1)
 	copy(it.cursor, key)
 
-	return string(key[it.dbprefix:]), nil
+	return key[it.dbprefix:], nil
 }
 
 // NewModelBucket returns a ModelBucket instance. This implementation relies on
