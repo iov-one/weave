@@ -139,7 +139,7 @@ func rewriteUsernameAccounts(ctx context.Context, db weave.KVStore) error {
 		var token username.Token
 		switch key, err := it.Next(db, &token); {
 		case err == nil:
-			name, domain := parseUsername(key)
+			name, domain := parseUsername(string(key))
 			if domain != "iov" {
 				// Ignore all non IOV domains. Username should not contain
 				// any non IOV names, but better be sure.
