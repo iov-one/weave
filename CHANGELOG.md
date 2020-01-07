@@ -2,6 +2,10 @@
 
 ## HEAD
 
+
+
+## 0.25.1
+
 Breaking changes
 
 - `x/txfee` extension decorator is a no-op wrapper when configuration for
