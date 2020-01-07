@@ -35,7 +35,7 @@ func (d *Decorator) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx, n
 	if err != nil {
 		if errors.ErrNotFound.Is(err) {
 			// If configuration does not exist, this decorator is no-op.
-			return res, err
+			return res, nil
 		}
 		return nil, errors.Wrap(err, "cannot compute transaction size fee")
 	}
@@ -59,7 +59,7 @@ func (d *Decorator) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx,
 	if err != nil {
 		if errors.ErrNotFound.Is(err) {
 			// If configuration does not exist, this decorator is no-op.
-			return res, err
+			return res, nil
 		}
 		return nil, errors.Wrap(err, "cannot compute transaction size fee")
 	}

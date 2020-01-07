@@ -149,3 +149,30 @@ func asCoin(t testing.TB, s string) coin.Coin {
 	}
 	return c
 }
+
+func TestDecoratorWithoutConfiguration(t *testing.T) {
+	decorator := NewDecorator()
+	db := store.MemStore()
+	migration.MustInitPkg(db, "txfee")
+
+	tx := &txMock{Raw: []byte{1, 2, 3, 4, 5}}
+	handler := &weavetest.Handler{}
+
+	// Without configuration, decorator should be a no-op wrapper.
+
+	cres, err := decorator.Check(nil, db, tx, handler)
+	if err != nil {
+		t.Fatalf("unexpected check error: %v", err)
+	}
+	if !cres.RequiredFee.IsZero() {
+		t.Fatalf("unexpected check fee: %v", cres.RequiredFee)
+	}
+
+	dres, err := decorator.Deliver(nil, db, tx, handler)
+	if err != nil {
+		t.Fatalf("unexpected deliver error: %v", err)
+	}
+	if !dres.RequiredFee.IsZero() {
+		t.Fatalf("unexpected deliver fee: %v", dres.RequiredFee)
+	}
+}
