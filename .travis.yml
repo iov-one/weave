@@ -32,7 +32,7 @@ env:
   global:
     - TM_VERSION=v0.31.5
     - BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
-    - MAIN_GO_VERSION=1.12
+    - MAIN_GO_VERSION=1.12.14
     - GORACE="halt_on_error=1"
     - FORCE_TM_TEST=1
     - VERSION=$(git describe --tags --abbrev=9 | sed 's/^v//')
