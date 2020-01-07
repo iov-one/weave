@@ -24,6 +24,7 @@ os:
 - linux
 
 go:
+# When changing, remember to update MAIN_GO_VERSION below.
 - "1.12.14"
 - "1.13.5"
 
@@ -31,7 +32,7 @@ go:
 env:
   global:
     - GO111MODULE=on
-    - TM_VERSION=v0.31.5
+    - TM_VERSION=v0.31.11
     - BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
     - MAIN_GO_VERSION=1.12.14
     - GORACE="halt_on_error=1"

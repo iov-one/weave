@@ -2,6 +2,8 @@
 
 ## HEAD
 
+- Go 1.13 is now supported and tested by CI
+- Tendermint upgraded to 0.31.11
 
 Breaking change
 
