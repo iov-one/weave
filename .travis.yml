@@ -24,9 +24,8 @@ os:
 - linux
 
 go:
-# reason for bumping 1.11.x to 1.11.4+ is this: https://github.com/golang/go/issues/30446#issuecomment-468038052
-- "1.11.4"
-- "1.12"
+- "1.11.13"
+- "1.12.14"
 
 
 env:
