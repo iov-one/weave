@@ -2,6 +2,12 @@
 
 ## HEAD
 
+- Go 1.13 is now supported and tested by CI
+- Tendermint upgraded to 0.31.11
+
+Breaking change
+
+- minimal Go version is now 1.12.14
 
 
 ## 0.25.1
@@ -10,6 +16,7 @@ Breaking changes
 
 - `x/txfee` extension decorator is a no-op wrapper when configuration for
   `x/txfee` does not exist.
+
 
 ## 0.25.0
 

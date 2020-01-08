@@ -24,13 +24,16 @@ os:
 - linux
 
 go:
-- "1.11.13"
+# When changing, remember to update MAIN_GO_VERSION below.
 - "1.12.14"
+- "1.13.5"
+- master
 
 
 env:
   global:
-    - TM_VERSION=v0.31.5
+    - GO111MODULE=on
+    - TM_VERSION=v0.31.11
     - BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
     - MAIN_GO_VERSION=1.12.14
     - GORACE="halt_on_error=1"
@@ -40,18 +43,16 @@ env:
     - IMAGE_NAME="iov1/bnsd:${BUILD_VERSION}"
 
 install:
-- go get -d github.com/tendermint/tendermint/... ;
-  cd ${GOPATH}/src/github.com/tendermint/tendermint ;
-  git checkout ${TM_VERSION} ;
-  make get_tools && make check && make install ;
-  cd -;
+- wget --quiet https://github.com/tendermint/tendermint/releases/download/${TM_VERSION}/tendermint_${TM_VERSION}_linux_amd64.zip -O tendermint_linux_amd64.zip &&
+  unzip tendermint_linux_amd64.zip &&
+  sudo install -D -m 777 -o root tendermint /usr/local/bin
 
 script:
 - set -eo pipefail
-- make protolint;
-- make protodocs;
-- make install;
-- make all;
+- make protolint
+- make protodocs
+- make install
+- make all
 - if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" ]]; then
      make cover;
      ./coverage/upload.sh;

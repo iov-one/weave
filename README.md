@@ -21,8 +21,6 @@ to your project.
 
 Join the Weave [community channel](https://riot.im/app/#/room/#weave:matrix.org) :loudspeaker:
 
-**Note: Requires Go 1.11.4+**
-
 It is inspired by the routing and middleware model of many web
 application frameworks, and informed by years of wrestling with
 blockchain state machines. More directly, it is based on the
@@ -52,11 +50,11 @@ For more details on the design goals, see the
 
 ## Prerequisites
 
-* [golang 1.11.4+](https://golang.org/doc/install)
+* [Go](https://golang.org/doc/install)
 * [docker](https://docs.docker.com/install/)
 * [tendermint 0.31.5](https://github.com/tendermint/tendermint/tree/v0.31.5)
   * [Installation](https://github.com/tendermint/tendermint/blob/master/docs/introduction/install.md)
-  
+
 ## Instructions
 
 First, make sure you have
