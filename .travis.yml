@@ -27,6 +27,7 @@ go:
 # When changing, remember to update MAIN_GO_VERSION below.
 - "1.12.14"
 - "1.13.5"
+- master
 
 
 env:
