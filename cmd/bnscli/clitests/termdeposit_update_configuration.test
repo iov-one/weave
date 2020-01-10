@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+
+bnscli termdeposit-update-configuration \
+		-admin 92066456B2BE7F1934624087D98C203A87F7752C \
+		-owner 22066456B2BE7F1934624087D98C203A87F7752C \
+	| bnscli view
+
+echo
+
+bnscli termdeposit-update-configuration \
+		-admin 12066456B2BE7F1934624087D98C203A87F7752C \
+		-owner 32066456B2BE7F1934624087D98C203A87F7752C \
+	| bnscli termdeposit-with-bonus \
+		-bonus 33 \
+		-period "421h" \
+	| bnscli termdeposit-with-bonus \
+		-bonus 10 \
+		-period "83h" \
+	| bnscli view
+

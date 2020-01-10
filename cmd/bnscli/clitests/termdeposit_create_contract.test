@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -e
+
+bnscli termdeposit-create-contract \
+		-valid-since "2010-03-29 14:45" \
+		-valid-until "2012-04-02 01:01" \
+	| bnscli view

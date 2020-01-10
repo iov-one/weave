@@ -4,6 +4,11 @@
 
 - Go 1.13 is now supported and tested by CI
 - Tendermint upgraded to 0.31.11
+- `bnsd/x/termdeposit` a new extension for fix-term deposit of money and
+  investment. Integrated with `bnsd`. `bnscli` was updated to support new
+  messages.
+- `orm`: native index supports ABCI queries returning all matching entities
+  without pagination.
 
 Breaking change
 

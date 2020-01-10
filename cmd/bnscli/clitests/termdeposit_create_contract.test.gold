@@ -1,0 +1,11 @@
+{
+	"Sum": {
+		"TermdepositCreateDepositContractMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"valid_since": 1269873900,
+			"valid_until": 1333328460
+		}
+	}
+}

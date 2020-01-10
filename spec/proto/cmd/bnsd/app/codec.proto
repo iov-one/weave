@@ -4,6 +4,7 @@ package bnsd;
 
 import "cmd/bnsd/x/account/codec.proto";
 import "cmd/bnsd/x/preregistration/codec.proto";
+import "cmd/bnsd/x/termdeposit/codec.proto";
 import "cmd/bnsd/x/username/codec.proto";
 import "datamigration/codec.proto";
 import "migration/codec.proto";
@@ -87,6 +88,10 @@ message Tx {
     preregistration.RegisterMsg preregistration_register_msg = 96;
     cash.UpdateConfigurationMsg cash_update_configuration_msg = 97;
     txfee.UpdateConfigurationMsg txfee_update_configuration_msg = 98;
+    termdeposit.CreateDepositContractMsg termdeposit_create_deposit_contract_msg = 99;
+    termdeposit.DepositMsg termdeposit_deposit_msg = 100;
+    termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
+    termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
   }
 }
 
@@ -132,6 +137,10 @@ message ExecuteBatchMsg {
       // 96 is used by preregistration
       cash.UpdateConfigurationMsg cash_update_configuration_msg = 97;
       txfee.UpdateConfigurationMsg txfee_update_configuration_msg = 98;
+      termdeposit.CreateDepositContractMsg termdeposit_create_deposit_contract_msg = 99;
+      termdeposit.DepositMsg termdeposit_deposit_msg = 100;
+      termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
+      termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
     }
   }
   repeated Union messages = 1 ;
@@ -164,6 +173,10 @@ message ProposalOptions {
     // 82-95 are reserved for the account extension messages
     cash.UpdateConfigurationMsg cash_update_configuration_msg = 97;
     txfee.UpdateConfigurationMsg txfee_update_configuration_msg = 98;
+    termdeposit.CreateDepositContractMsg termdeposit_create_deposit_contract_msg = 99;
+    termdeposit.DepositMsg termdeposit_deposit_msg = 100;
+    termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
+    termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
   }
 }
 
@@ -192,6 +205,10 @@ message ExecuteProposalBatchMsg {
       // 82-95 are reserved for the account extension messages
       cash.UpdateConfigurationMsg cash_update_configuration_msg = 97;
       txfee.UpdateConfigurationMsg txfee_update_configuration_msg = 98;
+      termdeposit.CreateDepositContractMsg termdeposit_create_deposit_contract_msg = 99;
+      termdeposit.DepositMsg termdeposit_deposit_msg = 100;
+      termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
+      termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
     }
   }
   repeated Union messages = 1 ;

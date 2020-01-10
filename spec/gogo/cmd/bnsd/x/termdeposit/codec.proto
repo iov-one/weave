@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package termdeposit;
+
+import "codec.proto";
+import "coin/codec.proto";
+import "gogoproto/gogo.proto";
+
+// DepositContract is an entity created in order to allow investment deposits.
+// Anyone can deposit funds and therefore sign a deposit contract in order to
+// lock funds and receive appropriate interest after the contract expires.
+message DepositContract {
+  weave.Metadata metadata = 1;
+  // Valid since defines the beginning of when the contract is active.
+  int64 valid_since = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
+  // An expiration date for this deposit contract. After this deadline, all
+  // depositor funds are released and deposit contract is no longer active.
+  int64 valid_until = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
+}
+
+// Deposit represents a single fund deposition. Deposited funds are locked
+// until the contract expiration.
+message Deposit {
+  weave.Metadata metadata = 1;
+  // Deposit contract ID that this funds allocation was made with.
+  bytes depsit_contract_id = 2 [(gogoproto.customname) = "DepositContractID"];
+  // Total amount that was deposited within a contract. Must be IOV tokens.
+  // This information is used when computing each depositor reward. It is used
+  // instead of looking at the actual wallet state, so that it is not possible
+  // to increase the value of a deposit wallet only shortly before the
+  // computation.
+  coin.Coin amount = 3 [(gogoproto.nullable) = false];
+  // Pro-rated interest rate as detailed in the Confluence spec.
+  Frac rate = 4 [(gogoproto.nullable) = false];
+  // Payback is an address that locked funds and interest are send back to once
+  // the contract expires.
+  bytes depositor = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // Released flag is used to determin whether the funds locked by this deposit
+  // were already released or not.
+  bool released = 6;
+}
+
+// A Frac represents a quotient numerator/denominator of arbitrary precision.
+message Frac {
+  int64 numerator = 1;
+  int64 denominator = 2;
+}
+
+// Configuration is a dynamic configuration used by this extension, managed by
+// the functionality provided by gconf package.
+message Configuration {
+  weave.Metadata metadata = 1;
+  // Owner is present to implement gconf.OwnedConfig interface. Owner is
+  // allowed to update the configuration.
+  bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // Admin is an address that is able to create deposit contracts.
+  bytes admin = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  // A list of bonus values applied to each created Deposit instance.
+  repeated DepositBonus bonuses = 4 [(gogoproto.nullable) = false];
+}
+
+// DepositBonus defines a bonus value used to calculate deposit rate. The
+// longer the deposit period, the higher the deposit bonus should be.
+message DepositBonus {
+  // Deposit minimal lockin period required to use this bonus.
+  int32 lockin_period = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
+  // A percentage value of the deposit value; Value of 1 represents 1%.
+  int32 bonus_percentage = 2;
+}
+
+// CreateDepositContractMsg creates a new DepositContract entity. This message
+// must be signed by the admin as configured via the Configuration entity.
+message CreateDepositContractMsg {
+  weave.Metadata metadata = 1;
+  // An activation date for the newly created deposit contract.
+  int64 valid_since = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
+  // An expiration date for the newly created deposit contract.
+  int64 valid_until = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
+}
+
+// DepositMsg can be send by anyone to deposit funds within a non expired
+// contract. Funds will stay locked until that contract expiration date.
+message DepositMsg {
+  weave.Metadata metadata = 1;
+  // Deposit contract ID that this funds allocation was made with. Contract
+  // must not be expired.
+  bytes deposit_contract_id = 2 [(gogoproto.customname) = "DepositContractID"];
+  // Total amount that was deposited within a contract. Must be IOV tokens.
+  coin.Coin amount = 3 [(gogoproto.nullable) = false];
+  // Payback is an address that locked funds and interest are send back to once
+  // the contract expires.
+  bytes depositor = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+}
+
+// ReleaseDepositMsg cause releasing of all funds allocated within given
+// deposit. Related contract must be expired. Anyone can submit this message.
+message ReleaseDepositMsg {
+  weave.Metadata metadata = 1;
+  // ID of the deposit that is to be released.
+  bytes deposit_id = 2 [(gogoproto.customname) = "DepositID"];
+}
+
+message UpdateConfigurationMsg {
+  weave.Metadata metadata = 1;
+  Configuration patch = 2;
+}

@@ -1,0 +1,37 @@
+{
+	"Sum": {
+		"TermdepositUpdateConfigurationMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"patch": {
+				"owner": "22066456B2BE7F1934624087D98C203A87F7752C",
+				"admin": "92066456B2BE7F1934624087D98C203A87F7752C",
+				"bonuses": null
+			}
+		}
+	}
+}
+{
+	"Sum": {
+		"TermdepositUpdateConfigurationMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"patch": {
+				"owner": "32066456B2BE7F1934624087D98C203A87F7752C",
+				"admin": "12066456B2BE7F1934624087D98C203A87F7752C",
+				"bonuses": [
+					{
+						"lockin_period": 1515600,
+						"bonus_percentage": 33
+					},
+					{
+						"lockin_period": 298800,
+						"bonus_percentage": 10
+					}
+				]
+			}
+		}
+	}
+}
