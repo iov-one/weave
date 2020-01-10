@@ -10,6 +10,7 @@ import (
 
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/datamigration"
 	"github.com/iov-one/weave/migration"
@@ -20,6 +21,7 @@ import (
 	"github.com/iov-one/weave/x/gov"
 	"github.com/iov-one/weave/x/msgfee"
 	"github.com/iov-one/weave/x/multisig"
+	"github.com/iov-one/weave/x/txfee"
 	"github.com/iov-one/weave/x/validators"
 )
 
@@ -201,6 +203,36 @@ transaction (ie signatures) are being dropped.
 						CashUpdateConfigurationMsg: m,
 					},
 				})
+			case *txfee.UpdateConfigurationMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_TxfeeUpdateConfigurationMsg{
+						TxfeeUpdateConfigurationMsg: m,
+					},
+				})
+			case *termdeposit.CreateDepositContractMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_TermdepositCreateDepositContractMsg{
+						TermdepositCreateDepositContractMsg: m,
+					},
+				})
+			case *termdeposit.DepositMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_TermdepositDepositMsg{
+						TermdepositDepositMsg: m,
+					},
+				})
+			case *termdeposit.ReleaseDepositMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_TermdepositReleaseDepositMsg{
+						TermdepositReleaseDepositMsg: m,
+					},
+				})
+			case *termdeposit.UpdateConfigurationMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_TermdepositUpdateConfigurationMsg{
+						TermdepositUpdateConfigurationMsg: m,
+					},
+				})
 			}
 		}
 		option.Option = &bnsd.ProposalOptions_ExecuteProposalBatchMsg{
@@ -263,6 +295,26 @@ transaction (ie signatures) are being dropped.
 	case *cash.UpdateConfigurationMsg:
 		option.Option = &bnsd.ProposalOptions_CashUpdateConfigurationMsg{
 			CashUpdateConfigurationMsg: msg,
+		}
+	case *txfee.UpdateConfigurationMsg:
+		option.Option = &bnsd.ProposalOptions_TxfeeUpdateConfigurationMsg{
+			TxfeeUpdateConfigurationMsg: msg,
+		}
+	case *termdeposit.CreateDepositContractMsg:
+		option.Option = &bnsd.ProposalOptions_TermdepositCreateDepositContractMsg{
+			TermdepositCreateDepositContractMsg: msg,
+		}
+	case *termdeposit.DepositMsg:
+		option.Option = &bnsd.ProposalOptions_TermdepositDepositMsg{
+			TermdepositDepositMsg: msg,
+		}
+	case *termdeposit.ReleaseDepositMsg:
+		option.Option = &bnsd.ProposalOptions_TermdepositReleaseDepositMsg{
+			TermdepositReleaseDepositMsg: msg,
+		}
+	case *termdeposit.UpdateConfigurationMsg:
+		option.Option = &bnsd.ProposalOptions_TermdepositUpdateConfigurationMsg{
+			TermdepositUpdateConfigurationMsg: msg,
 		}
 	}
 
