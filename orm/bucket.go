@@ -15,6 +15,8 @@ For inspiration, look at [storm](https://github.com/asdine/storm) built on top o
 package orm
 
 import (
+	"bytes"
+	"encoding/hex"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -151,9 +153,66 @@ func (b bucket) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weav
 	case weave.PrefixQueryMod:
 		prefix := b.DBKey(data)
 		return queryPrefix(db, prefix)
+	case weave.RangeQueryMod:
+		start, end, err := parseQueryRange(data)
+		if err != nil {
+			return nil, errors.Wrap(err, "query data")
+		}
+		if len(end) == 0 {
+			end = bytes.Repeat([]byte{255}, 128) // No limit
+		} else {
+			end = append(end,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+		}
+		it, err := db.Iterator(b.DBKey(start), b.DBKey(end))
+		if err != nil {
+			return nil, err
+		}
+		return consumeIterator(&paginatedIterator{
+			it:        it,
+			remaining: queryRangeLimit,
+		})
 	default:
 		return nil, errors.Wrapf(errors.ErrInput, "unknown mod: %s", mod)
 	}
+}
+
+// parseQueryRange parse given query data and return range query information.
+// Start and/or end can be nil.
+func parseQueryRange(raw []byte) (start, end []byte, err error) {
+	if len(raw) == 0 {
+		return nil, nil, nil
+	}
+
+	switch c := bytes.SplitN(raw, []byte(":"), 3); len(c) {
+	case 1:
+		start, err := decodeHex(c[0])
+		if err != nil {
+			return nil, nil, errors.Wrap(errors.ErrInput, "start")
+		}
+		return start, nil, nil
+	case 2:
+		start, err := decodeHex(c[0])
+		if err != nil {
+			return nil, nil, errors.Wrap(errors.ErrInput, "start")
+		}
+		end, err := decodeHex(c[1])
+		if err != nil {
+			return nil, nil, errors.Wrap(errors.ErrInput, "end")
+		}
+		return start, end, nil
+
+	default:
+		return nil, nil, errors.Wrap(errors.ErrInput, "invalid format")
+	}
+}
+
+func decodeHex(b []byte) ([]byte, error) {
+	if len(b) == 0 {
+		return nil, nil
+	}
+	return hex.DecodeString(string(b))
 }
 
 // DBKey is the full key we store in the db, including prefix

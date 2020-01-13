@@ -2,7 +2,8 @@ package orm
 
 import (
 	"bytes"
-	math "math"
+	"encoding/hex"
+	"math"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -294,6 +295,8 @@ func (i compactIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) (
 			return nil, err
 		}
 		return i.loadRefs(db, refs)
+	case weave.RangeQueryMod:
+		return nil, errors.Wrap(errors.ErrHuman, "not implemented: "+mod)
 	default:
 		return nil, errors.Wrap(errors.ErrHuman, "not implemented: "+mod)
 	}
@@ -606,8 +609,85 @@ func (ix *nativeIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) 
 			}
 		}
 		return models, nil
+	case weave.RangeQueryMod:
+		// Start is the value that was indexed,
+		// Offset is the referenced by this index entity ID,
+		// End is the end indexed value. Often times using end filter
+		// may make no sense, because you cannot know how the index
+		// value is being built.
+		start, offset, end, err := parseIndexQueryRange(data)
+		if err != nil {
+			return nil, errors.Wrap(err, "query data")
+		}
+		if len(end) == 0 {
+			end = bytes.Repeat([]byte{255}, 128) // No limit
+		}
+
+		startKeyChunks := [][]byte{[]byte(ix.name)}
+		if len(offset) > 0 {
+			// If ofset is provided, start must be inserted first,
+			// even if it is nil.
+			startKeyChunks = append(startKeyChunks, start, offset)
+		} else if len(start) > 0 {
+			startKeyChunks = append(startKeyChunks, start)
+		}
+		startKey, err := packNativeIdxKey(startKeyChunks)
+		if err != nil {
+			return nil, errors.Wrap(err, "range start key")
+		}
+		endKey, err := packNativeIdxKey([][]byte{[]byte(ix.name), end})
+		if err != nil {
+			return nil, errors.Wrap(err, "range end key")
+		}
+		it, err := db.Iterator(startKey, endKey)
+		if err != nil {
+			return nil, errors.Wrap(err, "iterator")
+		}
+		return consumeIterator(&paginatedIterator{
+			it:        &nativeIndexIterator{dbit: it},
+			remaining: queryRangeLimit,
+		})
 	default:
 		return nil, errors.Wrap(errors.ErrHuman, "not implemented: "+mod)
+	}
+}
+
+// parseIndexQueryRange parse given query data and return range query information.
+// Start and/or end can be nil.
+// Start, end and offset must be hex encoded.
+// Format is <start>[:<offset>[:<end>]] for example:
+//   <start>
+//   <start>:<offset>
+//   <start>:<offset>:
+//   <start>:<offset>:<end>
+//   <start>::<end>
+//   ::<end>
+func parseIndexQueryRange(raw []byte) (start, offset, end []byte, err error) {
+	if len(raw) == 0 {
+		return nil, nil, nil, nil
+	}
+
+	var decErr error // Global decoding error
+	decodeHex := func(b []byte) []byte {
+		if b == nil {
+			return nil
+		}
+		dst := make([]byte, hex.DecodedLen(len(b)))
+		if _, err := hex.Decode(dst, b); err != nil {
+			decErr = errors.Wrap(errors.ErrInput, "not hex data")
+		}
+		return dst
+	}
+
+	switch c := bytes.SplitN(raw, []byte(":"), 4); len(c) {
+	case 1:
+		return decodeHex(raw), nil, nil, decErr
+	case 2:
+		return decodeHex(c[0]), decodeHex(c[1]), nil, decErr
+	case 3:
+		return decodeHex(c[0]), decodeHex(c[1]), decodeHex(c[2]), decErr
+	default:
+		return nil, nil, nil, errors.Wrap(errors.ErrInput, "invalid format")
 	}
 }
 
@@ -634,7 +714,7 @@ func (it *nativeIndexIterator) Next() ([]byte, []byte, error) {
 	return chunks[len(chunks)-1], nil, nil
 }
 
-// packNativeIndexKey serialize a native index key from a set of values to a
+// packNativeIdx serialize a native index key from a set of values to a
 // single key. This process can be reversed using unpackNativeIdxKey function.
 //
 // Native index key is a byte array. After the same for every native index

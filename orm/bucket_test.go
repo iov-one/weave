@@ -2,6 +2,7 @@ package orm
 
 import (
 	"bytes"
+	"encoding/hex"
 	"reflect"
 	"testing"
 
@@ -515,5 +516,163 @@ func assertSameOps(t testing.TB, a, b []store.Op) {
 		if !bytes.Equal(opa.Key(), opb.Key()) {
 			t.Fatalf("different key at index %d: %X vs %X", i, opa.Key(), opb.Key())
 		}
+	}
+}
+
+func TestParseQueryRange(t *testing.T) {
+	hexit := func(s string) string {
+		return hex.EncodeToString([]byte(s))
+	}
+
+	cases := map[string]struct {
+		Raw   string
+		Start string
+		End   string
+		Err   *errors.Error
+	}{
+		"nil": {
+			Raw:   "",
+			Start: "",
+			End:   "",
+		},
+		"empty": {
+			Raw:   "",
+			Start: "",
+			End:   "",
+		},
+		"only start": {
+			Raw:   hexit("4d6f2031332e204a616e2"),
+			Start: hexit("4d6f2031332e204a616e2"),
+			End:   "",
+		},
+		"only start with separator": {
+			Raw:   hexit("4d6f2031332e204a616e2") + ":",
+			Start: hexit("4d6f2031332e204a616e2"),
+			End:   "",
+		},
+		"only end": {
+			Raw:   ":" + hexit("4d6f2031332e204a616e2"),
+			Start: "",
+			End:   hexit("4d6f2031332e204a616e2"),
+		},
+		"start and end": {
+			Raw:   hexit("4d6f2031332") + ":" + hexit("e204a616e2"),
+			Start: hexit("4d6f2031332"),
+			End:   hexit("e204a616e2"),
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			start, end, err := parseQueryRange([]byte(tc.Raw))
+			if hex.EncodeToString(start) != tc.Start {
+				t.Errorf("unexpected start: %q", start)
+			}
+			if hex.EncodeToString(end) != tc.End {
+				t.Errorf("unexpected end: %q", end)
+			}
+			if !tc.Err.Is(err) {
+				t.Errorf("unexpected error: %+v", err)
+			}
+		})
+	}
+}
+
+func TestBucketRangeQueryMod(t *testing.T) {
+	db := store.MemStore()
+
+	defer withQueryRangeLimit(3)()
+
+	b := NewBucket("mycounter", &Counter{})
+
+	keys := []string{
+		"000011",
+		"000012",
+		"000021",
+		"000022",
+		"000023",
+		"000024",
+		"000030",
+	}
+
+	for _, key := range keys {
+		o := NewSimpleObj([]byte(key), &Counter{})
+		if err := b.Save(db, o); err != nil {
+			t.Fatalf("cannot save: %+v", err)
+		}
+	}
+
+	hexit := func(s string) string {
+		return hex.EncodeToString([]byte(s))
+	}
+
+	cases := map[string]struct {
+		Data     string
+		WantErr  *errors.Error
+		WantKeys []string
+	}{
+		"empty data": {
+			Data:     "",
+			WantKeys: []string{"mycounter:000011", "mycounter:000012", "mycounter:000021"},
+		},
+		"only start": {
+			Data:     hexit("0000"),
+			WantKeys: []string{"mycounter:000011", "mycounter:000012", "mycounter:000021"},
+		},
+		"only end": {
+			Data:     ":" + hexit("000012"),
+			WantKeys: []string{"mycounter:000011", "mycounter:000012"},
+		},
+		"start and end": {
+			Data:     hexit("000022") + ":" + hexit("000023"),
+			WantKeys: []string{"mycounter:000022", "mycounter:000023"},
+		},
+		"only end value": {
+			Data:     ":" + hexit("000"),
+			WantKeys: nil,
+		},
+		"start outside of data range": {
+			Data:     hexit("9") + ":",
+			WantKeys: nil,
+		},
+		"end before start": {
+			Data:     hexit("00001") + ":" + hexit("0000"),
+			WantKeys: nil,
+		},
+		"start value is inclusive": {
+			Data:     hexit("000011") + ":" + hexit("00002"),
+			WantKeys: []string{"mycounter:000011", "mycounter:000012"},
+		},
+		"end value is exclusive": {
+			Data:     hexit("00001") + ":" + hexit("00002"),
+			WantKeys: []string{"mycounter:000011", "mycounter:000012"},
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			result, err := b.Query(db, weave.RangeQueryMod, []byte(tc.Data))
+			if !tc.WantErr.Is(err) {
+				t.Fatalf("unexpected error: %+v", err)
+			}
+			assertModelKeys(t, tc.WantKeys, result)
+		})
+	}
+}
+
+func assertModelKeys(t testing.TB, wantKeys []string, models []weave.Model) {
+	t.Helper()
+
+	var keys []string
+	for _, m := range models {
+		keys = append(keys, string(m.Key))
+	}
+
+	if got, want := len(models), len(wantKeys); want != got {
+		t.Errorf("want %d keys, got %d", want, got)
+	}
+
+	if !reflect.DeepEqual(keys, wantKeys) {
+		t.Fatalf("got unexpected models: %q", keys)
 	}
 }
