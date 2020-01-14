@@ -5,8 +5,9 @@
 - A new query mod `range` that allows to query for items between certain rage.
   Result set size is always limited which makes this query suitable for public
   API.
-- Go 1.13 is now supported and tested by CI
-- Tendermint upgraded to 0.31.11
+- a new application `cmd/bnsapi` was added.
+- Go 1.13 is now supported and tested by CI.
+- Tendermint upgraded to 0.31.11.
 - `bnsd/x/termdeposit` a new extension for fix-term deposit of money and
   investment. Integrated with `bnsd`. `bnscli` was updated to support new
   messages.
@@ -15,7 +16,7 @@
 
 Breaking change
 
-- minimal Go version is now 1.12.14
+- minimal Go version is now 1.12.14.
 
 
 ## 0.25.1
