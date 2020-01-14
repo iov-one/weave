@@ -60,6 +60,7 @@ func (m *Deposit) Validate() error {
 	}
 	errs = errors.AppendField(errs, "Rate", m.Rate.Validate())
 	errs = errors.AppendField(errs, "Depositor", m.Depositor.Validate())
+	errs = errors.AppendField(errs, "CreatedAt", m.CreatedAt.Validate())
 	return errs
 }
 

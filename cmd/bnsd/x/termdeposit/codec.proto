@@ -38,6 +38,8 @@ message Deposit {
   // Released flag is used to determin whether the funds locked by this deposit
   // were already released or not.
   bool released = 6;
+  // CreatedAt is set to the wall clock value at the deposit creation time.
+  int64 created_at = 7 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
 }
 
 // A Frac represents a quotient numerator/denominator of arbitrary precision.

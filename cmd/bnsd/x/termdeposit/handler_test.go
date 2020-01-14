@@ -181,6 +181,14 @@ func TestUseCases(t *testing.T) {
 			},
 			AfterTest: func(t *testing.T, db weave.KVStore) {
 				assertFunds(t, db, bobCond.Address(), coin.NewCoin(99, 0, "IOV"))
+
+				var d Deposit
+				if err := NewDepositBucket().One(db, weavetest.SequenceID(2), &d); err != nil {
+					t.Fatalf("cannot get deposit: %s", err)
+				}
+				if d.CreatedAt != now+1 {
+					t.Fatalf("invalid created at time: %d != %d", d.CreatedAt, now+1)
+				}
 			},
 		},
 		"deposit cannot be created for a contract that is not yet active": {

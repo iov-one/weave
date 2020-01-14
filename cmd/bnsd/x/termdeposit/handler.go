@@ -146,6 +146,7 @@ func (h *depositHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.T
 		Amount:            msg.Amount,
 		Depositor:         msg.Depositor,
 		Released:          false,
+		CreatedAt:         weave.AsUnixTime(now),
 	}
 	if _, err := h.deposits.Put(db, key, &deposit); err != nil {
 		return nil, errors.Wrap(err, "store deposit")
