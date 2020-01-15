@@ -478,11 +478,11 @@ const nativeIdxPrefix = "_x."
 // NewNativeIndex returns an index implementation that is using a database
 // native storage and query in order to maintain and provide access to an
 // index.
-func NewNativeIndex(name string, indexer MultiKeyIndexer, refKey func([]byte) []byte) Index {
+func NewNativeIndex(name string, indexer MultiKeyIndexer, dbKey func([]byte) []byte) Index {
 	return &nativeIndex{
 		name:    name,
 		indexer: indexer,
-		refKey:  refKey,
+		dbKey:   dbKey,
 	}
 }
 
@@ -491,9 +491,9 @@ func NewNativeIndex(name string, indexer MultiKeyIndexer, refKey func([]byte) []
 type nativeIndex struct {
 	name    string
 	indexer MultiKeyIndexer
-	// refKey is a function that for given entity ID returns that entity
+	// dbKey is a function that for given entity ID returns that entity
 	// database key.
-	refKey func([]byte) []byte
+	dbKey func([]byte) []byte
 }
 
 func (ix *nativeIndex) Name() string {
@@ -587,7 +587,12 @@ func (ix *nativeIndex) Keys(db weave.ReadOnlyKVStore, value []byte) weave.Iterat
 		return &failedIterator{err: err}
 	}
 
-	return &nativeIndexIterator{dbit: it}
+	return &nativeIndexIterator{
+		dbit: it,
+		// Keys method must return keys not prefixed by the bucket
+		// name.
+		dbKey: func(b []byte) []byte { return b },
+	}
 }
 
 func (ix *nativeIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weave.Model, error) {
@@ -599,7 +604,7 @@ func (ix *nativeIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) 
 		}
 		models := make([]weave.Model, len(keys))
 		for i, key := range keys {
-			value, err := db.Get(ix.refKey(key))
+			value, err := db.Get(ix.dbKey(key))
 			if err != nil {
 				return nil, errors.Wrapf(err, "cannot get %q value for %q", i, key)
 			}
@@ -645,9 +650,8 @@ func (ix *nativeIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) 
 		}
 		return consumeIterator(&paginatedIterator{
 			it: &valueFetchingIterator{
-				db:     db,
-				it:     &nativeIndexIterator{dbit: it},
-				refKey: ix.refKey,
+				db: db,
+				it: &nativeIndexIterator{dbit: it, dbKey: ix.dbKey},
 			},
 			remaining: queryRangeLimit,
 		})
@@ -660,9 +664,8 @@ func (ix *nativeIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) 
 // returned key. This should be used together with nativeIndexIterator in order
 // to return not only an entity key but also its value.
 type valueFetchingIterator struct {
-	db     weave.ReadOnlyKVStore
-	it     weave.Iterator
-	refKey func([]byte) []byte
+	db weave.ReadOnlyKVStore
+	it weave.Iterator
 }
 
 func (v *valueFetchingIterator) Next() (key []byte, value []byte, err error) {
@@ -670,7 +673,7 @@ func (v *valueFetchingIterator) Next() (key []byte, value []byte, err error) {
 	if err != nil {
 		return key, val, err
 	}
-	val, err = v.db.Get(v.refKey(key))
+	val, err = v.db.Get(key)
 	return key, val, err
 }
 
@@ -721,7 +724,8 @@ func parseIndexQueryRange(raw []byte) (start, offset, end []byte, err error) {
 // indexed entities keys. It provides an interface that returns only the
 // relevant data, hiding from the user native index implementation details.
 type nativeIndexIterator struct {
-	dbit weave.Iterator
+	dbit  weave.Iterator
+	dbKey func([]byte) []byte
 }
 
 func (it *nativeIndexIterator) Release() {
@@ -737,7 +741,7 @@ func (it *nativeIndexIterator) Next() ([]byte, []byte, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "unpack native index key")
 	}
-	return chunks[len(chunks)-1], nil, nil
+	return it.dbKey(chunks[len(chunks)-1]), nil, nil
 }
 
 // packNativeIdx serialize a native index key from a set of values to a

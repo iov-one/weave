@@ -500,7 +500,7 @@ func TestCompactIndexImplementation(t *testing.T) {
 
 func TestNativeIndexImplementation(t *testing.T) {
 	testIndexImplementation(t, func(fn MultiKeyIndexer) Index {
-		return NewNativeIndex("myindex", fn, nil)
+		return NewNativeIndex("myindex", fn, func(b []byte) []byte { return b })
 	})
 }
 
@@ -854,17 +854,21 @@ func TestNativeIndexRangeQuery(t *testing.T) {
 			if !tc.Err.Is(err) {
 				t.Fatalf("unexpected error: %+v", err)
 			}
-			assertModelIDs(t, tc.WantIDs, result)
+			assertModelIDs(t, "mycounters:", tc.WantIDs, result)
 		})
 	}
 }
 
-func assertModelIDs(t testing.TB, wantIDs []int64, models []weave.Model) {
+func assertModelIDs(t testing.TB, keyPrefix string, wantIDs []int64, models []weave.Model) {
 	t.Helper()
 
 	var ids []int64
 	for _, m := range models {
-		ids = append(ids, decodeSequence(m.Key))
+		if !bytes.HasPrefix(m.Key, []byte(keyPrefix)) {
+			t.Fatalf("key does not have %q prefix: %q", keyPrefix, m.Key)
+		}
+		key := m.Key[len(keyPrefix):]
+		ids = append(ids, decodeSequence(key))
 	}
 
 	if got, want := len(models), len(wantIDs); want != got {
