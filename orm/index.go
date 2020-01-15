@@ -644,12 +644,38 @@ func (ix *nativeIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) 
 			return nil, errors.Wrap(err, "iterator")
 		}
 		return consumeIterator(&paginatedIterator{
-			it:        &nativeIndexIterator{dbit: it},
+			it: &valueFetchingIterator{
+				db:     db,
+				it:     &nativeIndexIterator{dbit: it},
+				refKey: ix.refKey,
+			},
 			remaining: queryRangeLimit,
 		})
 	default:
 		return nil, errors.Wrap(errors.ErrHuman, "not implemented: "+mod)
 	}
+}
+
+// valueFetchingIterator is an iterator wrapper that fetch value for each
+// returned key. This should be used together with nativeIndexIterator in order
+// to return not only an entity key but also its value.
+type valueFetchingIterator struct {
+	db     weave.ReadOnlyKVStore
+	it     weave.Iterator
+	refKey func([]byte) []byte
+}
+
+func (v *valueFetchingIterator) Next() (key []byte, value []byte, err error) {
+	key, val, err := v.it.Next()
+	if err != nil {
+		return key, val, err
+	}
+	val, err = v.db.Get(v.refKey(key))
+	return key, val, err
+}
+
+func (v *valueFetchingIterator) Release() {
+	v.it.Release()
 }
 
 // parseIndexQueryRange parse given query data and return range query information.

@@ -876,3 +876,38 @@ func assertModelIDs(t testing.TB, wantIDs []int64, models []weave.Model) {
 		t.Fatalf("got unexpected models: %d", ids)
 	}
 }
+
+func TestNativeIndexRangeQueryReturnValues(t *testing.T) {
+	db := store.MemStore()
+
+	b := NewModelBucket("mycounters", &Counter{},
+		WithNativeIndex("fixed", func(Object) ([][]byte, error) {
+			return [][]byte{[]byte("foo")}, nil
+		}),
+	)
+
+	for i := 0; i < 10; i++ {
+		if _, err := b.Put(db, nil, &Counter{Count: int64(i)}); err != nil {
+			t.Fatalf("cannot insert counter: %s", err)
+		}
+	}
+
+	idx, err := b.Index("fixed")
+	if err != nil {
+		t.Fatalf("index: %+v", err)
+	}
+	result, err := idx.Query(db, weave.RangeQueryMod, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
+
+	for i, kv := range result {
+		var c Counter
+		if err := c.Unmarshal(kv.Value); err != nil {
+			t.Fatalf("cannot unmarshal %d: %s", i, err)
+		}
+		if c.Count != int64(i) {
+			t.Errorf("expected %d, got %d (%q)", i, c.Count, kv.Key)
+		}
+	}
+}
