@@ -9,8 +9,15 @@ const (
 	KeyQueryMod = ""
 	// PrefixQueryMod means to query for anything with this prefix
 	PrefixQueryMod = "prefix"
-	// RangeQueryMod means to expect complex range query
-	// TODO: implement
+	// RangeQueryMod means to expect complex range query.
+	//
+	// Using query data, it is possible to declare start and end of a
+	// query. Each result is limited to certain amount of results.
+	// For bucket range query, data format is <start>[:<end>]
+	// For index queries, format is  <start>[:<offset>[:<end>]]
+	// Start is inclusive, end is exclusive. All values must be hex
+	// encoded.
+	// See each implementation for more details.
 	RangeQueryMod = "range"
 )
 

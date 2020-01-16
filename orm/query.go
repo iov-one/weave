@@ -64,3 +64,24 @@ func queryPrefix(db weave.ReadOnlyKVStore, prefix []byte) ([]weave.Model, error)
 	}
 	return consumeIterator(iter)
 }
+
+var queryRangeLimit = 50
+
+// paginatedIterator wraps an iterator and returns only first X results.
+// limitedIterator name is already taken.
+type paginatedIterator struct {
+	it        weave.Iterator
+	remaining int
+}
+
+func (i *paginatedIterator) Next() (key []byte, value []byte, err error) {
+	if i.remaining == 0 {
+		return nil, nil, errors.ErrIteratorDone
+	}
+	i.remaining--
+	return i.it.Next()
+}
+
+func (i *paginatedIterator) Release() {
+	i.it.Release()
+}

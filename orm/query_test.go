@@ -80,3 +80,13 @@ func TestQueryPrefix(t *testing.T) {
 		})
 	}
 }
+
+// withQueryRangeLimit set given limit for all range queries. Callback reset it
+// back to the original value.
+func withQueryRangeLimit(limit int) func() {
+	original := queryRangeLimit
+	queryRangeLimit = limit
+	return func() {
+		queryRangeLimit = original
+	}
+}

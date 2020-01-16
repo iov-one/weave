@@ -2,6 +2,7 @@ package orm
 
 import (
 	"bytes"
+	"encoding/hex"
 	stderrors "errors"
 	"fmt"
 	"reflect"
@@ -499,7 +500,7 @@ func TestCompactIndexImplementation(t *testing.T) {
 
 func TestNativeIndexImplementation(t *testing.T) {
 	testIndexImplementation(t, func(fn MultiKeyIndexer) Index {
-		return NewNativeIndex("myindex", fn, nil)
+		return NewNativeIndex("myindex", fn, func(b []byte) []byte { return b })
 	})
 }
 
@@ -666,6 +667,251 @@ func iteratorKeys(it weave.Iterator) ([][]byte, error) {
 			return res, nil
 		default:
 			return res, err
+		}
+	}
+}
+
+func TestParseIndexQueryRange(t *testing.T) {
+	hexit := func(s string) string {
+		return hex.EncodeToString([]byte(s))
+	}
+
+	cases := map[string]struct {
+		Raw    string
+		Start  string
+		Offset string
+		End    string
+		Err    *errors.Error
+	}{
+		"nil": {
+			Raw:    "",
+			Start:  "",
+			Offset: "",
+			End:    "",
+		},
+		"empty": {
+			Raw:    "",
+			Start:  "",
+			Offset: "",
+			End:    "",
+		},
+		"only start": {
+			Raw:    hexit("4d6f2031332e204a616e2"),
+			Start:  hexit("4d6f2031332e204a616e2"),
+			Offset: "",
+			End:    "",
+		},
+		"only start with separator": {
+			Raw:    hexit("4d6f2031332e204a616e2") + ":",
+			Start:  hexit("4d6f2031332e204a616e2"),
+			Offset: "",
+			End:    "",
+		},
+		"only end": {
+			Raw:    "::" + hexit("4d6f2031332e204a616e2"),
+			Start:  "",
+			Offset: "",
+			End:    hexit("4d6f2031332e204a616e2"),
+		},
+		"only offset": {
+			Raw:    ":" + hexit("4d6f2031332e204a616e2"),
+			Start:  "",
+			Offset: hexit("4d6f2031332e204a616e2"),
+			End:    "",
+		},
+		"only offset with two separators": {
+			Raw:    ":" + hexit("4d6f2031332e204a616e2") + ":",
+			Start:  "",
+			Offset: hexit("4d6f2031332e204a616e2"),
+			End:    "",
+		},
+		"start and offset": {
+			Raw:    hexit("4d6f2031332") + ":" + hexit("e204a616e2"),
+			Start:  hexit("4d6f2031332"),
+			Offset: hexit("e204a616e2"),
+			End:    "",
+		},
+		"start and end": {
+			Raw:    hexit("4d6f2031332") + "::" + hexit("e204a616e2"),
+			Start:  hexit("4d6f2031332"),
+			Offset: "",
+			End:    hexit("e204a616e2"),
+		},
+		"start offset and end": {
+			Raw:    hexit("4d6f2") + ":" + hexit("031332") + ":" + hexit("e204a616e2"),
+			Start:  hexit("4d6f2"),
+			Offset: hexit("031332"),
+			End:    hexit("e204a616e2"),
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			start, offset, end, err := parseIndexQueryRange([]byte(tc.Raw))
+			if hex.EncodeToString(start) != tc.Start {
+				t.Errorf("unexpected start: %q", start)
+			}
+			if hex.EncodeToString(end) != tc.End {
+				t.Errorf("unexpected end: %q", end)
+			}
+			if hex.EncodeToString(offset) != tc.Offset {
+				t.Errorf("unexpected offset: %q", end)
+			}
+			if !tc.Err.Is(err) {
+				t.Errorf("unexpected error: %+v", err)
+			}
+		})
+	}
+}
+
+func TestNativeIndexRangeQuery(t *testing.T) {
+	db := store.MemStore()
+
+	b := NewModelBucket("mycounters", &Counter{},
+		WithNativeIndex("tix", func(o Object) ([][]byte, error) {
+			c := o.Value().(*Counter).Count
+			return [][]byte{[]byte(fmt.Sprint(c))}, nil
+		}),
+	)
+
+	for i := 1; i < 100; i++ {
+		count := int64(i % 20)
+		if _, err := b.Put(db, nil, &Counter{Count: count}); err != nil {
+			t.Fatalf("cannot insert counter: %s", err)
+		}
+	}
+
+	defer withQueryRangeLimit(3)()
+
+	hexSeq := func(id uint64) string {
+		return hex.EncodeToString(weavetest.SequenceID(id))
+	}
+	hexInt := func(i int) string {
+		return hex.EncodeToString([]byte(fmt.Sprint(i)))
+	}
+
+	cases := map[string]struct {
+		Data    string
+		WantIDs []int64
+		Err     *errors.Error
+	}{
+		"empty query data": {
+			Data:    "",
+			WantIDs: []int64{20, 40, 60}, // First 3 that indexed value is 0
+		},
+		"start is inclusive": {
+			Data:    hexInt(3),
+			WantIDs: []int64{3, 23, 43},
+		},
+		"query start from 3rd id and use entity offset": {
+			Data:    hexInt(3) + ":" + hexSeq(43) + ":",
+			WantIDs: []int64{43, 63, 83},
+		},
+		"query start from 3rd id and use entity offset that exeeds start value index": {
+			Data: hexInt(3) + ":" + hexSeq(83) + ":",
+			WantIDs: []int64{
+				// 83 is matched for value 3 and provided offset
+				83,
+				// 4 and 24 are matching because all references
+				// for value 3 were returned and 4 is the next
+				// matching value.
+				4, 24,
+			},
+		},
+		"use entity offset that exeeds start value index with an end to limit to only single index value results": {
+			Data:    hexInt(3) + ":" + hexSeq(83) + ":" + hexInt(4),
+			WantIDs: []int64{83},
+		},
+		"end limit is exclusive": {
+			Data:    hexInt(5) + "::" + hexInt(5),
+			WantIDs: nil,
+		},
+		"end limit is exclusive even if offset is provided": {
+			Data:    hexInt(5) + ":" + hexSeq(20) + ":" + hexInt(5),
+			WantIDs: nil,
+		},
+		"start outside of indexed values": {
+			Data:    hexInt(100000),
+			WantIDs: nil,
+		},
+		"start after end": {
+			Data:    hexInt(99) + "::" + hexInt(1),
+			WantIDs: nil,
+		},
+		"non hex encoded data": {
+			Data: "qwerty",
+			Err:  errors.ErrInput,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			idx, err := b.Index("tix")
+			if err != nil {
+				t.Fatalf("index: %+v", err)
+			}
+			result, err := idx.Query(db, weave.RangeQueryMod, []byte(tc.Data))
+			if !tc.Err.Is(err) {
+				t.Fatalf("unexpected error: %+v", err)
+			}
+			assertModelIDs(t, "mycounters:", tc.WantIDs, result)
+		})
+	}
+}
+
+func assertModelIDs(t testing.TB, keyPrefix string, wantIDs []int64, models []weave.Model) {
+	t.Helper()
+
+	var ids []int64
+	for _, m := range models {
+		if !bytes.HasPrefix(m.Key, []byte(keyPrefix)) {
+			t.Fatalf("key does not have %q prefix: %q", keyPrefix, m.Key)
+		}
+		key := m.Key[len(keyPrefix):]
+		ids = append(ids, decodeSequence(key))
+	}
+
+	if got, want := len(models), len(wantIDs); want != got {
+		t.Errorf("want %d IDs, got %d", want, got)
+	}
+
+	if !reflect.DeepEqual(ids, wantIDs) {
+		t.Logf("want ids: %d", wantIDs)
+		t.Fatalf("got unexpected models: %d", ids)
+	}
+}
+
+func TestNativeIndexRangeQueryReturnValues(t *testing.T) {
+	db := store.MemStore()
+
+	b := NewModelBucket("mycounters", &Counter{},
+		WithNativeIndex("fixed", func(Object) ([][]byte, error) {
+			return [][]byte{[]byte("foo")}, nil
+		}),
+	)
+
+	for i := 0; i < 10; i++ {
+		if _, err := b.Put(db, nil, &Counter{Count: int64(i)}); err != nil {
+			t.Fatalf("cannot insert counter: %s", err)
+		}
+	}
+
+	idx, err := b.Index("fixed")
+	if err != nil {
+		t.Fatalf("index: %+v", err)
+	}
+	result, err := idx.Query(db, weave.RangeQueryMod, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %+v", err)
+	}
+
+	for i, kv := range result {
+		var c Counter
+		if err := c.Unmarshal(kv.Value); err != nil {
+			t.Fatalf("cannot unmarshal %d: %s", i, err)
+		}
+		if c.Count != int64(i) {
+			t.Errorf("expected %d, got %d (%q)", i, c.Count, kv.Key)
 		}
 	}
 }
