@@ -11,9 +11,102 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave/cmd/bnsd/x/account"
+	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 )
+
+type TermdepositContractsHandler struct {
+	bns BnsClient
+}
+
+func (h *TermdepositContractsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	offset := extractIDFromKey(r.URL.Query().Get("offset"))
+	it := ABCIRangeQuery(r.Context(), h.bns, "/depositcontracts", fmt.Sprintf("%x:", offset))
+
+	var objects []KeyValue
+fetchContracts:
+	for {
+		var c termdeposit.DepositContract
+		switch key, err := it.Next(&c); {
+		case err == nil:
+			objects = append(objects, KeyValue{
+				Key:   key,
+				Value: &c,
+			})
+			if len(objects) == paginationMaxItems {
+				break fetchContracts
+			}
+		case errors.ErrIteratorDone.Is(err):
+			break fetchContracts
+		default:
+			log.Printf("account ABCI query: %s", err)
+			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			return
+		}
+	}
+
+	JSONResp(w, http.StatusOK, struct {
+		Objects []KeyValue `json:"objects"`
+	}{
+		Objects: objects,
+	})
+}
+
+type TermdepositDepositsHandler struct {
+	bns BnsClient
+}
+
+func (h *TermdepositDepositsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// GET /termdeposit/deposits?depositor=<hex address>
+	// GET /termdeposit/deposits?contract_id=<contract ID>
+	q := r.URL.Query()
+
+	if !atMostOne(q, "depositor", "contract_id") {
+		JSONErr(w, http.StatusBadRequest, "At most one filter can be used at a time.")
+		return
+	}
+
+	var it ABCIIterator
+	offset := extractIDFromKey(q.Get("offset"))
+	if d := q.Get("depositor"); len(d) > 0 {
+		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits/depositor", fmt.Sprintf("%s:%x:", d, offset))
+	} else if c := q.Get("contract_id"); len(c) > 0 {
+		// TODO encode to sequence
+		cid := []byte("TOIDO")
+		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits/contract", fmt.Sprintf("%x:%x:", cid, offset))
+	} else {
+		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits", fmt.Sprintf("%x:", offset))
+	}
+
+	var objects []KeyValue
+fetchDeposits:
+	for {
+		var d termdeposit.Deposit
+		switch key, err := it.Next(&d); {
+		case err == nil:
+			objects = append(objects, KeyValue{
+				Key:   key,
+				Value: &d,
+			})
+			if len(objects) == paginationMaxItems {
+				break fetchDeposits
+			}
+		case errors.ErrIteratorDone.Is(err):
+			break fetchDeposits
+		default:
+			log.Printf("account ABCI query: %s", err)
+			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			return
+		}
+	}
+
+	JSONResp(w, http.StatusOK, struct {
+		Objects []KeyValue `json:"objects"`
+	}{
+		Objects: objects,
+	})
+}
 
 type InfoHandler struct{}
 

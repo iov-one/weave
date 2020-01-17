@@ -56,6 +56,8 @@ func run(conf configuration) error {
 	rt.Handle("/account/domains", &AccountDomainsHandler{bns: bnscli})
 	rt.Handle("/account/accounts", &AccountAccountsHandler{bns: bnscli})
 	rt.Handle("/account/accounts/", &AccountAccountDetailHandler{bns: bnscli})
+	rt.Handle("/termdeposit/contracts", &TermdepositContractsHandler{bns: bnscli})
+	rt.Handle("/termdeposit/deposits", &TermdepositDepositsHandler{bns: bnscli})
 	rt.Handle("/", &DefaultHandler{})
 
 	if err := http.ListenAndServe(conf.HTTP, rt); err != nil {

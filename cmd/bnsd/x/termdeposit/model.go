@@ -66,6 +66,7 @@ func (m *Deposit) Validate() error {
 
 func NewDepositBucket() orm.ModelBucket {
 	b := orm.NewModelBucket("deposit", &Deposit{},
+		orm.WithNativeIndex("depositor", depositDepositor),
 		orm.WithNativeIndex("contract", depositContract),
 	)
 	return migration.NewModelBucket("termdeposit", b)
@@ -77,4 +78,12 @@ func depositContract(o orm.Object) ([][]byte, error) {
 		return nil, errors.Wrap(errors.ErrType, "not a Deposit")
 	}
 	return [][]byte{d.DepositContractID}, nil
+}
+
+func depositDepositor(o orm.Object) ([][]byte, error) {
+	d, ok := o.Value().(*Deposit)
+	if !ok {
+		return nil, errors.Wrap(errors.ErrType, "not a Deposit")
+	}
+	return [][]byte{d.Depositor}, nil
 }
