@@ -147,7 +147,7 @@ func TestAccountAccountssHandler(t *testing.T) {
 func TestAccountAccountssHandlerOffsetAndFilter(t *testing.T) {
 	bns := &bnsClientMock{
 		Results: map[string]abciQueryResponse{
-			"/abci_query?data=%2261646f6d61696e%3A6669727374%3A%22&path=%22%2Faccounts%2Fdomain%3Frange%22": newAbciQueryResponse(t, nil, nil),
+			"/abci_query?data=%2261646f6d61696e%3A36363639373237333734%3A61646f6d61696f%22&path=%22%2Faccounts%2Fdomain%3Frange%22": newAbciQueryResponse(t, nil, nil),
 		},
 	}
 	h := AccountAccountsHandler{bns: bns}
@@ -156,7 +156,7 @@ func TestAccountAccountssHandlerOffsetAndFilter(t *testing.T) {
 	w := httptest.NewRecorder()
 	h.ServeHTTP(w, r)
 
-	assertAPIResponse(t, w, nil)
+	assertAPIResponse(t, w, []KeyValue{})
 }
 
 func TestAccountDomainsHandler(t *testing.T) {
