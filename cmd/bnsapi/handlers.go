@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -81,38 +82,21 @@ type AccountDomainsHandler struct {
 }
 
 func (h *AccountDomainsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-
-	// There is no index available, so we must do a full scan. Any filter
-	// must be done manually.
-	var filters []func([]byte, *account.Domain) bool
-
-	if adminHex := query.Get("admin"); len(adminHex) != 0 {
-		admin, err := hex.DecodeString(adminHex)
-		if err != nil {
-			JSONErr(w, http.StatusBadRequest, "admin filter value must be hex encoded")
-			return
-		}
-		filters = append(filters, func(key []byte, d *account.Domain) bool {
-			return d.Admin.Equals(admin)
-		})
+	var it ABCIIterator
+	q := r.URL.Query()
+	offset := extractIDFromKey(q.Get("offset"))
+	if admin := q.Get("admin"); len(admin) > 0 {
+		it = ABCIRangeQuery(r.Context(), h.bns, "/domains/admin", fmt.Sprintf("%s:%x:", admin, offset))
+	} else {
+		it = ABCIRangeQuery(r.Context(), h.bns, "/domains", fmt.Sprintf("%x:", offset))
 	}
 
-	offset := extractIDFromKey(query.Get("offset"))
-
 	var objects []KeyValue
-	it := ABCIFullRangeQuery(r.Context(), h.bns, "/domains", fmt.Sprintf("%x:", offset))
-
 fetchDomains:
 	for {
 		var model account.Domain
 		switch key, err := it.Next(&model); {
 		case err == nil:
-			for _, match := range filters {
-				if !match(key, &model) {
-					continue fetchDomains
-				}
-			}
 			objects = append(objects, KeyValue{
 				Key:   key,
 				Value: &model,
@@ -135,16 +119,42 @@ fetchDomains:
 	})
 }
 
+type AccountAccountDetailHandler struct {
+	bns BnsClient
+}
+
+func (h *AccountAccountDetailHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	accountKey := lastChunk(r.URL.Path)
+	var acc account.Account
+	switch err := ABCIKeyQuery(r.Context(), h.bns, "/accounts", []byte(accountKey), &acc); {
+	case err == nil:
+		JSONResp(w, http.StatusOK, acc)
+	case errors.ErrNotFound.Is(err):
+		JSONErr(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
+	default:
+		log.Printf("account ABCI query: %s", err)
+		JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+}
+
 type AccountAccountsHandler struct {
 	bns BnsClient
 }
 
 func (h *AccountAccountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var it ABCIIterator
 	q := r.URL.Query()
+
+	if !atMostOne(q, "domain", "owner") {
+		JSONErr(w, http.StatusBadRequest, "At most one filter can be used at a time.")
+		return
+	}
+
+	var it ABCIIterator
 	offset := extractIDFromKey(q.Get("offset"))
-	if domain := q.Get("domain"); len(domain) > 0 {
-		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts/domain", fmt.Sprintf("%x:%x:", domain, offset))
+	if d := q.Get("domain"); len(d) > 0 {
+		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts/domain", fmt.Sprintf("%x:%x:", d, offset))
+	} else if o := q.Get("owner"); len(o) > 0 {
+		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts/owner", fmt.Sprintf("%s:%x:", o, offset))
 	} else {
 		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts", fmt.Sprintf("%x:", offset))
 	}
@@ -176,6 +186,21 @@ fetchAccounts:
 	}{
 		Objects: objects,
 	})
+}
+
+// atMostOne returns true if at most one non empty value from given list of
+// names exists in the query.
+func atMostOne(query url.Values, names ...string) bool {
+	var nonempty int
+	for _, name := range names {
+		if query.Get(name) != "" {
+			nonempty++
+		}
+		if nonempty > 1 {
+			return false
+		}
+	}
+	return true
 }
 
 func extractIDFromKey(key string) []byte {

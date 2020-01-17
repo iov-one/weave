@@ -30,6 +30,7 @@ func (a *Account) Validate() error {
 
 func NewAccountBucket() orm.ModelBucket {
 	b := orm.NewModelBucket("account", &Account{},
+		orm.WithNativeIndex("owner", accountOwner),
 		orm.WithNativeIndex("domain", accountDomain))
 	return migration.NewModelBucket("account", b)
 }
@@ -40,6 +41,14 @@ func accountDomain(o orm.Object) ([][]byte, error) {
 		return nil, errors.Wrap(errors.ErrType, "not an Account")
 	}
 	return [][]byte{[]byte(a.Domain)}, nil
+}
+
+func accountOwner(o orm.Object) ([][]byte, error) {
+	a, ok := o.Value().(*Account)
+	if !ok {
+		return nil, errors.Wrap(errors.ErrType, "not an Account")
+	}
+	return [][]byte{a.Owner}, nil
 }
 
 var _ orm.Model = (*Domain)(nil)
@@ -82,8 +91,17 @@ func validateMsgFees(fees []AccountMsgFee) error {
 }
 
 func NewDomainBucket() orm.ModelBucket {
-	b := orm.NewModelBucket("domain", &Domain{})
+	b := orm.NewModelBucket("domain", &Domain{},
+		orm.WithNativeIndex("admin", domainAdmin))
 	return migration.NewModelBucket("account", b)
+}
+
+func domainAdmin(o orm.Object) ([][]byte, error) {
+	d, ok := o.Value().(*Domain)
+	if !ok {
+		return nil, errors.Wrap(errors.ErrType, "not a Domain")
+	}
+	return [][]byte{d.Admin}, nil
 }
 
 // validateTargets returns an error if given list of blockchain addresses is

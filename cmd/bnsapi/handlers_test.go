@@ -15,6 +15,40 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/account"
 )
 
+func TestAccountAccountDetailHandler(t *testing.T) {
+	bns := &bnsClientMock{
+		Results: map[string]abciQueryResponse{
+			"/abci_query?data=%22foo%2Abar%22&path=%22%2Faccounts%22": newAbciQueryResponse(t,
+				[][]byte{
+					[]byte("foo*bar"),
+				},
+				[]weave.Persistent{
+					&account.Account{
+						Name:   "foo",
+						Domain: "bar",
+					},
+				}),
+		},
+	}
+	h := AccountAccountDetailHandler{bns: bns}
+
+	r, _ := http.NewRequest("GET", "/something/xyz/foo*bar", nil)
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("failed response: %d %s", w.Code, w.Body)
+	}
+
+	var acc account.Account
+	if err := json.NewDecoder(w.Body).Decode(&acc); err != nil {
+		t.Fatalf("cannot decode JSON response: %s", err)
+	}
+	if acc.Name != "foo" || acc.Domain != "bar" {
+		t.Fatalf("unexpected response: %+v", acc)
+	}
+}
+
 func TestHexbytes(t *testing.T) {
 	a := hexbytes("a hexbyte value")
 	raw, err := json.Marshal(a)
@@ -154,58 +188,6 @@ func TestAccountDomainsHandler(t *testing.T) {
 		{
 			Key:   []byte("second"),
 			Value: &account.Domain{Domain: "s"},
-		},
-	})
-}
-
-func TestAccountDomainsHandlerFilter(t *testing.T) {
-	bns := &bnsClientMock{
-		Results: map[string]abciQueryResponse{
-			"/abci_query?data=%22%3A%22&path=%22%2Fdomains%3Frange%22": newAbciQueryResponse(t,
-				[][]byte{
-					[]byte("first"),
-					[]byte("second"),
-					[]byte("third"),
-				},
-				[]weave.Persistent{
-					&account.Domain{Domain: "1", Admin: []byte("a1")},
-					&account.Domain{Domain: "2", Admin: []byte("a2")},
-					&account.Domain{Domain: "3", Admin: []byte("a1")},
-				},
-			),
-			"/abci_query?data=%227468697264%3A%22&path=%22%2Fdomains%3Frange%22": newAbciQueryResponse(t,
-				[][]byte{
-					[]byte("third"),
-					[]byte("fourth"),
-					[]byte("fifth"),
-				},
-				[]weave.Persistent{
-					&account.Domain{Domain: "3", Admin: []byte("a1")},
-					&account.Domain{Domain: "4", Admin: []byte("a1")},
-					&account.Domain{Domain: "5", Admin: []byte("a3")},
-				},
-			),
-			"/abci_query?data=%226669667468%3A%22&path=%22%2Fdomains%3Frange%22": newAbciQueryResponse(t, nil, nil),
-		},
-	}
-	h := AccountDomainsHandler{bns: bns}
-
-	r, _ := http.NewRequest("GET", "/?admin=6131", nil) // admin=a1
-	w := httptest.NewRecorder()
-	h.ServeHTTP(w, r)
-
-	assertAPIResponse(t, w, []KeyValue{
-		{
-			Key:   []byte("first"),
-			Value: &account.Domain{Domain: "1", Admin: []byte("a1")},
-		},
-		{
-			Key:   []byte("third"),
-			Value: &account.Domain{Domain: "3", Admin: []byte("a1")},
-		},
-		{
-			Key:   []byte("fourth"),
-			Value: &account.Domain{Domain: "4", Admin: []byte("a1")},
 		},
 	})
 }

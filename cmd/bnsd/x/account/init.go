@@ -29,13 +29,17 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 
 	var input struct {
 		Domains []struct {
-			Domain string
-			Admin  weave.Address
+			Domain       string             `json:"domain"`
+			Admin        weave.Address      `json:"admin"`
+			ValidUntil   weave.UnixTime     `json:"valid_until"`
+			AccountRenew weave.UnixDuration `json:"account_renew"`
+			HasSuperuser bool               `json:"has_superuser"`
 		}
 		Accounts []struct {
-			Domain string
-			Name   string
-			Owner  weave.Address
+			Domain     string         `json:"domain"`
+			Name       string         `json:"name"`
+			Owner      weave.Address  `json:"owner"`
+			ValidUntil weave.UnixTime `json:"valid_until"`
 		}
 	}
 	switch err := opts.ReadOptions("account", &input); {
@@ -52,19 +56,23 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 	accounts := NewAccountBucket()
 	for i, d := range input.Domains {
 		domain := Domain{
-			Metadata: &weave.Metadata{Schema: 1},
-			Admin:    d.Admin,
-			Domain:   d.Domain,
+			Metadata:     &weave.Metadata{Schema: 1},
+			Admin:        d.Admin,
+			Domain:       d.Domain,
+			ValidUntil:   d.ValidUntil,
+			AccountRenew: d.AccountRenew,
+			HasSuperuser: d.HasSuperuser,
 		}
 		if _, err := domains.Put(kv, []byte(d.Domain), &domain); err != nil {
 			return errors.Wrapf(err, "cannot store %d domain", i)
 		}
 		// Whenever creating a domain an empty account must be created as well.
 		account := Account{
-			Metadata: &weave.Metadata{Schema: 1},
-			Domain:   d.Domain,
-			Owner:    d.Admin,
-			Name:     "",
+			Metadata:   &weave.Metadata{Schema: 1},
+			Domain:     d.Domain,
+			Owner:      d.Admin,
+			Name:       "",
+			ValidUntil: d.ValidUntil,
 		}
 		if _, err := accounts.Put(kv, accountKey("", d.Domain), &account); err != nil {
 			return errors.Wrapf(err, "cannot store %d account", i)
@@ -76,10 +84,11 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 			return errors.Wrap(err, "cannot create account because of missing domain")
 		}
 		account := Account{
-			Metadata: &weave.Metadata{Schema: 1},
-			Domain:   a.Domain,
-			Name:     a.Name,
-			Owner:    a.Owner,
+			Metadata:   &weave.Metadata{Schema: 1},
+			Domain:     a.Domain,
+			Name:       a.Name,
+			Owner:      a.Owner,
+			ValidUntil: a.ValidUntil,
 		}
 		if _, err := accounts.Put(kv, accountKey(a.Name, a.Domain), &account); err != nil {
 			return errors.Wrapf(err, "cannot store %d account", i)

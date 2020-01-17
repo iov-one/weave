@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/iov-one/weave"
 	weaveapp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
@@ -79,6 +80,31 @@ func (e *jsonResponseError) Error() string {
 		return fmt.Sprintf("code %d, %s", e.Code, e.Data)
 	}
 	return fmt.Sprintf("code %d, %s", e.Code, e.Message)
+}
+
+func ABCIKeyQuery(ctx context.Context, c BnsClient, path string, entityKey []byte, destination weave.Persistent) error {
+	v := make(url.Values)
+	v.Add("path", `"`+path+`"`)
+	v.Add("data", `"`+string(entityKey)+`"`)
+	apiPath := "/abci_query?" + v.Encode()
+
+	var abciResponse abciQueryResponse
+	if err := c.Get(ctx, apiPath, &abciResponse); err != nil {
+		return errors.Wrap(err, "response")
+	}
+
+	if len(abciResponse.Response.Value) == 0 {
+		return errors.Wrap(errors.ErrNotFound, "empty response")
+	}
+
+	var values weaveapp.ResultSet
+	if err := values.Unmarshal(abciResponse.Response.Value); err != nil {
+		return errors.Wrap(err, "cannot unmarshal values")
+	}
+	if err := destination.Unmarshal(values.Results[0]); err != nil {
+		return errors.Wrap(err, "cannot unmarshal to destination")
+	}
+	return nil
 }
 
 func ABCIRangeQuery(ctx context.Context, c BnsClient, path string, data string) ABCIIterator {

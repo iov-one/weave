@@ -17,6 +17,8 @@
 Breaking change
 
 - minimal Go version is now 1.12.14.
+- bnsd/x/account: a new `admin` index in Domain bucket
+- bnsd/x/account: a new `owner` index in Account bucket
 
 
 ## 0.25.1
