@@ -18,6 +18,42 @@ import (
 	"github.com/iov-one/weave/orm"
 )
 
+func TestABCIKeyQuery(t *testing.T) {
+	// Run a fake Tendermint API server that will answer to only expected
+	// query requests.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/abci_query" {
+			t.Fatalf("unexpected path: %q", r.URL)
+		}
+		q := r.URL.Query()
+		switch {
+		case q.Get("path") == `"/myentity"` && q.Get("data") == `"entitykey"`:
+			writeServerResponse(t, w, [][]byte{
+				[]byte("0001"),
+			}, []weave.Persistent{
+				&persistentMock{Raw: []byte("content")},
+			})
+		case q.Get("path") == `"/myentity"`:
+			writeServerResponse(t, w, nil, nil)
+		default:
+			t.Fatalf("unknown condition: %q", r.URL)
+		}
+
+	}))
+	defer srv.Close()
+
+	bns := NewHTTPBnsClient(srv.URL)
+
+	dest := persistentMock{Raw: []byte("content")}
+	if err := ABCIKeyQuery(context.Background(), bns, "/myentity", []byte("entitykey"), &dest); err != nil {
+		t.Fatalf("cannot get by key: %v", err)
+	}
+
+	if err := ABCIKeyQuery(context.Background(), bns, "/myentity", []byte("xxxxx"), &dest); !errors.ErrNotFound.Is(err) {
+		t.Fatalf("want ErrNotFound, got %v", err)
+	}
+}
+
 func TestBnsClientDo(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/foo" {
