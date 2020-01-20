@@ -60,6 +60,8 @@ func run(conf configuration) error {
 	rt.Handle("/termdeposit/deposits", &TermdepositDepositsHandler{bns: bnscli})
 	rt.Handle("/multisig/contracts", &MultisigContractsHandler{bns: bnscli})
 	rt.Handle("/escrow/escrows", &EscrowEscrowsHandler{bns: bnscli})
+	rt.Handle("/gov/proposals", &GovProposalsHandler{bns: bnscli})
+	rt.Handle("/gov/votes", &GovVotesHandler{bns: bnscli})
 	rt.Handle("/", &DefaultHandler{})
 
 	if err := http.ListenAndServe(conf.HTTP, rt); err != nil {

@@ -18,8 +18,163 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/escrow"
+	"github.com/iov-one/weave/x/gov"
 	"github.com/iov-one/weave/x/multisig"
 )
+
+type GovProposalsHandler struct {
+	bns BnsClient
+}
+
+func (h *GovProposalsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+
+	if !atMostOne(q, "author", "electorate", "electorate_id") {
+		JSONErr(w, http.StatusBadRequest, "At most one filter can be used at a time.")
+		return
+	}
+
+	var it ABCIIterator
+	offset := extractIDFromKey(q.Get("offset"))
+	if e := q.Get("electorate"); len(e) > 0 {
+		rawAddr, err := hex.DecodeString(e)
+		if err != nil {
+			JSONErr(w, http.StatusBadRequest, "electorate address must be a hex encoded value.")
+			return
+		}
+		end := nextKeyValue(rawAddr)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/proposals/electorate", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+	} else if e := q.Get("electorate_id"); len(e) > 0 {
+		n, err := strconv.ParseInt(e, 10, 64)
+		if err != nil {
+			JSONErr(w, http.StatusBadGateway, "electorate_id must be an integer contract sequence number.")
+			return
+		}
+		start := encodeSequence(uint64(n))
+		end := nextKeyValue(start)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/proposals/electorate", fmt.Sprintf("%x:%x:%x", start, offset, end))
+	} else if s := q.Get("author"); len(s) > 0 {
+		rawAddr, err := hex.DecodeString(s)
+		if err != nil {
+			JSONErr(w, http.StatusBadRequest, "author address must be a hex encoded value.")
+			return
+		}
+		end := nextKeyValue(rawAddr)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/proposals/author", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+	} else {
+		it = ABCIRangeQuery(r.Context(), h.bns, "/proposals", fmt.Sprintf("%x:", offset))
+	}
+
+	objects := make([]KeyValue, 0, paginationMaxItems)
+fetchProposals:
+	for {
+		var p gov.Proposal
+		switch key, err := it.Next(&p); {
+		case err == nil:
+			objects = append(objects, KeyValue{
+				Key:   key,
+				Value: &p,
+			})
+			if len(objects) == paginationMaxItems {
+				break fetchProposals
+			}
+		case errors.ErrIteratorDone.Is(err):
+			break fetchProposals
+		default:
+			log.Printf("gov proposals ABCI query: %s", err)
+			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			return
+		}
+	}
+
+	JSONResp(w, http.StatusOK, struct {
+		Objects []KeyValue `json:"objects"`
+	}{
+		Objects: objects,
+	})
+}
+
+type GovVotesHandler struct {
+	bns BnsClient
+}
+
+func (h *GovVotesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+
+	if !atMostOne(q, "proposal", "proposal_id", "elector", "elector_id") {
+		JSONErr(w, http.StatusBadRequest, "At most one filter can be used at a time.")
+		return
+	}
+
+	var it ABCIIterator
+	offset := extractIDFromKey(q.Get("offset"))
+	if e := q.Get("elector"); len(e) > 0 {
+		rawAddr, err := hex.DecodeString(e)
+		if err != nil {
+			JSONErr(w, http.StatusBadRequest, "elector address must be a hex encoded value.")
+			return
+		}
+		end := nextKeyValue(rawAddr)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/votes/electors", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+	} else if e := q.Get("elector_id"); len(e) > 0 {
+		// TODO - is elector the same as electorate?
+		n, err := strconv.ParseInt(e, 10, 64)
+		if err != nil {
+			JSONErr(w, http.StatusBadGateway, "elector_id must be an integer contract sequence number.")
+			return
+		}
+		start := encodeSequence(uint64(n))
+		end := nextKeyValue(start)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/votes/electors", fmt.Sprintf("%x:%x:%x", start, offset, end))
+	} else if p := q.Get("proposal"); len(p) > 0 {
+		rawAddr, err := hex.DecodeString(p)
+		if err != nil {
+			JSONErr(w, http.StatusBadRequest, "proposal address must be a hex encoded value.")
+			return
+		}
+		end := nextKeyValue(rawAddr)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/votes/proposal", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+	} else if p := q.Get("proposal_id"); len(p) > 0 {
+		n, err := strconv.ParseInt(e, 10, 64)
+		if err != nil {
+			JSONErr(w, http.StatusBadGateway, "proposal_id must be an integer contract sequence number.")
+			return
+		}
+		start := encodeSequence(uint64(n))
+		end := nextKeyValue(start)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/votes/proposal", fmt.Sprintf("%x:%x:%x", start, offset, end))
+	} else {
+		it = ABCIRangeQuery(r.Context(), h.bns, "/votes", fmt.Sprintf("%x:", offset))
+	}
+
+	objects := make([]KeyValue, 0, paginationMaxItems)
+fetchProposals:
+	for {
+		var p gov.Proposal
+		switch key, err := it.Next(&p); {
+		case err == nil:
+			objects = append(objects, KeyValue{
+				Key:   key,
+				Value: &p,
+			})
+			if len(objects) == paginationMaxItems {
+				break fetchProposals
+			}
+		case errors.ErrIteratorDone.Is(err):
+			break fetchProposals
+		default:
+			log.Printf("gov proposals ABCI query: %s", err)
+			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			return
+		}
+	}
+
+	JSONResp(w, http.StatusOK, struct {
+		Objects []KeyValue `json:"objects"`
+	}{
+		Objects: objects,
+	})
+}
 
 type EscrowEscrowsHandler struct {
 	bns BnsClient
