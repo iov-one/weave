@@ -17,6 +17,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
+	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/multisig"
 )
 
@@ -25,34 +26,52 @@ type EscrowEscrowsHandler struct {
 }
 
 func (h *EscrowEscrowsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// GET /escrow/escrows?source=<hex address>
-	// GET /escrow/escrows?destination=<hex address
-
 	q := r.URL.Query()
-	if _, ok := q["offset"]; ok {
-		JSONErr(w, http.StatusBadRequest, `This endpoint does not support "offset" query parameter.`)
+
+	if !atMostOne(q, "source", "destination") {
+		JSONErr(w, http.StatusBadRequest, "At most one filter can be used at a time.")
 		return
 	}
 
-	it := ABCIRangeQuery(r.Context(), h.bns, "/contracts", fmt.Sprintf("%x:", offset))
+	var it ABCIIterator
+	offset := extractIDFromKey(q.Get("offset"))
+	if d := q.Get("destination"); len(d) > 0 {
+		rawAddr, err := hex.DecodeString(d)
+		if err != nil {
+			JSONErr(w, http.StatusBadRequest, "Destination address must be a hex encoded value.")
+			return
+		}
+		end := nextKeyValue(rawAddr)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/escrows/destination", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+	} else if s := q.Get("source"); len(s) > 0 {
+		rawAddr, err := hex.DecodeString(s)
+		if err != nil {
+			JSONErr(w, http.StatusBadRequest, "Source address must be a hex encoded value.")
+			return
+		}
+		end := nextKeyValue(rawAddr)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/escrows/source", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+	} else {
+		it = ABCIRangeQuery(r.Context(), h.bns, "/escrows", fmt.Sprintf("%x:", offset))
+	}
 
-	var objects []KeyValue
-fetchContracts:
+	objects := make([]KeyValue, 0, paginationMaxItems)
+fetchEscrows:
 	for {
-		var c multisig.Contract
-		switch key, err := it.Next(&c); {
+		var e escrow.Escrow
+		switch key, err := it.Next(&e); {
 		case err == nil:
 			objects = append(objects, KeyValue{
 				Key:   key,
-				Value: &c,
+				Value: &e,
 			})
 			if len(objects) == paginationMaxItems {
-				break fetchContracts
+				break fetchEscrows
 			}
 		case errors.ErrIteratorDone.Is(err):
-			break fetchContracts
+			break fetchEscrows
 		default:
-			log.Printf("account ABCI query: %s", err)
+			log.Printf("escrow ABCI query: %s", err)
 			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
@@ -73,7 +92,7 @@ func (h *MultisigContractsHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	offset := extractIDFromKey(r.URL.Query().Get("offset"))
 	it := ABCIRangeQuery(r.Context(), h.bns, "/contracts", fmt.Sprintf("%x:", offset))
 
-	var objects []KeyValue
+	objects := make([]KeyValue, 0, paginationMaxItems)
 fetchContracts:
 	for {
 		var c multisig.Contract
@@ -89,7 +108,7 @@ fetchContracts:
 		case errors.ErrIteratorDone.Is(err):
 			break fetchContracts
 		default:
-			log.Printf("account ABCI query: %s", err)
+			log.Printf("multisig contract ABCI query: %s", err)
 			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
@@ -110,7 +129,7 @@ func (h *TermdepositContractsHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	offset := extractIDFromKey(r.URL.Query().Get("offset"))
 	it := ABCIRangeQuery(r.Context(), h.bns, "/depositcontracts", fmt.Sprintf("%x:", offset))
 
-	var objects []KeyValue
+	objects := make([]KeyValue, 0, paginationMaxItems)
 fetchContracts:
 	for {
 		var c termdeposit.DepositContract
@@ -126,7 +145,7 @@ fetchContracts:
 		case errors.ErrIteratorDone.Is(err):
 			break fetchContracts
 		default:
-			log.Printf("account ABCI query: %s", err)
+			log.Printf("termdeposit contract ABCI query: %s", err)
 			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
@@ -182,7 +201,7 @@ func (h *TermdepositDepositsHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits", fmt.Sprintf("%x:", offset))
 	}
 
-	var objects []KeyValue
+	objects := make([]KeyValue, 0, paginationMaxItems)
 fetchDeposits:
 	for {
 		var d termdeposit.Deposit
@@ -198,7 +217,7 @@ fetchDeposits:
 		case errors.ErrIteratorDone.Is(err):
 			break fetchDeposits
 		default:
-			log.Printf("account ABCI query: %s", err)
+			log.Printf("termdeposit deposit ABCI query: %s", err)
 			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
@@ -293,7 +312,7 @@ func (h *AccountDomainsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		it = ABCIRangeQuery(r.Context(), h.bns, "/domains", fmt.Sprintf("%x:", offset))
 	}
 
-	var objects []KeyValue
+	objects := make([]KeyValue, 0, paginationMaxItems)
 fetchDomains:
 	for {
 		var model account.Domain
@@ -309,7 +328,7 @@ fetchDomains:
 		case errors.ErrIteratorDone.Is(err):
 			break fetchDomains
 		default:
-			log.Printf("domain ABCI query: %s", err)
+			log.Printf("account domain ABCI query: %s", err)
 			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
@@ -368,7 +387,7 @@ func (h *AccountAccountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts", fmt.Sprintf("%x:", offset))
 	}
 
-	var objects []KeyValue
+	objects := make([]KeyValue, 0, paginationMaxItems)
 fetchAccounts:
 	for {
 		var acc account.Account
@@ -384,7 +403,7 @@ fetchAccounts:
 		case errors.ErrIteratorDone.Is(err):
 			break fetchAccounts
 		default:
-			log.Printf("account ABCI query: %s", err)
+			log.Printf("account account ABCI query: %s", err)
 			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}

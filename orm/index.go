@@ -3,7 +3,6 @@ package orm
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"math"
 
 	"github.com/iov-one/weave"
@@ -302,32 +301,28 @@ func (i compactIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) (
 			return nil, errors.Wrap(err, "query data")
 		}
 
-		if start == nil {
+		if len(start) == 0 {
 			start = []byte{0}
 		}
-		if end == nil {
+		if len(end) == 0 {
 			end = bytes.Repeat([]byte{255}, 128) // No limit
 		}
 
-		it, err := db.Iterator(i.refKey(start), i.refKey(end))
+		it, err := db.Iterator(i.indexKey(start), i.indexKey(end))
 		if err != nil {
 			return nil, errors.Wrap(err, "new iterator")
 		}
-
-		refKeyOrNil := func(b []byte) []byte {
-			if len(b) == 0 {
-				return nil
-			}
-			return i.refKey(b)
+		if len(offset) > 0 {
+			offset = i.refKey(offset)
 		}
 		return consumeIterator(&paginatedIterator{
 			it: &compactIndexIterator{
 				db:      db,
 				compact: it,
-				start:   i.refKey(start),
+				start:   i.indexKey(start),
 				dbKey:   i.refKey,
 				unique:  i.unique,
-				offset:  refKeyOrNil(offset),
+				offset:  offset,
 			},
 			remaining: queryRangeLimit,
 		})
@@ -379,7 +374,6 @@ func (c *compactIndexIterator) Next() ([]byte, []byte, error) {
 				// can.
 				if len(c.start) <= len(k) {
 					refValues = v
-					fmt.Println(">>>>>>>", string(k))
 				}
 			}
 
@@ -811,7 +805,7 @@ func parseIndexQueryRange(raw []byte) (start, offset, end []byte, err error) {
 
 	var decErr error // Global decoding error
 	decodeHex := func(b []byte) []byte {
-		if b == nil {
+		if len(b) == 0 {
 			return nil
 		}
 		dst := make([]byte, hex.DecodedLen(len(b)))
