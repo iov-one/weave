@@ -764,15 +764,10 @@ func TestParseIndexQueryRange(t *testing.T) {
 	}
 }
 
-func TestNativeIndexRangeQuery(t *testing.T) {
-	db := store.MemStore()
+func testIndexRangeQueryImplementation(t *testing.T, b ModelBucket) {
+	// Generic range query test set that any index must implement.
 
-	b := NewModelBucket("mycounters", &Counter{},
-		WithNativeIndex("tix", func(o Object) ([][]byte, error) {
-			c := o.Value().(*Counter).Count
-			return [][]byte{[]byte(fmt.Sprint(c))}, nil
-		}),
-	)
+	db := store.MemStore()
 
 	for i := 1; i < 100; i++ {
 		count := int64(i % 20)
@@ -780,6 +775,8 @@ func TestNativeIndexRangeQuery(t *testing.T) {
 			t.Fatalf("cannot insert counter: %s", err)
 		}
 	}
+
+	// TODO: Insert noise data
 
 	defer withQueryRangeLimit(3)()
 
@@ -879,6 +876,26 @@ func assertModelIDs(t testing.TB, keyPrefix string, wantIDs []int64, models []we
 		t.Logf("want ids: %d", wantIDs)
 		t.Fatalf("got unexpected models: %d", ids)
 	}
+}
+
+func TestNativeIndexRangeQuery(t *testing.T) {
+	b := NewModelBucket("mycounters", &Counter{},
+		WithNativeIndex("tix", func(o Object) ([][]byte, error) {
+			c := o.Value().(*Counter).Count
+			return [][]byte{[]byte(fmt.Sprint(c))}, nil
+		}),
+	)
+	testIndexRangeQueryImplementation(t, b)
+}
+
+func TestCompactIndexRangeQuery(t *testing.T) {
+	b := NewModelBucket("mycounters", &Counter{},
+		WithIndex("tix", func(o Object) ([][]byte, error) {
+			c := o.Value().(*Counter).Count
+			return [][]byte{[]byte(fmt.Sprint(c))}, nil
+		}, false),
+	)
+	testIndexRangeQueryImplementation(t, b)
 }
 
 func TestNativeIndexRangeQueryReturnValues(t *testing.T) {

@@ -25,7 +25,7 @@ func main() {
 
 	conf := configuration{
 		HTTP:       env("HTTP", ":8000"),
-		Tendermint: env("TENDERMINT", "TODO"),
+		Tendermint: env("TENDERMINT", "http://localhost:26657"),
 	}
 
 	if err := run(conf); err != nil {
@@ -58,6 +58,8 @@ func run(conf configuration) error {
 	rt.Handle("/account/accounts/", &AccountAccountDetailHandler{bns: bnscli})
 	rt.Handle("/termdeposit/contracts", &TermdepositContractsHandler{bns: bnscli})
 	rt.Handle("/termdeposit/deposits", &TermdepositDepositsHandler{bns: bnscli})
+	rt.Handle("/multisig/contracts", &MultisigContractsHandler{bns: bnscli})
+	rt.Handle("/escrow/escrows", &EscrowEscrowsHandler{bns: bnscli})
 	rt.Handle("/", &DefaultHandler{})
 
 	if err := http.ListenAndServe(conf.HTTP, rt); err != nil {

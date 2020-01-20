@@ -1,10 +1,13 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -14,7 +17,90 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
+	"github.com/iov-one/weave/x/multisig"
 )
+
+type EscrowEscrowsHandler struct {
+	bns BnsClient
+}
+
+func (h *EscrowEscrowsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// GET /escrow/escrows?source=<hex address>
+	// GET /escrow/escrows?destination=<hex address
+
+	q := r.URL.Query()
+	if _, ok := q["offset"]; ok {
+		JSONErr(w, http.StatusBadRequest, `This endpoint does not support "offset" query parameter.`)
+		return
+	}
+
+	it := ABCIRangeQuery(r.Context(), h.bns, "/contracts", fmt.Sprintf("%x:", offset))
+
+	var objects []KeyValue
+fetchContracts:
+	for {
+		var c multisig.Contract
+		switch key, err := it.Next(&c); {
+		case err == nil:
+			objects = append(objects, KeyValue{
+				Key:   key,
+				Value: &c,
+			})
+			if len(objects) == paginationMaxItems {
+				break fetchContracts
+			}
+		case errors.ErrIteratorDone.Is(err):
+			break fetchContracts
+		default:
+			log.Printf("account ABCI query: %s", err)
+			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			return
+		}
+	}
+
+	JSONResp(w, http.StatusOK, struct {
+		Objects []KeyValue `json:"objects"`
+	}{
+		Objects: objects,
+	})
+}
+
+type MultisigContractsHandler struct {
+	bns BnsClient
+}
+
+func (h *MultisigContractsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	offset := extractIDFromKey(r.URL.Query().Get("offset"))
+	it := ABCIRangeQuery(r.Context(), h.bns, "/contracts", fmt.Sprintf("%x:", offset))
+
+	var objects []KeyValue
+fetchContracts:
+	for {
+		var c multisig.Contract
+		switch key, err := it.Next(&c); {
+		case err == nil:
+			objects = append(objects, KeyValue{
+				Key:   key,
+				Value: &c,
+			})
+			if len(objects) == paginationMaxItems {
+				break fetchContracts
+			}
+		case errors.ErrIteratorDone.Is(err):
+			break fetchContracts
+		default:
+			log.Printf("account ABCI query: %s", err)
+			JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			return
+		}
+	}
+
+	JSONResp(w, http.StatusOK, struct {
+		Objects []KeyValue `json:"objects"`
+	}{
+		Objects: objects,
+	})
+}
 
 type TermdepositContractsHandler struct {
 	bns BnsClient
@@ -58,11 +144,9 @@ type TermdepositDepositsHandler struct {
 }
 
 func (h *TermdepositDepositsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// GET /termdeposit/deposits?depositor=<hex address>
-	// GET /termdeposit/deposits?contract_id=<contract ID>
 	q := r.URL.Query()
 
-	if !atMostOne(q, "depositor", "contract_id") {
+	if !atMostOne(q, "depositor", "contract_id", "contract") {
 		JSONErr(w, http.StatusBadRequest, "At most one filter can be used at a time.")
 		return
 	}
@@ -70,11 +154,30 @@ func (h *TermdepositDepositsHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	var it ABCIIterator
 	offset := extractIDFromKey(q.Get("offset"))
 	if d := q.Get("depositor"); len(d) > 0 {
-		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits/depositor", fmt.Sprintf("%s:%x:", d, offset))
+		rawAddr, err := hex.DecodeString(d)
+		if err != nil {
+			JSONErr(w, http.StatusBadRequest, "Depositor address must be a hex encoded value.")
+			return
+		}
+		end := nextKeyValue(rawAddr)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits/depositor", fmt.Sprintf("%s:%x:%x", d, offset, end))
 	} else if c := q.Get("contract_id"); len(c) > 0 {
-		// TODO encode to sequence
-		cid := []byte("TOIDO")
-		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits/contract", fmt.Sprintf("%x:%x:", cid, offset))
+		n, err := strconv.ParseInt(c, 10, 64)
+		if err != nil {
+			JSONErr(w, http.StatusBadGateway, "contract_id must be an integer contract sequence number.")
+			return
+		}
+		cid := encodeSequence(uint64(n))
+		end := nextKeyValue(cid)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits/contract", fmt.Sprintf("%x:%x:%x", cid, offset, end))
+	} else if c := q.Get("contract"); len(c) > 0 {
+		cid, err := base64.StdEncoding.DecodeString(c)
+		if err != nil {
+			JSONErr(w, http.StatusBadGateway, "Contract must be a base64 encoded contract key.")
+			return
+		}
+		end := nextKeyValue(cid)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits/contract", fmt.Sprintf("%x:%x:%x", cid, offset, end))
 	} else {
 		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits", fmt.Sprintf("%x:", offset))
 	}
@@ -179,7 +282,13 @@ func (h *AccountDomainsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	q := r.URL.Query()
 	offset := extractIDFromKey(q.Get("offset"))
 	if admin := q.Get("admin"); len(admin) > 0 {
-		it = ABCIRangeQuery(r.Context(), h.bns, "/domains/admin", fmt.Sprintf("%s:%x:", admin, offset))
+		rawAddr, err := hex.DecodeString(admin)
+		if err != nil {
+			JSONErr(w, http.StatusBadRequest, "Admin address must be a hex encoded value.")
+			return
+		}
+		end := nextKeyValue(rawAddr)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/domains/admin", fmt.Sprintf("%s:%x:%x", admin, offset, end))
 	} else {
 		it = ABCIRangeQuery(r.Context(), h.bns, "/domains", fmt.Sprintf("%x:", offset))
 	}
@@ -245,9 +354,16 @@ func (h *AccountAccountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	var it ABCIIterator
 	offset := extractIDFromKey(q.Get("offset"))
 	if d := q.Get("domain"); len(d) > 0 {
-		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts/domain", fmt.Sprintf("%x:%x:", d, offset))
+		end := nextKeyValue([]byte(d))
+		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts/domain", fmt.Sprintf("%x:%x:%x", d, offset, end))
 	} else if o := q.Get("owner"); len(o) > 0 {
-		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts/owner", fmt.Sprintf("%s:%x:", o, offset))
+		rawAddr, err := hex.DecodeString(o)
+		if err != nil {
+			JSONErr(w, http.StatusBadRequest, "Owner address must be a hex encoded value.")
+			return
+		}
+		end := nextKeyValue(rawAddr)
+		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts/owner", fmt.Sprintf("%s:%x:%x", o, offset, end))
 	} else {
 		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts", fmt.Sprintf("%x:", offset))
 	}
@@ -384,4 +500,27 @@ func JSONRedirect(w http.ResponseWriter, code int, urlStr string) {
 		Location: urlStr,
 	}
 	JSONResp(w, code, content)
+}
+
+func nextKeyValue(b []byte) []byte {
+	if len(b) == 0 {
+		return nil
+	}
+	next := make([]byte, len(b))
+	copy(next, b)
+
+	// If the last value does not overflow, increment it. Otherwise this is
+	// an edge case and key must be extended.
+	if next[len(next)-1] < math.MaxUint8 {
+		next[len(next)-1]++
+	} else {
+		next = append(next, 0)
+	}
+	return next
+}
+
+func encodeSequence(val uint64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, val)
+	return bz
 }
