@@ -2,6 +2,7 @@
 
 ## HEAD
 
+- `bnsd`: allow `datamigration` messages to be executed by a proposal
 - A new query mod `range` that allows to query for items between certain rage.
   Result set size is always limited which makes this query suitable for public
   API.
