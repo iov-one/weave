@@ -20,8 +20,8 @@ func init() {
 	datamigration.MustRegister("no-op test", datamigration.Migration{
 		RequiredSigners: []weave.Address{devnetRule2},
 		ChainIDs: []string{
-			"local-iov-devnet",
 			"iov-dancenet",
+			"local-iov-devnet",
 		},
 		Migrate: func(ctx context.Context, db weave.KVStore) error { return nil },
 	})
@@ -29,32 +29,32 @@ func init() {
 	datamigration.MustRegister("initialize x/msgfee configuration owner", datamigration.Migration{
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
-			"iov-mainnet",
 			"iov-dancenet",
+			"iov-mainnet",
 		},
 		Migrate: initializeMsgfeeConfiguration,
 	})
 	datamigration.MustRegister("rewrite username accounts", datamigration.Migration{
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
-			"iov-mainnet",
 			"iov-dancenet",
+			"iov-mainnet",
 		},
 		Migrate: rewriteUsernameAccounts,
 	})
 	datamigration.MustRegister("initialize preregistration configuration", datamigration.Migration{
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
-			"iov-mainnet",
 			"iov-dancenet",
+			"iov-mainnet",
 		},
 		Migrate: initializePreregistrationConfiguration,
 	})
 	datamigration.MustRegister("rewrite preregistration records", datamigration.Migration{
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
-			"iov-mainnet",
 			"iov-dancenet",
+			"iov-mainnet",
 		},
 		Migrate: rewritePreregistrationRecords,
 	})
