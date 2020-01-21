@@ -4,6 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
+	"github.com/iov-one/weave/datamigration"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/batch"
@@ -41,6 +42,7 @@ func proposalOptionsExecutor(ctrl cash.Controller) gov.Executor {
 	escrow.RegisterRoutes(r, auth, ctrl)
 	distribution.RegisterRoutes(r, auth, ctrl)
 	migration.RegisterRoutes(r, auth)
+	datamigration.RegisterRoutes(r, auth)
 	gov.RegisterBasicProposalRouters(r, auth)
 	msgfee.RegisterRoutes(r, auth)
 	txfee.RegisterRoutes(r, auth)
