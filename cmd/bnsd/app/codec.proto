@@ -4,6 +4,7 @@ package bnsd;
 
 import "cmd/bnsd/x/account/codec.proto";
 import "cmd/bnsd/x/preregistration/codec.proto";
+import "cmd/bnsd/x/qualityscore/codec.proto";
 import "cmd/bnsd/x/termdeposit/codec.proto";
 import "cmd/bnsd/x/username/codec.proto";
 import "datamigration/codec.proto";
@@ -93,6 +94,7 @@ message Tx {
     termdeposit.DepositMsg termdeposit_deposit_msg = 100;
     termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
     termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
+    qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
   }
 }
 
@@ -142,6 +144,7 @@ message ExecuteBatchMsg {
       termdeposit.DepositMsg termdeposit_deposit_msg = 100;
       termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
       termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
+      qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];
@@ -178,6 +181,7 @@ message ProposalOptions {
     termdeposit.DepositMsg termdeposit_deposit_msg = 100;
     termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
     termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
+    qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
   }
 }
 
@@ -210,6 +214,7 @@ message ExecuteProposalBatchMsg {
       termdeposit.DepositMsg termdeposit_deposit_msg = 100;
       termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
       termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
+      qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];

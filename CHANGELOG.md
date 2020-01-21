@@ -3,6 +3,8 @@
 ## HEAD
 
 - `bnsd`: allow `datamigration` messages to be executed by a proposal
+- `bnsd`: a new query endpoint `/gconf` which allows to fetch any `gconf`
+  managed configuration entity.
 - A new query mod `range` that allows to query for items between certain rage.
   Result set size is always limited which makes this query suitable for public
   API.

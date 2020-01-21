@@ -180,3 +180,30 @@ func patchPayload(tx weave.Tx) (OwnedConfig, error) {
 	}
 	return payload, nil
 }
+
+// RegisterQuery expose all configurations to queries.
+func RegisterQuery(qr weave.QueryRouter) {
+	qr.Register("/gconf", queryHandler{})
+}
+
+type queryHandler struct{}
+
+func (queryHandler) Query(db weave.ReadOnlyKVStore, mod string, data []byte) ([]weave.Model, error) {
+	if mod != weave.KeyQueryMod {
+		return nil, errors.Wrap(errors.ErrHuman, "not implemented: "+mod)
+	}
+	if len(data) == 0 {
+		return nil, errors.Wrap(errors.ErrInput, "extension name must be passed as data")
+	}
+
+	key := []byte("_c:" + string(data))
+	value, err := db.Get(key)
+	if err != nil {
+		return nil, errors.Wrap(err, "read configuration from database")
+	}
+	keyval := weave.Model{
+		Key:   key,
+		Value: value,
+	}
+	return []weave.Model{keyval}, nil
+}

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package qualityscore;
+
+import "codec.proto";
+import "gogoproto/gogo.proto";
+
+message Configuration {
+  weave.Metadata metadata = 1;
+  // Owner is present to implement gconf.OwnedConfig interface
+  // This defines the Address that is allowed to update the Configuration object and is
+  // needed to make use of gconf.NewUpdateConfigurationHandler
+  bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  float c = 3;
+  float k = 4;
+  float kp = 5;
+  float q0 = 6;
+  float x = 7;
+  float x_inf = 8;
+  float x_sup = 9;
+  float delta = 10;
+}
+
+// UpdateConfigurationMsg is used by the gconf extension to update the
+// configuration.
+message UpdateConfigurationMsg {
+  weave.Metadata metadata = 1;
+  Configuration patch = 2;
+}
