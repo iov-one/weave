@@ -19,14 +19,18 @@ import (
 func init() {
 	datamigration.MustRegister("no-op test", datamigration.Migration{
 		RequiredSigners: []weave.Address{devnetRule2},
-		ChainIDs:        []string{"local-iov-devnet"},
-		Migrate:         func(ctx context.Context, db weave.KVStore) error { return nil },
+		ChainIDs: []string{
+			"local-iov-devnet",
+			"iov-dancenet",
+		},
+		Migrate: func(ctx context.Context, db weave.KVStore) error { return nil },
 	})
 
 	datamigration.MustRegister("initialize x/msgfee configuration owner", datamigration.Migration{
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
 			"iov-mainnet",
+			"iov-dancenet",
 		},
 		Migrate: initializeMsgfeeConfiguration,
 	})
@@ -34,6 +38,7 @@ func init() {
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
 			"iov-mainnet",
+			"iov-dancenet",
 		},
 		Migrate: rewriteUsernameAccounts,
 	})
@@ -41,6 +46,7 @@ func init() {
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
 			"iov-mainnet",
+			"iov-dancenet",
 		},
 		Migrate: initializePreregistrationConfiguration,
 	})
@@ -48,6 +54,7 @@ func init() {
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
 			"iov-mainnet",
+			"iov-dancenet",
 		},
 		Migrate: rewritePreregistrationRecords,
 	})
