@@ -296,10 +296,116 @@ func (i compactIndex) Query(db weave.ReadOnlyKVStore, mod string, data []byte) (
 		}
 		return i.loadRefs(db, refs)
 	case weave.RangeQueryMod:
-		return nil, errors.Wrap(errors.ErrHuman, "not implemented: "+mod)
+		start, offset, end, err := parseIndexQueryRange(data)
+		if err != nil {
+			return nil, errors.Wrap(err, "query data")
+		}
+
+		if len(start) == 0 {
+			start = []byte{0}
+		}
+		if len(end) == 0 {
+			end = bytes.Repeat([]byte{255}, 128) // No limit
+		}
+
+		it, err := db.Iterator(i.indexKey(start), i.indexKey(end))
+		if err != nil {
+			return nil, errors.Wrap(err, "new iterator")
+		}
+		if len(offset) > 0 {
+			offset = i.refKey(offset)
+		}
+		return consumeIterator(&paginatedIterator{
+			it: &compactIndexIterator{
+				db:      db,
+				compact: it,
+				start:   i.indexKey(start),
+				dbKey:   i.refKey,
+				unique:  i.unique,
+				offset:  offset,
+			},
+			remaining: queryRangeLimit,
+		})
+
 	default:
 		return nil, errors.Wrap(errors.ErrHuman, "not implemented: "+mod)
 	}
+}
+
+// compactIndexIterator is a weave.Iterator implementation that can range over
+// compact index values and return key-value pairs for referenced by that
+// compact index data.
+type compactIndexIterator struct {
+	db      weave.ReadOnlyKVStore
+	start   []byte
+	compact weave.Iterator
+	offset  []byte
+	unique  bool
+	dbKey   func([]byte) []byte
+
+	keys [][]byte
+}
+
+func (c *compactIndexIterator) Next() ([]byte, []byte, error) {
+	var key []byte
+	for key == nil {
+		if len(c.keys) > 0 {
+			key = c.keys[0]
+			c.keys = c.keys[1:]
+		} else {
+			var refValues []byte
+			for refValues == nil {
+				k, v, err := c.compact.Next()
+				if err != nil {
+					return nil, nil, errors.Wrap(err, "keys iterator")
+				}
+				// This is a special case, that requires manual
+				// filter. When iterating over indexed values,
+				// we expect that index value of 100 is after
+				// 11. Compact index implementation does not
+				// consider key length and therefore when
+				// iterating over all indexed values, order
+				// might be wrong.
+				// It would be way better if the database could
+				// handle this operation. For backward
+				// compatibility reasons, this implementation
+				// cannot be changed. Use native index if you
+				// can.
+				if len(c.start) <= len(k) {
+					refValues = v
+				}
+			}
+
+			if c.unique {
+				key = refValues
+			} else {
+				var mref MultiRef
+				if err := mref.Unmarshal(refValues); err != nil {
+					return nil, nil, errors.Wrap(err, "unmarshal index MultiRef")
+				}
+				key = mref.Refs[0]
+				c.keys = mref.Refs[1:]
+			}
+		}
+
+		key = c.dbKey(key)
+
+		// Ignore all keys that do not fullfill offset requirement.
+		// Offset is inclusive.
+		if len(c.offset) > 0 && bytes.Compare(c.offset, key) > 0 {
+			key = nil
+		}
+	}
+
+	value, err := c.db.Get(key)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "get referenced value")
+	}
+	return key, value, nil
+}
+
+func (c *compactIndexIterator) Release() {
+	c.compact.Release()
 }
 
 func (i compactIndex) loadRefs(db weave.ReadOnlyKVStore, refs [][]byte) ([]weave.Model, error) {
@@ -698,7 +804,7 @@ func parseIndexQueryRange(raw []byte) (start, offset, end []byte, err error) {
 
 	var decErr error // Global decoding error
 	decodeHex := func(b []byte) []byte {
-		if b == nil {
+		if len(b) == 0 {
 			return nil
 		}
 		dst := make([]byte, hex.DecodedLen(len(b)))

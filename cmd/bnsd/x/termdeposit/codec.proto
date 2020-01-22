@@ -23,7 +23,7 @@ message DepositContract {
 message Deposit {
   weave.Metadata metadata = 1;
   // Deposit contract ID that this funds allocation was made with.
-  bytes depsit_contract_id = 2 [(gogoproto.customname) = "DepositContractID"];
+  bytes deposit_contract_id = 2 [(gogoproto.customname) = "DepositContractID"];
   // Total amount that was deposited within a contract. Must be IOV tokens.
   // This information is used when computing each depositor reward. It is used
   // instead of looking at the actual wallet state, so that it is not possible
