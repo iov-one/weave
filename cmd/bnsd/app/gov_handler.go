@@ -3,6 +3,7 @@ package bnsd
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	qualityscore "github.com/iov-one/weave/cmd/bnsd/x/qualityscore"
 	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/datamigration"
 	"github.com/iov-one/weave/errors"
@@ -47,6 +48,7 @@ func proposalOptionsExecutor(ctrl cash.Controller) gov.Executor {
 	msgfee.RegisterRoutes(r, auth)
 	txfee.RegisterRoutes(r, auth)
 	termdeposit.RegisterRoutes(r, auth, ctrl)
+	qualityscore.RegisterRoutes(r, auth)
 
 	// We must wrap with batch middleware so it can process ExecuteProposalBatchMsg.
 	// We add ActionTagger here, so the messages executed as a result of a governance vote also get properly tagged.

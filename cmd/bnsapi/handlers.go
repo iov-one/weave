@@ -10,6 +10,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/iov-one/weave/cmd/bnsd/x/account"
 	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x/escrow"
 	"github.com/iov-one/weave/x/gov"
@@ -384,6 +386,49 @@ fetchDeposits:
 	}{
 		Objects: objects,
 	})
+}
+
+type GconfHandler struct {
+	bns   BnsClient
+	confs map[string]func() gconf.Configuration
+}
+
+func (h *GconfHandler) knownConfigurations() []string {
+	known := make([]string, 0, len(h.confs))
+	for name := range h.confs {
+		known = append(known, name)
+	}
+	sort.Strings(known)
+	return known
+}
+
+func (h *GconfHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	extensionName := lastChunk(r.URL.Path)
+	if extensionName == "" {
+		JSONErr(w, http.StatusNotFound,
+			fmt.Sprintf("Extension name must be provided. Supported extensions are %q", h.knownConfigurations()))
+		return
+	}
+
+	var conf gconf.Configuration
+	if fn, ok := h.confs[extensionName]; ok {
+		conf = fn()
+	} else {
+		log.Printf("extension %q gconf configuration entity unknown to gconf handler", extensionName)
+		JSONErr(w, http.StatusNotFound,
+			fmt.Sprintf("Configuration not registered for browsing. Supported extensions are %q", h.knownConfigurations()))
+		return
+	}
+
+	switch err := ABCIKeyQuery(r.Context(), h.bns, "/gconf", []byte(extensionName), conf); {
+	case err == nil:
+		JSONResp(w, http.StatusOK, conf)
+	case errors.ErrNotFound.Is(err):
+		JSONErr(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
+	default:
+		log.Printf("gconf ABCI query: %s", err)
+		JSONErr(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
 }
 
 type InfoHandler struct{}

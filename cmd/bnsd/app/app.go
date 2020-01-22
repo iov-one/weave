@@ -14,12 +14,14 @@ import (
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/account"
 	"github.com/iov-one/weave/cmd/bnsd/x/preregistration"
+	qualityscore "github.com/iov-one/weave/cmd/bnsd/x/qualityscore"
 	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/datamigration"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
@@ -104,6 +106,7 @@ func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	txfee.RegisterRoutes(r, authFn)
 	preregistration.RegisterRoutes(r, authFn)
 	termdeposit.RegisterRoutes(r, authFn, ctrl)
+	qualityscore.RegisterRoutes(r, authFn)
 	return r
 }
 
@@ -130,6 +133,7 @@ func QueryRouter(minFee coin.Coin) weave.QueryRouter {
 		datamigration.RegisterQuery,
 		account.RegisterQuery,
 		termdeposit.RegisterQuery,
+		gconf.RegisterQuery,
 	)
 	return r
 }
