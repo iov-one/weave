@@ -370,6 +370,10 @@
                 </li>
               
                 <li>
+                  <a href="#termdeposit.CustomRate"><span class="badge">M</span>CustomRate</a>
+                </li>
+              
+                <li>
                   <a href="#termdeposit.Deposit"><span class="badge">M</span>Deposit</a>
                 </li>
               
@@ -3399,6 +3403,13 @@ allowed to update the configuration. </p></td>
                   <td><p>A list of bonus values applied to each created Deposit instance. </p></td>
                 </tr>
               
+                <tr>
+                  <td>base_rates</td>
+                  <td><a href="#termdeposit.CustomRate">CustomRate</a></td>
+                  <td>repeated</td>
+                  <td><p>Base rates defines a list of addresses that have their q-score value fixed. </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -3434,6 +3445,36 @@ allowed to update the configuration. </p></td>
                   <td><a href="#int64">int64</a></td>
                   <td></td>
                   <td><p>An expiration date for the newly created deposit contract. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="termdeposit.CustomRate">CustomRate</h3>
+        <p>Custom Rate allows to declare a fixed qscore value for an address.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>address</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>qscore</td>
+                  <td><a href="#float">float</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>

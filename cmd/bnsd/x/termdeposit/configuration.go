@@ -1,7 +1,7 @@
 package termdeposit
 
 import (
-	weave "github.com/iov-one/weave"
+	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/migration"
@@ -22,7 +22,27 @@ func (c *Configuration) Validate() error {
 	if len(c.Bonuses) == 0 {
 		errs = errors.AppendField(errs, "Bonuses", errors.ErrEmpty)
 	}
+	const maxBaseRates = 100 // Arbitrary limit to avoid huge data set.
+	if len(c.BaseRates) > maxBaseRates {
+		errs = errors.AppendField(errs, "BaseRates",
+			errors.Wrapf(errors.ErrInput, "at most %d elements can be provided", maxBaseRates))
+	}
+	if hasDuplicates(c.BaseRates) {
+		errs = errors.AppendField(errs, "BaseRates", errors.ErrDuplicate)
+	}
 	return errs
+}
+
+func hasDuplicates(rates []CustomRate) bool {
+	addrs := make(map[string]struct{})
+	for _, r := range rates {
+		a := r.Address.String()
+		if _, ok := addrs[a]; ok {
+			return true
+		}
+		addrs[a] = struct{}{}
+	}
+	return false
 }
 
 // bestDepositBonus returns the best available for given period deposit bonus
