@@ -2,6 +2,7 @@
 
 ## HEAD
 
+- enable all `x/account` messages to be executed via proposal
 - `bnsd`: allow `datamigration` messages to be executed by a proposal
 - `bnsd`: a new query endpoint `/gconf` which allows to fetch any `gconf`
   managed configuration entity.
