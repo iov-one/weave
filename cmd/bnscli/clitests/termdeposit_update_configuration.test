@@ -18,5 +18,11 @@ bnscli termdeposit-update-configuration \
 	| bnscli termdeposit-with-bonus \
 		-bonus 10 \
 		-period "83h" \
+	| bnscli termdeposit-with-base-rate \
+		-addr 12066456B2BE7F1934624087D98C203A87F7752C \
+		-qscore 1.9242 \
+	| bnscli termdeposit-with-base-rate \
+		-addr 22066456B2BE7F1934624087D98C203A87F7752C \
+		-qscore 0.0909 \
 	| bnscli view
 

@@ -116,8 +116,9 @@ Create a transaction for updating termdeposit extension configuration.
 			TermdepositUpdateConfigurationMsg: &termdeposit.UpdateConfigurationMsg{
 				Metadata: &weave.Metadata{Schema: 1},
 				Patch: &termdeposit.Configuration{
-					Owner: *ownerFl,
-					Admin: *adminFl,
+					Metadata: &weave.Metadata{Schema: 1},
+					Owner:    *ownerFl,
+					Admin:    *adminFl,
 				},
 			},
 		},
@@ -157,6 +158,47 @@ This functionality is intended to extend UpdateConfigurationMsg message.
 		msg.Patch.Bonuses = append(msg.Patch.Bonuses, termdeposit.DepositBonus{
 			LockinPeriod:    weave.AsUnixDuration(*periodFl),
 			BonusPercentage: int32(*bonusFl),
+		})
+	default:
+		return fmt.Errorf("unsupported transaction message: %T", msg)
+	}
+
+	// Serialize back the transaction from the input. It was modified.
+	_, err = writeTx(output, tx)
+	return err
+}
+
+func cmdTermdepositWithBaseRate(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Attach a base rate information to given transaction.
+
+This functionality is intended to extend UpdateConfigurationMsg message.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		addrFl   = flAddress(fl, "addr", "", "Address that the rate is configured for.")
+		qscoreFl = fl.Float64("qscore", 1, "Q-score value that is to be set for that address.")
+	)
+	fl.Parse(args)
+
+	tx, _, err := readTx(input)
+	if err != nil {
+		return fmt.Errorf("cannot read input transaction: %s", err)
+	}
+
+	msg, err := tx.GetMsg()
+	if err != nil {
+		return fmt.Errorf("cannot extract message from the transaction: %s", err)
+	}
+
+	switch msg := msg.(type) {
+	case *termdeposit.UpdateConfigurationMsg:
+		msg.Patch.BaseRates = append(msg.Patch.BaseRates, termdeposit.CustomRate{
+			Address: *addrFl,
+			Qscore:  float32(*qscoreFl),
 		})
 	default:
 		return fmt.Errorf("unsupported transaction message: %T", msg)
