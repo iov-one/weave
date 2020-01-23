@@ -10,6 +10,8 @@ import (
 
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
+	"github.com/iov-one/weave/cmd/bnsd/x/account"
+	"github.com/iov-one/weave/cmd/bnsd/x/qualityscore"
 	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/datamigration"
@@ -197,6 +199,90 @@ transaction (ie signatures) are being dropped.
 						DatamigrationExecuteMigrationMsg: m,
 					},
 				})
+			case *account.UpdateConfigurationMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountUpdateConfigurationMsg{
+						AccountUpdateConfigurationMsg: m,
+					},
+				})
+			case *account.RegisterDomainMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountRegisterDomainMsg{
+						AccountRegisterDomainMsg: m,
+					},
+				})
+			case *account.ReplaceAccountMsgFeesMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountReplaceAccountMsgFeesMsg{
+						AccountReplaceAccountMsgFeesMsg: m,
+					},
+				})
+			case *account.TransferDomainMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountTransferDomainMsg{
+						AccountTransferDomainMsg: m,
+					},
+				})
+			case *account.RenewDomainMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountRenewDomainMsg{
+						AccountRenewDomainMsg: m,
+					},
+				})
+			case *account.DeleteDomainMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountDeleteDomainMsg{
+						AccountDeleteDomainMsg: m,
+					},
+				})
+			case *account.RegisterAccountMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountRegisterAccountMsg{
+						AccountRegisterAccountMsg: m,
+					},
+				})
+			case *account.TransferAccountMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountTransferAccountMsg{
+						AccountTransferAccountMsg: m,
+					},
+				})
+			case *account.ReplaceAccountTargetsMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountReplaceAccountTargetsMsg{
+						AccountReplaceAccountTargetsMsg: m,
+					},
+				})
+			case *account.DeleteAccountMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountDeleteAccountMsg{
+						AccountDeleteAccountMsg: m,
+					},
+				})
+			case *account.FlushDomainMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountFlushDomainMsg{
+						AccountFlushDomainMsg: m,
+					},
+				})
+			case *account.RenewAccountMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountRenewAccountMsg{
+						AccountRenewAccountMsg: m,
+					},
+				})
+			case *account.AddAccountCertificateMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountAddAccountCertificateMsg{
+						AccountAddAccountCertificateMsg: m,
+					},
+				})
+			case *account.DeleteAccountCertificateMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_AccountDeleteAccountCertificateMsg{
+						AccountDeleteAccountCertificateMsg: m,
+					},
+				})
 			case *cash.UpdateConfigurationMsg:
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
 					Sum: &bnsd.ExecuteProposalBatchMsg_Union_CashUpdateConfigurationMsg{
@@ -231,6 +317,12 @@ transaction (ie signatures) are being dropped.
 				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
 					Sum: &bnsd.ExecuteProposalBatchMsg_Union_TermdepositUpdateConfigurationMsg{
 						TermdepositUpdateConfigurationMsg: m,
+					},
+				})
+			case *qualityscore.UpdateConfigurationMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_QualityscoreUpdateConfigurationMsg{
+						QualityscoreUpdateConfigurationMsg: m,
 					},
 				})
 			}
@@ -292,6 +384,62 @@ transaction (ie signatures) are being dropped.
 		option.Option = &bnsd.ProposalOptions_DatamigrationExecuteMigrationMsg{
 			DatamigrationExecuteMigrationMsg: msg,
 		}
+	case *account.UpdateConfigurationMsg:
+		option.Option = &bnsd.ProposalOptions_AccountUpdateConfigurationMsg{
+			AccountUpdateConfigurationMsg: msg,
+		}
+	case *account.RegisterDomainMsg:
+		option.Option = &bnsd.ProposalOptions_AccountRegisterDomainMsg{
+			AccountRegisterDomainMsg: msg,
+		}
+	case *account.ReplaceAccountMsgFeesMsg:
+		option.Option = &bnsd.ProposalOptions_AccountReplaceAccountMsgFeesMsg{
+			AccountReplaceAccountMsgFeesMsg: msg,
+		}
+	case *account.TransferDomainMsg:
+		option.Option = &bnsd.ProposalOptions_AccountTransferDomainMsg{
+			AccountTransferDomainMsg: msg,
+		}
+	case *account.RenewDomainMsg:
+		option.Option = &bnsd.ProposalOptions_AccountRenewDomainMsg{
+			AccountRenewDomainMsg: msg,
+		}
+	case *account.DeleteDomainMsg:
+		option.Option = &bnsd.ProposalOptions_AccountDeleteDomainMsg{
+			AccountDeleteDomainMsg: msg,
+		}
+	case *account.RegisterAccountMsg:
+		option.Option = &bnsd.ProposalOptions_AccountRegisterAccountMsg{
+			AccountRegisterAccountMsg: msg,
+		}
+	case *account.TransferAccountMsg:
+		option.Option = &bnsd.ProposalOptions_AccountTransferAccountMsg{
+			AccountTransferAccountMsg: msg,
+		}
+	case *account.ReplaceAccountTargetsMsg:
+		option.Option = &bnsd.ProposalOptions_AccountReplaceAccountTargetsMsg{
+			AccountReplaceAccountTargetsMsg: msg,
+		}
+	case *account.DeleteAccountMsg:
+		option.Option = &bnsd.ProposalOptions_AccountDeleteAccountMsg{
+			AccountDeleteAccountMsg: msg,
+		}
+	case *account.FlushDomainMsg:
+		option.Option = &bnsd.ProposalOptions_AccountFlushDomainMsg{
+			AccountFlushDomainMsg: msg,
+		}
+	case *account.RenewAccountMsg:
+		option.Option = &bnsd.ProposalOptions_AccountRenewAccountMsg{
+			AccountRenewAccountMsg: msg,
+		}
+	case *account.AddAccountCertificateMsg:
+		option.Option = &bnsd.ProposalOptions_AccountAddAccountCertificateMsg{
+			AccountAddAccountCertificateMsg: msg,
+		}
+	case *account.DeleteAccountCertificateMsg:
+		option.Option = &bnsd.ProposalOptions_AccountDeleteAccountCertificateMsg{
+			AccountDeleteAccountCertificateMsg: msg,
+		}
 	case *cash.UpdateConfigurationMsg:
 		option.Option = &bnsd.ProposalOptions_CashUpdateConfigurationMsg{
 			CashUpdateConfigurationMsg: msg,
@@ -315,6 +463,10 @@ transaction (ie signatures) are being dropped.
 	case *termdeposit.UpdateConfigurationMsg:
 		option.Option = &bnsd.ProposalOptions_TermdepositUpdateConfigurationMsg{
 			TermdepositUpdateConfigurationMsg: msg,
+		}
+	case *qualityscore.UpdateConfigurationMsg:
+		option.Option = &bnsd.ProposalOptions_QualityscoreUpdateConfigurationMsg{
+			QualityscoreUpdateConfigurationMsg: msg,
 		}
 	}
 
