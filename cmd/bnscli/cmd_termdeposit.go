@@ -179,8 +179,8 @@ This functionality is intended to extend UpdateConfigurationMsg message.
 		fl.PrintDefaults()
 	}
 	var (
-		addrFl   = flAddress(fl, "addr", "", "Address that the rate is configured for.")
-		qscoreFl = fl.Float64("qscore", 1, "Q-score value that is to be set for that address.")
+		addrFl = flAddress(fl, "addr", "", "Address that the rate is configured for.")
+		rateFl = flFraction(fl, "rate", "0/2", "Rate value that is to be set for that address.")
 	)
 	fl.Parse(args)
 
@@ -198,7 +198,7 @@ This functionality is intended to extend UpdateConfigurationMsg message.
 	case *termdeposit.UpdateConfigurationMsg:
 		msg.Patch.BaseRates = append(msg.Patch.BaseRates, termdeposit.CustomRate{
 			Address: *addrFl,
-			Qscore:  float32(*qscoreFl),
+			Rate:    rateFl.Fraction(),
 		})
 	default:
 		return fmt.Errorf("unsupported transaction message: %T", msg)

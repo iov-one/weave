@@ -41,11 +41,17 @@
 				"base_rates": [
 					{
 						"address": "12066456B2BE7F1934624087D98C203A87F7752C",
-						"qscore": 1.9242
+						"rate": {
+							"numerator": 1,
+							"denominator": 3
+						}
 					},
 					{
 						"address": "22066456B2BE7F1934624087D98C203A87F7752C",
-						"qscore": 0.0909
+						"rate": {
+							"numerator": 4,
+							"denominator": 1
+						}
 					}
 				]
 			}

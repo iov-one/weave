@@ -63,10 +63,10 @@ message Configuration {
   repeated CustomRate base_rates = 5 [(gogoproto.nullable) = false];
 }
 
-// Custom Rate allows to declare a fixed qscore value for an address.
+// Custom Rate allows to declare a fixed rate value for an address.
 message CustomRate {
   bytes address = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
-  float qscore = 2;
+  weave.Fraction rate = 2 [(gogoproto.nullable) = false];
 }
 
 // DepositBonus defines a bonus value used to calculate deposit rate. The

@@ -2,17 +2,13 @@ package main
 
 import (
 	"encoding/hex"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
-	"github.com/iov-one/weave/x/gov"
 )
 
 // flAddress returns a value that is being initialized with given default value
@@ -182,10 +178,10 @@ func (b *flagseq) Set(raw string) error {
 func flFraction(fl *flag.FlagSet, name, defaultVal, usage string) *flagfraction {
 	var ff flagfraction
 	if defaultVal != "" {
-		if f, err := unpackFraction(defaultVal); err != nil {
+		if f, err := weave.ParseFractionString(defaultVal); err != nil {
 			flagDie("Cannot parse %q fraction flag value. %s", name, err)
 		} else {
-			ff.frac = &gov.Fraction{
+			ff.frac = weave.Fraction{
 				Numerator:   f.Numerator,
 				Denominator: f.Denominator,
 			}
@@ -196,52 +192,10 @@ func flFraction(fl *flag.FlagSet, name, defaultVal, usage string) *flagfraction 
 }
 
 type flagfraction struct {
-	frac *gov.Fraction
-}
-
-func unpackFraction(s string) (*gov.Fraction, error) {
-	chunks := strings.Split(s, "/")
-	switch len(chunks) {
-	case 1:
-		n, err := strconv.Atoi(chunks[0])
-		if err != nil {
-			return nil, fmt.Errorf("cannot parse numerator value %q: %s", chunks[0], err)
-		}
-		if n < 0 {
-			return nil, fmt.Errorf("numerator value cannot be negative: %d", n)
-		}
-		if n == 0 {
-			return &gov.Fraction{Numerator: 0, Denominator: 0}, nil
-		}
-		return &gov.Fraction{Numerator: uint32(n), Denominator: 1}, nil
-	case 2:
-		n, err := strconv.Atoi(chunks[0])
-		if err != nil {
-			return nil, fmt.Errorf("cannot parse numerator value %q: %s", chunks[0], err)
-		}
-		if n < 0 {
-			return nil, fmt.Errorf("numerator value cannot be negative: %d", n)
-		}
-		d, err := strconv.Atoi(chunks[1])
-		if err != nil {
-			return nil, fmt.Errorf("cannot parse denumerator value %q: %s", chunks[0], err)
-		}
-		if d < 0 {
-			return nil, fmt.Errorf("denumerator value cannot be negative: %d", n)
-		}
-		if d == 0 {
-			return nil, errors.New("denumerator must not be zero")
-		}
-		return &gov.Fraction{Numerator: uint32(n), Denominator: uint32(d)}, nil
-	default:
-		return nil, errors.New("invalid fraction format")
-	}
+	frac weave.Fraction
 }
 
 func (f flagfraction) String() string {
-	if f.frac == nil {
-		return ""
-	}
 	if f.frac.Numerator == 0 {
 		return "0"
 	}
@@ -252,19 +206,15 @@ func (f flagfraction) String() string {
 }
 
 func (f *flagfraction) Set(raw string) error {
-	val, err := unpackFraction(raw)
+	val, err := weave.ParseFractionString(raw)
 	if err != nil {
 		return err
 	}
-	f.frac = val
+	f.frac = *val
 	return nil
 }
 
-func (f *flagfraction) Fraction() *gov.Fraction {
-	if f.frac == nil {
-		return nil
-	}
-	// copy
-	frac := *f.frac
-	return &frac
+func (f *flagfraction) Fraction() weave.Fraction {
+	fracCopy := f.frac
+	return fracCopy
 }

@@ -46,8 +46,8 @@ func TestConfigurationValidate(t *testing.T) {
 		"base rate address must be unique": {
 			c: Configuration{
 				BaseRates: []CustomRate{
-					{Address: cond1.Address(), Qscore: 1},
-					{Address: cond1.Address(), Qscore: 2},
+					{Address: cond1.Address(), Rate: weave.Fraction{Numerator: 3}},
+					{Address: cond1.Address(), Rate: weave.Fraction{Numerator: 5}},
 				},
 			},
 			errs: map[string]*errors.Error{

@@ -9,14 +9,38 @@
 					"schema": 1
 				},
 				"owner": "92066456B2BE7F1934624087D98C203A87F7752C",
-				"c": 1.422,
-				"k": 0.92,
-				"kp": 42924.42,
-				"q0": 9.99,
-				"x": 8.88111,
-				"x_inf": 0.0002,
-				"x_sup": 142.2,
-				"delta": 0.4
+				"c": {
+					"numerator": 1,
+					"denominator": 422
+				},
+				"k": {
+					"numerator": 2,
+					"denominator": 1
+				},
+				"kp": {
+					"numerator": 3,
+					"denominator": 4921
+				},
+				"q0": {
+					"numerator": 4,
+					"denominator": 1
+				},
+				"x": {
+					"numerator": 4,
+					"denominator": 3
+				},
+				"x_inf": {
+					"numerator": 1,
+					"denominator": 2222031
+				},
+				"x_sup": {
+					"numerator": 2,
+					"denominator": 423
+				},
+				"delta": {
+					"numerator": 1,
+					"denominator": 5
+				}
 			}
 		}
 	}
