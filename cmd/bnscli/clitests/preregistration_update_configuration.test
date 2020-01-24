@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -e
+
+bnscli preregistration-update-configuration \
+		-owner 92066456B2BE7F1934624087D98C203A87F7752C \
+	| bnscli view

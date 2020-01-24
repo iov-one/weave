@@ -41,3 +41,30 @@ Create a transaction for preregistering a domain.
 	_, err := writeTx(output, tx)
 	return err
 }
+
+func cmdPreregistrationUpdateConfiguration(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Create a transaction for updating preregistration extension configuration.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		ownerFl = flAddress(fl, "owner", "", "A new configuration owner.")
+	)
+	fl.Parse(args)
+
+	tx := &bnsd.Tx{
+		Sum: &bnsd.Tx_PreregistrationUpdateConfigurationMsg{
+			PreregistrationUpdateConfigurationMsg: &preregistration.UpdateConfigurationMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Patch: &preregistration.Configuration{
+					Owner: *ownerFl,
+				},
+			},
+		},
+	}
+	_, err := writeTx(output, tx)
+	return err
+}

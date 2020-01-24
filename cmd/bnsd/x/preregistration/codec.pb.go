@@ -199,10 +199,63 @@ func (m *Configuration) GetOwner() github_com_iov_one_weave.Address {
 	return nil
 }
 
+type UpdateConfigurationMsg struct {
+	Metadata *weave.Metadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Patch    *Configuration  `protobuf:"bytes,2,opt,name=patch,proto3" json:"patch,omitempty"`
+}
+
+func (m *UpdateConfigurationMsg) Reset()         { *m = UpdateConfigurationMsg{} }
+func (m *UpdateConfigurationMsg) String() string { return proto.CompactTextString(m) }
+func (*UpdateConfigurationMsg) ProtoMessage()    {}
+func (*UpdateConfigurationMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c1894cd0a8735f3c, []int{3}
+}
+func (m *UpdateConfigurationMsg) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateConfigurationMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateConfigurationMsg.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateConfigurationMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateConfigurationMsg.Merge(m, src)
+}
+func (m *UpdateConfigurationMsg) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateConfigurationMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateConfigurationMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateConfigurationMsg proto.InternalMessageInfo
+
+func (m *UpdateConfigurationMsg) GetMetadata() *weave.Metadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *UpdateConfigurationMsg) GetPatch() *Configuration {
+	if m != nil {
+		return m.Patch
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*Record)(nil), "preregistration.Record")
 	proto.RegisterType((*RegisterMsg)(nil), "preregistration.RegisterMsg")
 	proto.RegisterType((*Configuration)(nil), "preregistration.Configuration")
+	proto.RegisterType((*UpdateConfigurationMsg)(nil), "preregistration.UpdateConfigurationMsg")
 }
 
 func init() {
@@ -210,7 +263,7 @@ func init() {
 }
 
 var fileDescriptor_c1894cd0a8735f3c = []byte{
-	// 269 bytes of a gzipped FileDescriptorProto
+	// 306 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x4b, 0xce, 0x4d, 0xd1,
 	0x4f, 0xca, 0x2b, 0x4e, 0xd1, 0xaf, 0xd0, 0x2f, 0x28, 0x4a, 0x2d, 0x4a, 0x4d, 0xcf, 0x2c, 0x2e,
 	0x29, 0x4a, 0x2c, 0xc9, 0xcc, 0xcf, 0xd3, 0x4f, 0xce, 0x4f, 0x49, 0x4d, 0xd6, 0x2b, 0x28, 0xca,
@@ -224,10 +277,13 @@ var fileDescriptor_c1894cd0a8735f3c = []byte{
 	0x49, 0x2f, 0x39, 0x3f, 0x57, 0x3f, 0x33, 0xbf, 0x4c, 0x37, 0x3f, 0x2f, 0x55, 0x1f, 0x62, 0xae,
 	0x63, 0x4a, 0x4a, 0x51, 0x6a, 0x71, 0x71, 0x10, 0x44, 0x8b, 0x52, 0x1f, 0x23, 0x17, 0x77, 0x10,
 	0xd8, 0xfd, 0xa9, 0x45, 0xbe, 0xc5, 0xe9, 0x03, 0xef, 0xa0, 0x0a, 0x2e, 0x5e, 0xe7, 0xfc, 0xbc,
-	0xb4, 0xcc, 0xf4, 0x52, 0x48, 0x80, 0x92, 0xe6, 0x22, 0xb8, 0xcd, 0x4c, 0x24, 0xdb, 0xec, 0x24,
-	0x71, 0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c,
-	0xc7, 0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x49, 0x6c, 0xe0, 0x78, 0x33, 0x06,
-	0x04, 0x00, 0x00, 0xff, 0xff, 0x74, 0x1d, 0xe0, 0x5a, 0x15, 0x02, 0x00, 0x00,
+	0xb4, 0xcc, 0xf4, 0x52, 0x48, 0x80, 0x92, 0xe6, 0x22, 0xb8, 0xcd, 0x4c, 0xa4, 0xdb, 0x5c, 0xcd,
+	0x25, 0x16, 0x5a, 0x90, 0x92, 0x58, 0x92, 0x8a, 0x62, 0x3f, 0xc9, 0x81, 0x62, 0xc2, 0xc5, 0x5a,
+	0x90, 0x58, 0x92, 0x9c, 0x01, 0x76, 0x02, 0xb7, 0x91, 0x9c, 0x1e, 0x5a, 0x0a, 0xd1, 0x43, 0x31,
+	0x3e, 0x08, 0xa2, 0xd8, 0x49, 0xe2, 0xc4, 0x23, 0x39, 0xc6, 0x0b, 0x8f, 0xe4, 0x18, 0x1f, 0x3c,
+	0x92, 0x63, 0x9c, 0xf0, 0x58, 0x8e, 0xe1, 0xc2, 0x63, 0x39, 0x86, 0x1b, 0x8f, 0xe5, 0x18, 0x92,
+	0xd8, 0xc0, 0x89, 0xc6, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0xf0, 0x07, 0x2f, 0x30, 0x92, 0x02,
+	0x00, 0x00,
 }
 
 func (m *Record) Marshal() (dAtA []byte, err error) {
@@ -344,6 +400,44 @@ func (m *Configuration) MarshalTo(dAtA []byte) (int, error) {
 	return i, nil
 }
 
+func (m *UpdateConfigurationMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UpdateConfigurationMsg) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		dAtA[i] = 0xa
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
+		n4, err := m.Metadata.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n4
+	}
+	if m.Patch != nil {
+		dAtA[i] = 0x12
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.Patch.Size()))
+		n5, err := m.Patch.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n5
+	}
+	return i, nil
+}
+
 func encodeVarintCodec(dAtA []byte, offset int, v uint64) int {
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
@@ -407,6 +501,23 @@ func (m *Configuration) Size() (n int) {
 	}
 	l = len(m.Owner)
 	if l > 0 {
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+
+func (m *UpdateConfigurationMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovCodec(uint64(l))
+	}
+	if m.Patch != nil {
+		l = m.Patch.Size()
 		n += 1 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -832,6 +943,131 @@ func (m *Configuration) Unmarshal(dAtA []byte) error {
 			m.Owner = append(m.Owner[:0], dAtA[iNdEx:postIndex]...)
 			if m.Owner == nil {
 				m.Owner = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCodec(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *UpdateConfigurationMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCodec
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UpdateConfigurationMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UpdateConfigurationMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &weave.Metadata{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Patch", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Patch == nil {
+				m.Patch = &Configuration{}
+			}
+			if err := m.Patch.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		default:
