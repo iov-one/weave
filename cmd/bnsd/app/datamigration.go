@@ -58,6 +58,14 @@ func init() {
 		},
 		Migrate: rewritePreregistrationRecords,
 	})
+	datamigration.MustRegister("migrate account blockchain IDs to CAIP format", datamigration.Migration{
+		RequiredSigners: []weave.Address{governingBoard},
+		ChainIDs: []string{
+			"iov-dancenet",
+			"iov-mainnet",
+		},
+		Migrate: rewriteAccountBlockchainIDs,
+	})
 }
 
 var (
@@ -225,4 +233,51 @@ func rewritePreregistrationRecords(ctx context.Context, db weave.KVStore) error 
 			return errors.Wrap(err, "iterator next")
 		}
 	}
+}
+
+func rewriteAccountBlockchainIDs(ctx context.Context, db weave.KVStore) error {
+	b := account.NewAccountBucket()
+	it := orm.IterAll("account")
+	for {
+		var ac account.Account
+		switch key, err := it.Next(db, &ac); {
+		case err == nil:
+			targets, changed := migrateAccountTargetBlockchainID(ac.Targets)
+			if !changed {
+				continue
+			}
+			ac.Targets = targets
+			if _, err := b.Put(db, key, &ac); err != nil {
+				return errors.Wrapf(err, "cannot save %q account", key)
+			}
+		case errors.ErrIteratorDone.Is(err):
+			return nil
+		default:
+			return errors.Wrap(err, "iterator next")
+		}
+	}
+}
+
+// migrateAccountTargetBlockchainID updates any BlockchainID to CAIP specified
+// if possible.
+// See https://github.com/ChainAgnostic/CAIPs/tree/master/CAIPs
+func migrateAccountTargetBlockchainID(targets []account.BlockchainAddress) ([]account.BlockchainAddress, bool) {
+	var updated bool
+	for i, t := range targets {
+		switch t.BlockchainID {
+		case "ethereum-eip155-1":
+			targets[i].BlockchainID = "eip155:1"
+			updated = true
+		case "iov-mainnet":
+			targets[i].BlockchainID = "cosmos:iov-mainnet"
+			updated = true
+		case "lisk-ed14889723":
+			targets[i].BlockchainID = "lip9:9ee11e9df416b18b"
+			updated = true
+		default:
+			// Unknown chain IDs are ignored.
+		}
+	}
+
+	return targets, updated
 }

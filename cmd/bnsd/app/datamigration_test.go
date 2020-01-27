@@ -2,6 +2,7 @@ package bnsd
 
 import (
 	"context"
+	"reflect"
 	"testing"
 	"time"
 
@@ -157,4 +158,109 @@ func TestRewritePreregistrationRecords(t *testing.T) {
 	assert.Equal(t, bob.Admin, bobCond.Address())
 	assert.Equal(t, bob.HasSuperuser, true)
 	assert.Equal(t, bob.ValidUntil, weave.AsUnixTime(now.Add(time.Hour))) // See Configuration.DomainRenew.
+}
+
+func TestRewriteAccountBlockchainIDs(t *testing.T) {
+	db := store.MemStore()
+	migration.MustInitPkg(db, "datamigration", "account")
+
+	now := time.Now()
+
+	var (
+		adminCond = weave.NewCondition("admin", "test", []byte{1})
+		aliceCond = weave.NewCondition("alice", "test", []byte{1})
+	)
+
+	err := gconf.Save(db, "account", &account.Configuration{
+		Metadata:               &weave.Metadata{Schema: 1},
+		Owner:                  adminCond.Address(),
+		ValidDomain:            `^[a-z]+$`,
+		ValidName:              `^[a-z]+$`,
+		ValidBlockchainID:      `^[a-z]+$`,
+		ValidBlockchainAddress: `^[a-z]+$`,
+		DomainRenew:            weave.AsUnixDuration(time.Hour),
+	})
+	if err != nil {
+		t.Fatalf("save account configuration: %s", err)
+	}
+
+	domains := account.NewDomainBucket()
+	myd := account.Domain{
+		Metadata:     &weave.Metadata{Schema: 1},
+		Domain:       "myd",
+		Admin:        adminCond.Address(),
+		ValidUntil:   weave.AsUnixTime(now.Add(time.Hour)),
+		HasSuperuser: false,
+		MsgFees:      nil,
+		AccountRenew: weave.AsUnixDuration(time.Hour),
+	}
+	if _, err := domains.Put(db, []byte("myd"), &myd); err != nil {
+		t.Fatalf("cannot store myd: %s", err)
+	}
+
+	accounts := account.NewAccountBucket()
+
+	emptyAccount := account.Account{
+		Metadata:   &weave.Metadata{Schema: 1},
+		Name:       "",
+		Domain:     "myd",
+		Owner:      aliceCond.Address(),
+		ValidUntil: weave.AsUnixTime(now.Add(time.Hour)),
+		Targets: []account.BlockchainAddress{
+			{BlockchainID: "unknown", Address: "10"},
+			{BlockchainID: "ethereum-eip155-1", Address: "11"},
+			{BlockchainID: "iov-mainnet", Address: "12"},
+		},
+	}
+	if _, err := accounts.Put(db, []byte("*myd"), &emptyAccount); err != nil {
+		t.Fatalf("cannot save empty account: %s", err)
+	}
+
+	aliceAccount := account.Account{
+		Metadata:   &weave.Metadata{Schema: 1},
+		Name:       "",
+		Domain:     "myd",
+		Owner:      aliceCond.Address(),
+		ValidUntil: weave.AsUnixTime(now.Add(time.Hour)),
+		Targets: []account.BlockchainAddress{
+			{BlockchainID: "alxchain", Address: "20"},
+			{BlockchainID: "ethereum-eip155-1", Address: "21"},
+			{BlockchainID: "lisk-ed14889723", Address: "22"},
+		},
+	}
+	if _, err := accounts.Put(db, []byte("alice*myd"), &aliceAccount); err != nil {
+		t.Fatalf("cannot save alice account: %s", err)
+	}
+
+	if err := rewriteAccountBlockchainIDs(context.Background(), db); err != nil {
+		t.Fatalf("rewrite migration: %s", err)
+	}
+
+	var acc account.Account
+
+	if err := accounts.One(db, []byte("*myd"), &acc); err != nil {
+		t.Fatalf("cannot get empty account: %s", err)
+	}
+	wantEmptyTargets := []account.BlockchainAddress{
+		{BlockchainID: "unknown", Address: "10"},
+		{BlockchainID: "eip155:1", Address: "11"},
+		{BlockchainID: "cosmos:iov-mainnet", Address: "12"},
+	}
+	if !reflect.DeepEqual(acc.Targets, wantEmptyTargets) {
+		t.Logf("want targets        %+v", wantEmptyTargets)
+		t.Fatalf("unexpected targets: %+v", acc.Targets)
+	}
+
+	if err := accounts.One(db, []byte("alice*myd"), &acc); err != nil {
+		t.Fatalf("cannot get empty account: %s", err)
+	}
+	wantAliceTargets := []account.BlockchainAddress{
+		{BlockchainID: "alxchain", Address: "20"},
+		{BlockchainID: "eip155:1", Address: "21"},
+		{BlockchainID: "lip9:9ee11e9df416b18b", Address: "22"},
+	}
+	if !reflect.DeepEqual(acc.Targets, wantAliceTargets) {
+		t.Logf("want targets        %+v", wantAliceTargets)
+		t.Fatalf("unexpected targets: %+v", acc.Targets)
+	}
 }
