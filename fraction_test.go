@@ -73,6 +73,11 @@ func TestFractionUnmarshalJSON(t *testing.T) {
 			raw:     `12345`,
 			wantErr: true,
 		},
+		"whitespace is irrelevant for human format": {
+			raw:      `"\t 3 / \t 2 "`,
+			wantFrac: Fraction{Numerator: 3, Denominator: 2},
+			wantErr:  false,
+		},
 	}
 
 	for testName, tc := range cases {

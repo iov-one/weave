@@ -3,6 +3,7 @@ package weave
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -90,6 +91,7 @@ func uintGcd(a, b uint32) uint32 {
 // This fuction does not fail if representation format is correct but the value
 // is invalid (i.e. value of "2/0").
 func ParseFractionString(raw string) (*Fraction, error) {
+	raw = whitespaceRx.ReplaceAllString(raw, "")
 	chunks := strings.SplitN(raw, "/", 2)
 	n, err := strconv.ParseUint(chunks[0], 10, 32)
 	if err != nil {
@@ -104,3 +106,5 @@ func ParseFractionString(raw string) (*Fraction, error) {
 	}
 	return &Fraction{Numerator: uint32(n), Denominator: uint32(d)}, nil
 }
+
+var whitespaceRx = regexp.MustCompile("[ \t]")
