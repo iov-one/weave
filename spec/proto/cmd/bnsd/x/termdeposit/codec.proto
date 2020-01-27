@@ -58,6 +58,14 @@ message Configuration {
   bytes admin = 3 ;
   // A list of bonus values applied to each created Deposit instance.
   repeated DepositBonus bonuses = 4 ;
+  // Base rates defines a list of addresses that have their q-score value fixed.
+  repeated CustomRate base_rates = 5 ;
+}
+
+// Custom Rate allows to declare a fixed rate value for an address.
+message CustomRate {
+  bytes address = 1 ;
+  weave.Fraction rate = 2 ;
 }
 
 // DepositBonus defines a bonus value used to calculate deposit rate. The

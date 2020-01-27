@@ -719,9 +719,9 @@ Creates a new version for an existing election rule. The new version is used for
 	}
 
 	var quorum *gov.Fraction
-	if frac := quorumFl.Fraction(); frac != nil {
+	if frac := quorumFl.Fraction(); frac.Numerator != 0 {
 		// If fraction value was provided, set it.
-		quorum = frac
+		quorum = &gov.Fraction{Numerator: frac.Numerator, Denominator: frac.Denominator}
 	}
 
 	govTx := &bnsd.Tx{

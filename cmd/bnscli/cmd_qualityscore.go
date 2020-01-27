@@ -20,14 +20,14 @@ Create a transaction for updating qualityscore extension configuration.
 	}
 	var (
 		ownerFl = flAddress(fl, "owner", "", "A new configuration owner.")
-		cFl     = fl.Float64("c", 0, "")
-		kFl     = fl.Float64("k", 0, "")
-		kpFl    = fl.Float64("kp", 0, "")
-		q0Fl    = fl.Float64("q0", 0, "")
-		xFl     = fl.Float64("x", 0, "")
-		xInfFl  = fl.Float64("xinf", 0, "")
-		xSupFl  = fl.Float64("xsup", 0, "")
-		deltaFl = fl.Float64("delta", 0, "")
+		cFl     = flFraction(fl, "c", "0", "")
+		kFl     = flFraction(fl, "k", "0", "")
+		kpFl    = flFraction(fl, "kp", "0", "")
+		q0Fl    = flFraction(fl, "q0", "0", "")
+		xFl     = flFraction(fl, "x", "0", "")
+		xInfFl  = flFraction(fl, "xinf", "0", "")
+		xSupFl  = flFraction(fl, "xsup", "0", "")
+		deltaFl = flFraction(fl, "delta", "0", "")
 	)
 	fl.Parse(args)
 
@@ -38,14 +38,14 @@ Create a transaction for updating qualityscore extension configuration.
 				Patch: &qualityscore.Configuration{
 					Metadata: &weave.Metadata{Schema: 1},
 					Owner:    *ownerFl,
-					C:        float32(*cFl),
-					K:        float32(*kFl),
-					Kp:       float32(*kpFl),
-					Q0:       float32(*q0Fl),
-					X:        float32(*xFl),
-					XInf:     float32(*xInfFl),
-					XSup:     float32(*xSupFl),
-					Delta:    float32(*deltaFl),
+					C:        cFl.Fraction(),
+					K:        kFl.Fraction(),
+					Kp:       kpFl.Fraction(),
+					Q0:       q0Fl.Fraction(),
+					X:        xFl.Fraction(),
+					XInf:     xInfFl.Fraction(),
+					XSup:     xSupFl.Fraction(),
+					Delta:    deltaFl.Fraction(),
 				},
 			},
 		},

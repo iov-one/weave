@@ -3,6 +3,8 @@
 ## HEAD
 
 - `bnsd`: a data migration for rewriting blockchain ID to CAIP specified format
+- a new `weave.Fraction` type was added to represent fractional values. It
+  should be used instead of floating point type when precision is needed.
 - enable all `x/account` messages to be executed via proposal
 - `bnsd`: allow `datamigration` messages to be executed by a proposal
 - `bnsd`: a new query endpoint `/gconf` which allows to fetch any `gconf`

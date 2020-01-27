@@ -4,7 +4,6 @@
 package qualityscore
 
 import (
-	encoding_binary "encoding/binary"
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
@@ -31,14 +30,14 @@ type Configuration struct {
 	// This defines the Address that is allowed to update the Configuration object and is
 	// needed to make use of gconf.NewUpdateConfigurationHandler
 	Owner github_com_iov_one_weave.Address `protobuf:"bytes,2,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
-	C     float32                          `protobuf:"fixed32,3,opt,name=c,proto3" json:"c,omitempty"`
-	K     float32                          `protobuf:"fixed32,4,opt,name=k,proto3" json:"k,omitempty"`
-	Kp    float32                          `protobuf:"fixed32,5,opt,name=kp,proto3" json:"kp,omitempty"`
-	Q0    float32                          `protobuf:"fixed32,6,opt,name=q0,proto3" json:"q0,omitempty"`
-	X     float32                          `protobuf:"fixed32,7,opt,name=x,proto3" json:"x,omitempty"`
-	XInf  float32                          `protobuf:"fixed32,8,opt,name=x_inf,json=xInf,proto3" json:"x_inf,omitempty"`
-	XSup  float32                          `protobuf:"fixed32,9,opt,name=x_sup,json=xSup,proto3" json:"x_sup,omitempty"`
-	Delta float32                          `protobuf:"fixed32,10,opt,name=delta,proto3" json:"delta,omitempty"`
+	C     weave.Fraction                   `protobuf:"bytes,3,opt,name=c,proto3" json:"c"`
+	K     weave.Fraction                   `protobuf:"bytes,4,opt,name=k,proto3" json:"k"`
+	Kp    weave.Fraction                   `protobuf:"bytes,5,opt,name=kp,proto3" json:"kp"`
+	Q0    weave.Fraction                   `protobuf:"bytes,6,opt,name=q0,proto3" json:"q0"`
+	X     weave.Fraction                   `protobuf:"bytes,7,opt,name=x,proto3" json:"x"`
+	XInf  weave.Fraction                   `protobuf:"bytes,8,opt,name=x_inf,json=xInf,proto3" json:"x_inf"`
+	XSup  weave.Fraction                   `protobuf:"bytes,9,opt,name=x_sup,json=xSup,proto3" json:"x_sup"`
+	Delta weave.Fraction                   `protobuf:"bytes,10,opt,name=delta,proto3" json:"delta"`
 }
 
 func (m *Configuration) Reset()         { *m = Configuration{} }
@@ -88,60 +87,60 @@ func (m *Configuration) GetOwner() github_com_iov_one_weave.Address {
 	return nil
 }
 
-func (m *Configuration) GetC() float32 {
+func (m *Configuration) GetC() weave.Fraction {
 	if m != nil {
 		return m.C
 	}
-	return 0
+	return weave.Fraction{}
 }
 
-func (m *Configuration) GetK() float32 {
+func (m *Configuration) GetK() weave.Fraction {
 	if m != nil {
 		return m.K
 	}
-	return 0
+	return weave.Fraction{}
 }
 
-func (m *Configuration) GetKp() float32 {
+func (m *Configuration) GetKp() weave.Fraction {
 	if m != nil {
 		return m.Kp
 	}
-	return 0
+	return weave.Fraction{}
 }
 
-func (m *Configuration) GetQ0() float32 {
+func (m *Configuration) GetQ0() weave.Fraction {
 	if m != nil {
 		return m.Q0
 	}
-	return 0
+	return weave.Fraction{}
 }
 
-func (m *Configuration) GetX() float32 {
+func (m *Configuration) GetX() weave.Fraction {
 	if m != nil {
 		return m.X
 	}
-	return 0
+	return weave.Fraction{}
 }
 
-func (m *Configuration) GetXInf() float32 {
+func (m *Configuration) GetXInf() weave.Fraction {
 	if m != nil {
 		return m.XInf
 	}
-	return 0
+	return weave.Fraction{}
 }
 
-func (m *Configuration) GetXSup() float32 {
+func (m *Configuration) GetXSup() weave.Fraction {
 	if m != nil {
 		return m.XSup
 	}
-	return 0
+	return weave.Fraction{}
 }
 
-func (m *Configuration) GetDelta() float32 {
+func (m *Configuration) GetDelta() weave.Fraction {
 	if m != nil {
 		return m.Delta
 	}
-	return 0
+	return weave.Fraction{}
 }
 
 // UpdateConfigurationMsg is used by the gconf extension to update the
@@ -208,29 +207,30 @@ func init() {
 }
 
 var fileDescriptor_63ab9fb1ba3b6e41 = []byte{
-	// 345 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x91, 0xb1, 0x4e, 0xeb, 0x30,
-	0x14, 0x86, 0xeb, 0xdc, 0xa6, 0xb7, 0xd7, 0xed, 0x05, 0x29, 0x54, 0xc8, 0x2a, 0x52, 0x88, 0x0a,
-	0x43, 0x25, 0x44, 0x5c, 0xca, 0xc6, 0x46, 0x99, 0x18, 0xba, 0x04, 0x31, 0x23, 0xd7, 0x76, 0xd3,
-	0x28, 0xad, 0xed, 0x26, 0x4e, 0x1b, 0x56, 0x9e, 0x80, 0xc7, 0x62, 0xec, 0xc8, 0x84, 0x50, 0xfb,
-	0x16, 0x4c, 0x28, 0x71, 0x85, 0xda, 0x91, 0xcd, 0xdf, 0x77, 0xfe, 0xe3, 0xe1, 0x3f, 0xf0, 0x8c,
-	0xce, 0x18, 0x1e, 0x89, 0x94, 0xe1, 0x1c, 0xcf, 0x33, 0x32, 0x8d, 0xf4, 0x73, 0x4a, 0x65, 0xc2,
-	0x31, 0x95, 0x8c, 0x53, 0x5f, 0x25, 0x52, 0x4b, 0xa7, 0xb9, 0x3b, 0x69, 0x37, 0x76, 0x46, 0xed,
-	0x56, 0x28, 0x43, 0x59, 0x3e, 0x71, 0xf1, 0x32, 0xb6, 0xf3, 0x62, 0xc1, 0xff, 0x77, 0x52, 0x8c,
-	0xa3, 0x30, 0x4b, 0x88, 0x8e, 0xa4, 0x70, 0x2e, 0x60, 0x7d, 0xc6, 0x35, 0x61, 0x44, 0x13, 0x04,
-	0x3c, 0xd0, 0x6d, 0xf4, 0x0f, 0xfd, 0x25, 0x27, 0x0b, 0xee, 0x0f, 0xb7, 0x3a, 0xf8, 0x09, 0x38,
-	0x37, 0xd0, 0x96, 0x4b, 0xc1, 0x13, 0x64, 0x79, 0xa0, 0xdb, 0x1c, 0x9c, 0x7f, 0x7d, 0x9c, 0x7a,
-	0x61, 0xa4, 0x27, 0xd9, 0xc8, 0xa7, 0x72, 0x86, 0x23, 0xb9, 0xb8, 0x94, 0x82, 0x63, 0xb3, 0x7f,
-	0xcb, 0x58, 0xc2, 0xd3, 0x34, 0x30, 0x2b, 0x4e, 0x13, 0x02, 0x8a, 0xfe, 0x78, 0xa0, 0x6b, 0x05,
-	0x80, 0x16, 0x14, 0xa3, 0xaa, 0xa1, 0xd8, 0x39, 0x80, 0x56, 0xac, 0x90, 0x5d, 0xa2, 0x15, 0xab,
-	0x82, 0xe7, 0x3d, 0x54, 0x33, 0x3c, 0xef, 0x15, 0xe9, 0x1c, 0xfd, 0x35, 0xe9, 0xdc, 0x39, 0x82,
-	0x76, 0xfe, 0x14, 0x89, 0x31, 0xaa, 0x97, 0xa6, 0x9a, 0xdf, 0x8b, 0xb1, 0x91, 0x69, 0xa6, 0xd0,
-	0xbf, 0xad, 0x7c, 0xc8, 0x94, 0xd3, 0x82, 0x36, 0xe3, 0x53, 0x4d, 0x10, 0x2c, 0xa5, 0x81, 0x4e,
-	0x0e, 0x8f, 0x1f, 0x15, 0x23, 0x9a, 0xef, 0x35, 0x31, 0x4c, 0xc3, 0xdf, 0x95, 0x71, 0x05, 0x6d,
-	0x45, 0x34, 0x9d, 0x94, 0x65, 0x34, 0xfa, 0x27, 0xfe, 0xee, 0x31, 0xfc, 0xbd, 0xbf, 0x03, 0x93,
-	0x1c, 0xa0, 0xb7, 0xb5, 0x0b, 0x56, 0x6b, 0x17, 0x7c, 0xae, 0x5d, 0xf0, 0xba, 0x71, 0x2b, 0xab,
-	0x8d, 0x5b, 0x79, 0xdf, 0xb8, 0x95, 0x51, 0xad, 0xbc, 0xcf, 0xf5, 0x77, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x94, 0x33, 0x64, 0x86, 0xf7, 0x01, 0x00, 0x00,
+	// 363 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0xd2, 0x41, 0x6b, 0xea, 0x40,
+	0x10, 0x00, 0xe0, 0xac, 0x1a, 0x9f, 0x6f, 0xf5, 0xf1, 0x20, 0x3c, 0x1e, 0x8b, 0x85, 0x28, 0xda,
+	0x82, 0x54, 0x9a, 0x58, 0x7b, 0xeb, 0xad, 0x16, 0x0a, 0x3d, 0x78, 0x49, 0xe9, 0xb9, 0xac, 0xbb,
+	0x6b, 0x0c, 0xd1, 0xdd, 0x35, 0xd9, 0x68, 0xfa, 0x2f, 0xfa, 0x7b, 0xfa, 0x0b, 0x3c, 0x7a, 0xec,
+	0x49, 0x8a, 0xfe, 0x8b, 0x9e, 0x4a, 0x4c, 0x29, 0x7a, 0x59, 0xe8, 0x6d, 0x98, 0xf9, 0x66, 0x67,
+	0x61, 0x06, 0xb6, 0xc9, 0x8c, 0xba, 0x23, 0x1e, 0x53, 0x37, 0x75, 0xe7, 0x09, 0x9e, 0x06, 0xea,
+	0x39, 0x26, 0x22, 0x62, 0x2e, 0x11, 0x94, 0x11, 0x47, 0x46, 0x42, 0x09, 0xab, 0x76, 0x58, 0xa9,
+	0x57, 0x0f, 0x4a, 0xf5, 0x7f, 0xbe, 0xf0, 0xc5, 0x3e, 0x74, 0xb3, 0x28, 0xcf, 0xb6, 0x5e, 0x8b,
+	0xf0, 0xcf, 0xad, 0xe0, 0xe3, 0xc0, 0x4f, 0x22, 0xac, 0x02, 0xc1, 0xad, 0x2e, 0xac, 0xcc, 0x98,
+	0xc2, 0x14, 0x2b, 0x8c, 0x40, 0x13, 0x74, 0xaa, 0xfd, 0xbf, 0xce, 0x92, 0xe1, 0x05, 0x73, 0x86,
+	0x5f, 0x69, 0xef, 0x1b, 0x58, 0xd7, 0xd0, 0x14, 0x4b, 0xce, 0x22, 0x54, 0x68, 0x82, 0x4e, 0x6d,
+	0x70, 0xfa, 0xb1, 0x69, 0x34, 0xfd, 0x40, 0x4d, 0x92, 0x91, 0x43, 0xc4, 0xcc, 0x0d, 0xc4, 0xe2,
+	0x42, 0x70, 0xe6, 0xe6, 0xfd, 0x37, 0x94, 0x46, 0x2c, 0x8e, 0xbd, 0xbc, 0xc5, 0x6a, 0x43, 0x40,
+	0x50, 0xf1, 0x68, 0xc2, 0x5d, 0x84, 0x49, 0xf6, 0x89, 0x41, 0x69, 0xb5, 0x69, 0x18, 0x1e, 0x20,
+	0x19, 0x0a, 0x51, 0x49, 0x8b, 0x42, 0xeb, 0x0c, 0x16, 0x42, 0x89, 0x4c, 0x9d, 0x2a, 0x84, 0x32,
+	0x63, 0xf3, 0x1e, 0x2a, 0x6b, 0xd9, 0xbc, 0x97, 0x8d, 0x4c, 0xd1, 0x2f, 0xed, 0xc8, 0xd4, 0x3a,
+	0x87, 0x66, 0xfa, 0x14, 0xf0, 0x31, 0xaa, 0xe8, 0x60, 0x29, 0xbd, 0xe7, 0xe3, 0xdc, 0xc6, 0x89,
+	0x44, 0xbf, 0xf5, 0xf6, 0x21, 0x91, 0x56, 0x17, 0x9a, 0x94, 0x4d, 0x15, 0x46, 0x50, 0x67, 0x73,
+	0xd3, 0x4a, 0xe1, 0xff, 0x47, 0x49, 0xb1, 0x62, 0x47, 0x1b, 0x1c, 0xc6, 0xfe, 0xcf, 0x96, 0x78,
+	0x09, 0x4d, 0x89, 0x15, 0x99, 0xec, 0x97, 0x58, 0xed, 0x9f, 0x38, 0x87, 0x47, 0xe4, 0x1c, 0xbd,
+	0xed, 0xe5, 0x72, 0x80, 0x56, 0x5b, 0x1b, 0xac, 0xb7, 0x36, 0x78, 0xdf, 0xda, 0xe0, 0x65, 0x67,
+	0x1b, 0xeb, 0x9d, 0x6d, 0xbc, 0xed, 0x6c, 0x63, 0x54, 0xde, 0xdf, 0xd5, 0xd5, 0x67, 0x00, 0x00,
+	0x00, 0xff, 0xff, 0x1f, 0x95, 0x77, 0xb7, 0xaf, 0x02, 0x00, 0x00,
 }
 
 func (m *Configuration) Marshal() (dAtA []byte, err error) {
@@ -264,54 +264,70 @@ func (m *Configuration) MarshalTo(dAtA []byte) (int, error) {
 		i = encodeVarintCodec(dAtA, i, uint64(len(m.Owner)))
 		i += copy(dAtA[i:], m.Owner)
 	}
-	if m.C != 0 {
-		dAtA[i] = 0x1d
-		i++
-		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.C))))
-		i += 4
+	dAtA[i] = 0x1a
+	i++
+	i = encodeVarintCodec(dAtA, i, uint64(m.C.Size()))
+	n2, err := m.C.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
 	}
-	if m.K != 0 {
-		dAtA[i] = 0x25
-		i++
-		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.K))))
-		i += 4
+	i += n2
+	dAtA[i] = 0x22
+	i++
+	i = encodeVarintCodec(dAtA, i, uint64(m.K.Size()))
+	n3, err := m.K.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
 	}
-	if m.Kp != 0 {
-		dAtA[i] = 0x2d
-		i++
-		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.Kp))))
-		i += 4
+	i += n3
+	dAtA[i] = 0x2a
+	i++
+	i = encodeVarintCodec(dAtA, i, uint64(m.Kp.Size()))
+	n4, err := m.Kp.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
 	}
-	if m.Q0 != 0 {
-		dAtA[i] = 0x35
-		i++
-		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.Q0))))
-		i += 4
+	i += n4
+	dAtA[i] = 0x32
+	i++
+	i = encodeVarintCodec(dAtA, i, uint64(m.Q0.Size()))
+	n5, err := m.Q0.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
 	}
-	if m.X != 0 {
-		dAtA[i] = 0x3d
-		i++
-		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.X))))
-		i += 4
+	i += n5
+	dAtA[i] = 0x3a
+	i++
+	i = encodeVarintCodec(dAtA, i, uint64(m.X.Size()))
+	n6, err := m.X.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
 	}
-	if m.XInf != 0 {
-		dAtA[i] = 0x45
-		i++
-		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.XInf))))
-		i += 4
+	i += n6
+	dAtA[i] = 0x42
+	i++
+	i = encodeVarintCodec(dAtA, i, uint64(m.XInf.Size()))
+	n7, err := m.XInf.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
 	}
-	if m.XSup != 0 {
-		dAtA[i] = 0x4d
-		i++
-		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.XSup))))
-		i += 4
+	i += n7
+	dAtA[i] = 0x4a
+	i++
+	i = encodeVarintCodec(dAtA, i, uint64(m.XSup.Size()))
+	n8, err := m.XSup.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
 	}
-	if m.Delta != 0 {
-		dAtA[i] = 0x55
-		i++
-		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.Delta))))
-		i += 4
+	i += n8
+	dAtA[i] = 0x52
+	i++
+	i = encodeVarintCodec(dAtA, i, uint64(m.Delta.Size()))
+	n9, err := m.Delta.MarshalTo(dAtA[i:])
+	if err != nil {
+		return 0, err
 	}
+	i += n9
 	return i, nil
 }
 
@@ -334,21 +350,21 @@ func (m *UpdateConfigurationMsg) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Metadata.Size()))
-		n2, err := m.Metadata.MarshalTo(dAtA[i:])
+		n10, err := m.Metadata.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n2
+		i += n10
 	}
 	if m.Patch != nil {
 		dAtA[i] = 0x12
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.Patch.Size()))
-		n3, err := m.Patch.MarshalTo(dAtA[i:])
+		n11, err := m.Patch.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n3
+		i += n11
 	}
 	return i, nil
 }
@@ -376,30 +392,22 @@ func (m *Configuration) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCodec(uint64(l))
 	}
-	if m.C != 0 {
-		n += 5
-	}
-	if m.K != 0 {
-		n += 5
-	}
-	if m.Kp != 0 {
-		n += 5
-	}
-	if m.Q0 != 0 {
-		n += 5
-	}
-	if m.X != 0 {
-		n += 5
-	}
-	if m.XInf != 0 {
-		n += 5
-	}
-	if m.XSup != 0 {
-		n += 5
-	}
-	if m.Delta != 0 {
-		n += 5
-	}
+	l = m.C.Size()
+	n += 1 + l + sovCodec(uint64(l))
+	l = m.K.Size()
+	n += 1 + l + sovCodec(uint64(l))
+	l = m.Kp.Size()
+	n += 1 + l + sovCodec(uint64(l))
+	l = m.Q0.Size()
+	n += 1 + l + sovCodec(uint64(l))
+	l = m.X.Size()
+	n += 1 + l + sovCodec(uint64(l))
+	l = m.XInf.Size()
+	n += 1 + l + sovCodec(uint64(l))
+	l = m.XSup.Size()
+	n += 1 + l + sovCodec(uint64(l))
+	l = m.Delta.Size()
+	n += 1 + l + sovCodec(uint64(l))
 	return n
 }
 
@@ -533,93 +541,269 @@ func (m *Configuration) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 3:
-			if wireType != 5 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field C", wireType)
 			}
-			var v uint32
-			if (iNdEx + 4) > l {
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
-			iNdEx += 4
-			m.C = float32(math.Float32frombits(v))
+			if err := m.C.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 4:
-			if wireType != 5 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field K", wireType)
 			}
-			var v uint32
-			if (iNdEx + 4) > l {
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
-			iNdEx += 4
-			m.K = float32(math.Float32frombits(v))
+			if err := m.K.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 5:
-			if wireType != 5 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Kp", wireType)
 			}
-			var v uint32
-			if (iNdEx + 4) > l {
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
-			iNdEx += 4
-			m.Kp = float32(math.Float32frombits(v))
+			if err := m.Kp.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 6:
-			if wireType != 5 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Q0", wireType)
 			}
-			var v uint32
-			if (iNdEx + 4) > l {
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
-			iNdEx += 4
-			m.Q0 = float32(math.Float32frombits(v))
+			if err := m.Q0.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 7:
-			if wireType != 5 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field X", wireType)
 			}
-			var v uint32
-			if (iNdEx + 4) > l {
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
-			iNdEx += 4
-			m.X = float32(math.Float32frombits(v))
+			if err := m.X.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 8:
-			if wireType != 5 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field XInf", wireType)
 			}
-			var v uint32
-			if (iNdEx + 4) > l {
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
-			iNdEx += 4
-			m.XInf = float32(math.Float32frombits(v))
+			if err := m.XInf.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 9:
-			if wireType != 5 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field XSup", wireType)
 			}
-			var v uint32
-			if (iNdEx + 4) > l {
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
-			iNdEx += 4
-			m.XSup = float32(math.Float32frombits(v))
+			if err := m.XSup.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 10:
-			if wireType != 5 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Delta", wireType)
 			}
-			var v uint32
-			if (iNdEx + 4) > l {
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
-			iNdEx += 4
-			m.Delta = float32(math.Float32frombits(v))
+			if err := m.Delta.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCodec(dAtA[iNdEx:])

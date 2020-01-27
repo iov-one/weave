@@ -59,6 +59,14 @@ message Configuration {
   bytes admin = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // A list of bonus values applied to each created Deposit instance.
   repeated DepositBonus bonuses = 4 [(gogoproto.nullable) = false];
+  // Base rates defines a list of addresses that have their q-score value fixed.
+  repeated CustomRate base_rates = 5 [(gogoproto.nullable) = false];
+}
+
+// Custom Rate allows to declare a fixed rate value for an address.
+message CustomRate {
+  bytes address = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
+  weave.Fraction rate = 2 [(gogoproto.nullable) = false];
 }
 
 // DepositBonus defines a bonus value used to calculate deposit rate. The

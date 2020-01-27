@@ -370,6 +370,10 @@
                 </li>
               
                 <li>
+                  <a href="#termdeposit.CustomRate"><span class="badge">M</span>CustomRate</a>
+                </li>
+              
+                <li>
                   <a href="#termdeposit.Deposit"><span class="badge">M</span>Deposit</a>
                 </li>
               
@@ -446,6 +450,10 @@
           <li>
             <a href="#codec.proto">codec.proto</a>
             <ul>
+              
+                <li>
+                  <a href="#weave.Fraction"><span class="badge">M</span>Fraction</a>
+                </li>
               
                 <li>
                   <a href="#weave.Metadata"><span class="badge">M</span>Metadata</a>
@@ -3452,56 +3460,56 @@ needed to make use of gconf.NewUpdateConfigurationHandler </p></td>
               
                 <tr>
                   <td>c</td>
-                  <td><a href="#float">float</a></td>
+                  <td><a href="#weave.Fraction">weave.Fraction</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>k</td>
-                  <td><a href="#float">float</a></td>
+                  <td><a href="#weave.Fraction">weave.Fraction</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>kp</td>
-                  <td><a href="#float">float</a></td>
+                  <td><a href="#weave.Fraction">weave.Fraction</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>q0</td>
-                  <td><a href="#float">float</a></td>
+                  <td><a href="#weave.Fraction">weave.Fraction</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>x</td>
-                  <td><a href="#float">float</a></td>
+                  <td><a href="#weave.Fraction">weave.Fraction</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>x_inf</td>
-                  <td><a href="#float">float</a></td>
+                  <td><a href="#weave.Fraction">weave.Fraction</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>x_sup</td>
-                  <td><a href="#float">float</a></td>
+                  <td><a href="#weave.Fraction">weave.Fraction</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
               
                 <tr>
                   <td>delta</td>
-                  <td><a href="#float">float</a></td>
+                  <td><a href="#weave.Fraction">weave.Fraction</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -3595,6 +3603,13 @@ allowed to update the configuration. </p></td>
                   <td><p>A list of bonus values applied to each created Deposit instance. </p></td>
                 </tr>
               
+                <tr>
+                  <td>base_rates</td>
+                  <td><a href="#termdeposit.CustomRate">CustomRate</a></td>
+                  <td>repeated</td>
+                  <td><p>Base rates defines a list of addresses that have their q-score value fixed. </p></td>
+                </tr>
+              
             </tbody>
           </table>
         
@@ -3630,6 +3645,36 @@ allowed to update the configuration. </p></td>
                   <td><a href="#int64">int64</a></td>
                   <td></td>
                   <td><p>An expiration date for the newly created deposit contract. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="termdeposit.CustomRate">CustomRate</h3>
+        <p>Custom Rate allows to declare a fixed rate value for an address.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>address</td>
+                  <td><a href="#bytes">bytes</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>rate</td>
+                  <td><a href="#weave.Fraction">weave.Fraction</a></td>
+                  <td></td>
+                  <td><p> </p></td>
                 </tr>
               
             </tbody>
@@ -4206,6 +4251,36 @@ modify a username token. </p></td>
       </div>
       <p></p>
 
+      
+        <h3 id="weave.Fraction">Fraction</h3>
+        <p>The Fraction type represents a floating point number without the precision</p><p>issues that native floating point type has.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>numerator</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>The top number in a fraction. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>denominator</td>
+                  <td><a href="#uint32">uint32</a></td>
+                  <td></td>
+                  <td><p>The bottom number </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
       
         <h3 id="weave.Metadata">Metadata</h3>
         <p>Metadata is expected to be the first argument of every message or model. It</p><p>contains all essential attributes.</p><p>Each protobuf message should be declared with the first attribute being</p><p>weave.Metadata metadata = 1;</p>
