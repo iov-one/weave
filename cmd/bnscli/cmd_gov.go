@@ -11,6 +11,7 @@ import (
 	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/account"
+	"github.com/iov-one/weave/cmd/bnsd/x/preregistration"
 	"github.com/iov-one/weave/cmd/bnsd/x/qualityscore"
 	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
@@ -325,6 +326,12 @@ transaction (ie signatures) are being dropped.
 						QualityscoreUpdateConfigurationMsg: m,
 					},
 				})
+			case *preregistration.UpdateConfigurationMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_PreregistrationUpdateConfigurationMsg{
+						PreregistrationUpdateConfigurationMsg: m,
+					},
+				})
 			}
 		}
 		option.Option = &bnsd.ProposalOptions_ExecuteProposalBatchMsg{
@@ -467,6 +474,10 @@ transaction (ie signatures) are being dropped.
 	case *qualityscore.UpdateConfigurationMsg:
 		option.Option = &bnsd.ProposalOptions_QualityscoreUpdateConfigurationMsg{
 			QualityscoreUpdateConfigurationMsg: msg,
+		}
+	case *preregistration.UpdateConfigurationMsg:
+		option.Option = &bnsd.ProposalOptions_PreregistrationUpdateConfigurationMsg{
+			PreregistrationUpdateConfigurationMsg: msg,
 		}
 	}
 

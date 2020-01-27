@@ -95,6 +95,7 @@ message Tx {
     termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
     termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
     qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
+    preregistration.UpdateConfigurationMsg preregistration_update_configuration_msg = 104;
   }
 }
 
@@ -145,6 +146,7 @@ message ExecuteBatchMsg {
       termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
       termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
       qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
+      preregistration.UpdateConfigurationMsg preregistration_update_configuration_msg = 104;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];
@@ -195,6 +197,7 @@ message ProposalOptions {
     termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
     termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
     qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
+    preregistration.UpdateConfigurationMsg preregistration_update_configuration_msg = 104;
   }
 }
 
@@ -241,6 +244,7 @@ message ExecuteProposalBatchMsg {
       termdeposit.ReleaseDepositMsg termdeposit_release_deposit_msg = 101;
       termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
       qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
+      preregistration.UpdateConfigurationMsg preregistration_update_configuration_msg = 104;
     }
   }
   repeated Union messages = 1 [(gogoproto.nullable) = false];

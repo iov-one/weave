@@ -3,6 +3,7 @@ package preregistration
 import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/x"
@@ -16,6 +17,8 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		records: records,
 		auth:    auth,
 	})
+	r.Handle(&UpdateConfigurationMsg{},
+		gconf.NewUpdateConfigurationHandler("preregistration", &Configuration{}, auth, migration.CurrentAdmin))
 }
 
 type registerHandler struct {

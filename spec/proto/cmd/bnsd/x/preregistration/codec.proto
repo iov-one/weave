@@ -23,3 +23,8 @@ message Configuration {
   // needed to make use of gconf.NewUpdateConfigurationHandler
   bytes owner = 2 ;
 }
+
+message UpdateConfigurationMsg {
+  weave.Metadata metadata = 1;
+  Configuration patch = 2;
+}

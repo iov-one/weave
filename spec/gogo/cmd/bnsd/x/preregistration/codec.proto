@@ -24,3 +24,8 @@ message Configuration {
   // needed to make use of gconf.NewUpdateConfigurationHandler
   bytes owner = 2 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
 }
+
+message UpdateConfigurationMsg {
+  weave.Metadata metadata = 1;
+  Configuration patch = 2;
+}
