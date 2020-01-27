@@ -4,12 +4,12 @@ set -e
 
 bnscli qualityscore-update-configuration \
 		-owner 92066456B2BE7F1934624087D98C203A87F7752C \
-		-c 1.422 \
-		-k 0.92 \
-		-kp 42924.421 \
-		-q0 9.99 \
-		-x 8.88111 \
-		-xinf 0.0002 \
-		-xsup 142.2 \
-		-delta 0.4 \
+		-c "1/422" \
+		-k 2 \
+		-kp "3/4921" \
+		-q0 4 \
+		-x "4/3" \
+		-xinf "1/2222031" \
+		-xsup "2/423" \
+		-delta "1/5" \
 	| bnscli view

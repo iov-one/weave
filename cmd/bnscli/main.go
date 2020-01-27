@@ -76,6 +76,7 @@ var commands = map[string]func(input io.Reader, output io.Writer, args []string)
 	"termdeposit-release-deposit":       cmdTermdepositReleaseDeposit,
 	"termdeposit-update-configuration":  cmdTermdepositUpdateConfiguration,
 	"termdeposit-with-bonus":            cmdTermdepositWithBonus,
+	"termdeposit-with-base-rate":        cmdTermdepositWithBaseRate,
 	"text-resolution":                   cmdTextResolution,
 	"transfer-account":                  cmdTransferAccount,
 	"transfer-domain":                   cmdTransferDomain,

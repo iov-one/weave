@@ -29,3 +29,13 @@ message PubKey {
   string type = 1;
   bytes data = 2;
 }
+
+// The Fraction type represents a floating point number without the precision
+// issues that native floating point type has.
+message Fraction {
+  option (gogoproto.goproto_stringer) = false;
+  // The top number in a fraction.
+  uint32 numerator = 1;
+  // The bottom number
+  uint32 denominator = 2;
+}

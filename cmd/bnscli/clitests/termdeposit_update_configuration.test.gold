@@ -5,9 +5,13 @@
 				"schema": 1
 			},
 			"patch": {
+				"metadata": {
+					"schema": 1
+				},
 				"owner": "22066456B2BE7F1934624087D98C203A87F7752C",
 				"admin": "92066456B2BE7F1934624087D98C203A87F7752C",
-				"bonuses": null
+				"bonuses": null,
+				"base_rates": null
 			}
 		}
 	}
@@ -19,6 +23,9 @@
 				"schema": 1
 			},
 			"patch": {
+				"metadata": {
+					"schema": 1
+				},
 				"owner": "32066456B2BE7F1934624087D98C203A87F7752C",
 				"admin": "12066456B2BE7F1934624087D98C203A87F7752C",
 				"bonuses": [
@@ -29,6 +36,22 @@
 					{
 						"lockin_period": 298800,
 						"bonus_percentage": 10
+					}
+				],
+				"base_rates": [
+					{
+						"address": "12066456B2BE7F1934624087D98C203A87F7752C",
+						"rate": {
+							"numerator": 1,
+							"denominator": 3
+						}
+					},
+					{
+						"address": "22066456B2BE7F1934624087D98C203A87F7752C",
+						"rate": {
+							"numerator": 4,
+							"denominator": 1
+						}
 					}
 				]
 			}
