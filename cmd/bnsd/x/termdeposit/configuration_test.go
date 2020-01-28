@@ -22,7 +22,7 @@ func TestConfigurationValidate(t *testing.T) {
 				Owner:    weavetest.NewCondition().Address(),
 				Admin:    weavetest.NewCondition().Address(),
 				Bonuses: []DepositBonus{
-					{LockinPeriod: 100, BonusPercentage: 50},
+					{LockinPeriod: 100, Bonus: weave.Fraction{Numerator: 1, Denominator: 50}},
 				},
 			},
 			errs: map[string]*errors.Error{

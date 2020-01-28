@@ -427,7 +427,7 @@ func TestUseCases(t *testing.T) {
 								Owner:    aliceCond.Address(),
 								Admin:    bobCond.Address(),
 								Bonuses: []DepositBonus{
-									{LockinPeriod: asDays(1), BonusPercentage: 10},
+									{LockinPeriod: asDays(1), Bonus: weave.Fraction{Numerator: 1, Denominator: 10}},
 								},
 							},
 						},
@@ -446,7 +446,7 @@ func TestUseCases(t *testing.T) {
 								Owner:    aliceCond.Address(),
 								Admin:    bobCond.Address(),
 								Bonuses: []DepositBonus{
-									{LockinPeriod: asDays(1), BonusPercentage: 10},
+									{LockinPeriod: asDays(1), Bonus: weave.Fraction{Numerator: 1, Denominator: 10}},
 								},
 							},
 						},
@@ -465,7 +465,7 @@ func TestUseCases(t *testing.T) {
 								Owner:    bobCond.Address(),
 								Admin:    charlieCond.Address(),
 								Bonuses: []DepositBonus{
-									{LockinPeriod: asDays(1), BonusPercentage: 10},
+									{LockinPeriod: asDays(1), Bonus: weave.Fraction{Numerator: 1, Denominator: 10}},
 								},
 							},
 						},
@@ -566,7 +566,7 @@ func TestUseCases(t *testing.T) {
 
 			bonuses := tc.Bonuses
 			if len(bonuses) == 0 {
-				bonuses = []DepositBonus{{LockinPeriod: asDays(1), BonusPercentage: 10}}
+				bonuses = []DepositBonus{{LockinPeriod: asDays(1), Bonus: weave.Fraction{Numerator: 1, Denominator: 10}}}
 			}
 
 			config := Configuration{
@@ -627,7 +627,7 @@ func TestDepositRateComputation(t *testing.T) {
 		contract DepositContract
 		conf     Configuration
 		now      time.Time
-		wantFrac Frac
+		wantFrac weave.Fraction
 		wantErr  *errors.Error
 	}{
 		"deposit duration between bonuses": {
@@ -637,15 +637,15 @@ func TestDepositRateComputation(t *testing.T) {
 			},
 			conf: Configuration{
 				Bonuses: []DepositBonus{
-					{LockinPeriod: asDays(10), BonusPercentage: 10},
-					{LockinPeriod: asDays(30), BonusPercentage: 30},
-					{LockinPeriod: asDays(40), BonusPercentage: 50},
-					{LockinPeriod: asDays(80), BonusPercentage: 80},
+					{LockinPeriod: asDays(10), Bonus: weave.Fraction{Numerator: 1, Denominator: 10}},
+					{LockinPeriod: asDays(30), Bonus: weave.Fraction{Numerator: 3, Denominator: 10}},
+					{LockinPeriod: asDays(40), Bonus: weave.Fraction{Numerator: 5, Denominator: 10}},
+					{LockinPeriod: asDays(80), Bonus: weave.Fraction{Numerator: 8, Denominator: 10}},
 				},
 			},
 			now: asTime(t, "1 Feb 2000"),
 
-			wantFrac: Frac{Numerator: 19, Denominator: 100},
+			wantFrac: weave.Fraction{Numerator: 19, Denominator: 100},
 			wantErr:  nil,
 		},
 		"deposit duration below minimal bonus": {
@@ -655,13 +655,13 @@ func TestDepositRateComputation(t *testing.T) {
 			},
 			conf: Configuration{
 				Bonuses: []DepositBonus{
-					{LockinPeriod: asDays(10), BonusPercentage: 10},
-					{LockinPeriod: asDays(20), BonusPercentage: 30},
+					{LockinPeriod: asDays(10), Bonus: weave.Fraction{Numerator: 1, Denominator: 10}},
+					{LockinPeriod: asDays(20), Bonus: weave.Fraction{Numerator: 3, Denominator: 10}},
 				},
 			},
 			now: asTime(t, "15 Feb 2000"),
 
-			wantFrac: Frac{Numerator: 10, Denominator: 100},
+			wantFrac: weave.Fraction{Numerator: 10, Denominator: 100},
 			wantErr:  nil,
 		},
 		"deposit duration above maximum bonus": {
@@ -671,13 +671,13 @@ func TestDepositRateComputation(t *testing.T) {
 			},
 			conf: Configuration{
 				Bonuses: []DepositBonus{
-					{LockinPeriod: asDays(1), BonusPercentage: 10},
-					{LockinPeriod: asDays(4), BonusPercentage: 80},
+					{LockinPeriod: asDays(1), Bonus: weave.Fraction{Numerator: 1, Denominator: 10}},
+					{LockinPeriod: asDays(4), Bonus: weave.Fraction{Numerator: 8, Denominator: 10}},
 				},
 			},
 			now: asTime(t, "2 Jan 2000"),
 
-			wantFrac: Frac{Numerator: 80, Denominator: 100},
+			wantFrac: weave.Fraction{Numerator: 80, Denominator: 100},
 			wantErr:  nil,
 		},
 	}
@@ -688,7 +688,7 @@ func TestDepositRateComputation(t *testing.T) {
 			if !tc.wantErr.Is(err) {
 				t.Fatalf("unexpected error: %+v", err)
 			}
-			if f.Numerator != tc.wantFrac.Numerator || f.Denominator != tc.wantFrac.Denominator {
+			if f.Compare(tc.wantFrac) != 0 {
 				t.Fatalf("unexpected result: %d/%d", f.Numerator, f.Denominator)
 			}
 		})

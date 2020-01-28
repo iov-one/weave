@@ -53,8 +53,8 @@ func bestDepositBonus(bonuses []DepositBonus, duration weave.UnixDuration) *Depo
 		if b.LockinPeriod > duration {
 			continue
 		}
-		if best == nil || best.BonusPercentage < b.BonusPercentage {
-			best = &DepositBonus{LockinPeriod: b.LockinPeriod, BonusPercentage: b.BonusPercentage}
+		if best == nil || b.Bonus.Compare(best.Bonus) > 0 {
+			best = &DepositBonus{LockinPeriod: b.LockinPeriod, Bonus: b.Bonus}
 		}
 	}
 	return best

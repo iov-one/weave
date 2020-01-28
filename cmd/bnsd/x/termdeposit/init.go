@@ -30,7 +30,7 @@ func (*Initializer) FromGenesis(opts weave.Options, params weave.GenesisParams, 
 	var contracts []struct {
 		ValidSince weave.UnixTime `json:"valid_since"`
 		ValidUntil weave.UnixTime `json:"valid_until"`
-		Rate       Frac           `json:"rate"`
+		Rate       weave.Fraction `json:"rate"`
 	}
 
 	if err := opts.ReadOptions("depositcontract", &contracts); err != nil {

@@ -13,14 +13,14 @@ bnscli termdeposit-update-configuration \
 		-admin 12066456B2BE7F1934624087D98C203A87F7752C \
 		-owner 32066456B2BE7F1934624087D98C203A87F7752C \
 	| bnscli termdeposit-with-bonus \
-		-bonus 33 \
+		-bonus 33/100 \
 		-period "421h" \
 	| bnscli termdeposit-with-bonus \
-		-bonus 10 \
+		-bonus '1 / 10' \
 		-period "83h" \
 	| bnscli termdeposit-with-base-rate \
 		-addr 12066456B2BE7F1934624087D98C203A87F7752C \
-		-rate "1/3" \
+		-rate '1 / 3' \
 	| bnscli termdeposit-with-base-rate \
 		-addr 22066456B2BE7F1934624087D98C203A87F7752C \
 		-rate 4 \

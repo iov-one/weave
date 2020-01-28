@@ -139,7 +139,7 @@ This functionality is intended to extend UpdateConfigurationMsg message.
 	}
 	var (
 		periodFl = fl.Duration("period", 10*24*time.Hour, "Lockin period required for this bonus.")
-		bonusFl  = fl.Uint("bonus", 50, "Bonus value in percentage. Value 50 represents 50%.")
+		bonusFl  = flFraction(fl, "bonus", "1/2", "Bonus value for this period.")
 	)
 	fl.Parse(args)
 
@@ -156,8 +156,8 @@ This functionality is intended to extend UpdateConfigurationMsg message.
 	switch msg := msg.(type) {
 	case *termdeposit.UpdateConfigurationMsg:
 		msg.Patch.Bonuses = append(msg.Patch.Bonuses, termdeposit.DepositBonus{
-			LockinPeriod:    weave.AsUnixDuration(*periodFl),
-			BonusPercentage: int32(*bonusFl),
+			LockinPeriod: weave.AsUnixDuration(*periodFl),
+			Bonus:        bonusFl.Fraction(),
 		})
 	default:
 		return fmt.Errorf("unsupported transaction message: %T", msg)
