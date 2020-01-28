@@ -139,7 +139,7 @@ This functionality is intended to extend UpdateConfigurationMsg message.
 	}
 	var (
 		periodFl = fl.Duration("period", 10*24*time.Hour, "Lockin period required for this bonus.")
-		bonusFl  = flFraction(fl, "bonus", "1/2", "Bonus value in percentage. Value 50 represents 50%.")
+		bonusFl  = flFraction(fl, "bonus", "1/2", "Bonus value for this period.")
 	)
 	fl.Parse(args)
 
