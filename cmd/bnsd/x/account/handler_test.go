@@ -1067,6 +1067,37 @@ func TestUseCases(t *testing.T) {
 				assertAccounts(t, db, "wunderland", nil)
 			},
 		},
+		"domain without a superuser cannot be deleted": {
+			Requests: []Request{
+				{
+					Now:        now,
+					Conditions: []weave.Condition{adminCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterDomainMsg{
+							Metadata:     &weave.Metadata{Schema: 1},
+							Domain:       "wunderland",
+							Admin:        adminCond.Address(),
+							HasSuperuser: false,
+							AccountRenew: 1000,
+						},
+					},
+					BlockHeight: 100,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 2,
+					Conditions: []weave.Condition{adminCond},
+					Tx: &weavetest.Tx{
+						Msg: &DeleteDomainMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+						},
+					},
+					BlockHeight: 102,
+					WantErr:     errors.ErrState,
+				},
+			},
+		},
 		"deleting all accounts (flushing) does not delete the empty name account": {
 			Requests: []Request{
 				{
@@ -1372,6 +1403,38 @@ func TestUseCases(t *testing.T) {
 					},
 					BlockHeight: 101,
 					WantErr:     nil,
+				},
+			},
+		},
+		"domain without a superuser cannot be transferred": {
+			Requests: []Request{
+				{
+					Now:        now,
+					Conditions: []weave.Condition{adminCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterDomainMsg{
+							Metadata:     &weave.Metadata{Schema: 1},
+							Domain:       "wunderland",
+							Admin:        adminCond.Address(),
+							HasSuperuser: false,
+							AccountRenew: 1000,
+						},
+					},
+					BlockHeight: 100,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 2,
+					Conditions: []weave.Condition{adminCond},
+					Tx: &weavetest.Tx{
+						Msg: &TransferDomainMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+							NewAdmin: bobCond.Address(),
+						},
+					},
+					BlockHeight: 102,
+					WantErr:     errors.ErrState,
 				},
 			},
 		},

@@ -269,6 +269,9 @@ func (h *transferDomainHandler) validate(ctx weave.Context, db weave.KVStore, tx
 	if err := h.domains.One(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, nil, errors.Wrap(err, "cannot get domain")
 	}
+	if !domain.HasSuperuser {
+		return nil, nil, errors.Wrap(errors.ErrState, "domain without a superuser cannot be transferred")
+	}
 	if !h.auth.HasAddress(ctx, domain.Admin) {
 		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "only owner can transfer a domain")
 	}
@@ -474,6 +477,9 @@ func (h *deleteDomainHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	var domain Domain
 	if err := h.domains.One(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, nil, errors.Wrap(err, "cannot get domain")
+	}
+	if !domain.HasSuperuser {
+		return nil, nil, errors.Wrap(errors.ErrState, "domain without a superuser cannot be deleted")
 	}
 	if !h.auth.HasAddress(ctx, domain.Admin) {
 		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "only admin can delete a domain")
