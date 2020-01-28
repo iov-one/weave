@@ -17,6 +17,7 @@ import (
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/cmd/bnsd/client"
 	"github.com/iov-one/weave/cmd/bnsd/x/account"
+	"github.com/iov-one/weave/cmd/bnsd/x/preregistration"
 	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/orm"
@@ -213,6 +214,11 @@ var queries = map[string]struct {
 		newObj: func() model { return &termdeposit.Deposit{} },
 		decKey: sequenceKey,
 		encID:  numericID,
+	},
+	"/preregistrationrecords": {
+		newObj: func() model { return &preregistration.Record{} },
+		decKey: rawKey,
+		encID:  strID,
 	},
 }
 

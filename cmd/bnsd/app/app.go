@@ -14,7 +14,7 @@ import (
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/cmd/bnsd/x/account"
 	"github.com/iov-one/weave/cmd/bnsd/x/preregistration"
-	qualityscore "github.com/iov-one/weave/cmd/bnsd/x/qualityscore"
+	"github.com/iov-one/weave/cmd/bnsd/x/qualityscore"
 	"github.com/iov-one/weave/cmd/bnsd/x/termdeposit"
 	"github.com/iov-one/weave/cmd/bnsd/x/username"
 	"github.com/iov-one/weave/coin"
@@ -134,6 +134,7 @@ func QueryRouter(minFee coin.Coin) weave.QueryRouter {
 		account.RegisterQuery,
 		termdeposit.RegisterQuery,
 		gconf.RegisterQuery,
+		preregistration.RegisterQuery,
 	)
 	return r
 }

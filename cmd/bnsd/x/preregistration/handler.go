@@ -9,6 +9,10 @@ import (
 	"github.com/iov-one/weave/x"
 )
 
+func RegisterQuery(qr weave.QueryRouter) {
+	NewRecordBucket().Register("preregistrationrecords", qr)
+}
+
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r = migration.SchemaMigratingRegistry("preregistration", r)
 
