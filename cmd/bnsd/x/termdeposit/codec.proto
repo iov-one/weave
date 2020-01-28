@@ -31,7 +31,7 @@ message Deposit {
   // computation.
   coin.Coin amount = 3 [(gogoproto.nullable) = false];
   // Pro-rated interest rate as detailed in the Confluence spec.
-  Frac rate = 4 [(gogoproto.nullable) = false];
+  weave.Fraction rate = 4 [(gogoproto.nullable) = false];
   // Payback is an address that locked funds and interest are send back to once
   // the contract expires.
   bytes depositor = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
@@ -40,12 +40,6 @@ message Deposit {
   bool released = 6;
   // CreatedAt is set to the wall clock value at the deposit creation time.
   int64 created_at = 7 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
-}
-
-// A Frac represents a quotient numerator/denominator of arbitrary precision.
-message Frac {
-  int64 numerator = 1;
-  int64 denominator = 2;
 }
 
 // Configuration is a dynamic configuration used by this extension, managed by
@@ -74,8 +68,8 @@ message CustomRate {
 message DepositBonus {
   // Deposit minimal lockin period required to use this bonus.
   int32 lockin_period = 1 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
-  // A percentage value of the deposit value; Value of 1 represents 1%.
-  int32 bonus_percentage = 2;
+  // Bonus rate for given range.
+  weave.Fraction bonus = 2 [(gogoproto.nullable) = false];
 }
 
 // CreateDepositContractMsg creates a new DepositContract entity. This message

@@ -162,16 +162,16 @@ func depositAccount(key []byte) weave.Address {
 // given time.
 // This function returns an error if contract is not active or expired. It is
 // also taking into account overflow errors.
-func depositRate(contract *DepositContract, conf Configuration, now time.Time) (Frac, error) {
+func depositRate(contract *DepositContract, conf Configuration, now time.Time) (weave.Fraction, error) {
 	if now.After(contract.ValidUntil.Time()) {
-		return Frac{}, errors.Wrap(errors.ErrExpired, "contract out of date")
+		return weave.Fraction{}, errors.Wrap(errors.ErrExpired, "contract out of date")
 	}
 	if now.Before(contract.ValidSince.Time()) {
-		return Frac{}, errors.Wrap(errors.ErrState, "contract not yet active")
+		return weave.Fraction{}, errors.Wrap(errors.ErrState, "contract not yet active")
 	}
 
 	if len(conf.Bonuses) == 0 {
-		return Frac{}, errors.Wrap(errors.ErrInput, "no deposit bonuses declared")
+		return weave.Fraction{}, errors.Wrap(errors.ErrInput, "no deposit bonuses declared")
 	}
 
 	// r = (r+ - r-) / (T+ - T-) * (T - T-) + r-
@@ -192,37 +192,31 @@ func depositRate(contract *DepositContract, conf Configuration, now time.Time) (
 
 	var (
 		lockPlus, lockMinus weave.UnixDuration
-		percPlus, percMinus int32
+		percPlus, percMinus weave.Fraction
 	)
 	for _, b := range bonuses {
 		if b.LockinPeriod < depositDuration {
 			lockMinus = b.LockinPeriod
-			percMinus = b.BonusPercentage
+			percMinus = b.Bonus
 		} else {
 			lockPlus = b.LockinPeriod
-			percPlus = b.BonusPercentage
+			percPlus = b.Bonus
 			break
 		}
 	}
 
 	if lockPlus == 0 {
 		max := bonuses[len(bonuses)-1]
-		return Frac{
-			Numerator:   int64(max.BonusPercentage),
-			Denominator: 100,
-		}, nil
+		return max.Bonus, nil
 	}
 
 	if lockMinus == 0 {
 		min := bonuses[0]
-		return Frac{
-			Numerator:   int64(min.BonusPercentage),
-			Denominator: 100,
-		}, nil
+		return min.Bonus, nil
 	}
 
-	rPlus := big.NewRat(int64(percPlus), 100)
-	rMinus := big.NewRat(int64(percMinus), 100)
+	rPlus := big.NewRat(int64(percPlus.Numerator), int64(percPlus.Denominator))
+	rMinus := big.NewRat(int64(percMinus.Numerator), int64(percMinus.Denominator))
 	tPlus := big.NewRat(int64(lockPlus), 1)
 	tMinus := big.NewRat(int64(lockMinus), 1)
 	t := big.NewRat(int64(depositDuration), 1)
@@ -241,9 +235,9 @@ func depositRate(contract *DepositContract, conf Configuration, now time.Time) (
 	rate.Mul(rate, t2)
 	rate.Add(rate, rMinus)
 
-	result := Frac{
-		Numerator:   rate.Num().Int64(),
-		Denominator: rate.Denom().Int64(),
+	result := weave.Fraction{
+		Numerator:   uint32(rate.Num().Int64()),
+		Denominator: uint32(rate.Denom().Int64()),
 	}
 	return result, nil
 }

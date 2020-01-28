@@ -31,11 +31,17 @@
 				"bonuses": [
 					{
 						"lockin_period": 1515600,
-						"bonus_percentage": 33
+						"bonus": {
+							"numerator": 33,
+							"denominator": 100
+						}
 					},
 					{
 						"lockin_period": 298800,
-						"bonus_percentage": 10
+						"bonus": {
+							"numerator": 1,
+							"denominator": 10
+						}
 					}
 				],
 				"base_rates": [

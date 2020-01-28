@@ -36,15 +36,6 @@ func NewDepositContractBucket() orm.ModelBucket {
 
 var depositSeq = orm.NewSequence("deposit", "id")
 
-// Validate returns an error if this Frac instance is not valid.
-func (f *Frac) Validate() error {
-	var errs error
-	if f.Denominator == 0 {
-		errs = errors.AppendField(errs, "Denominator", errors.Wrap(errors.ErrState, "must not be zero"))
-	}
-	return errs
-}
-
 var _ orm.Model = (*Deposit)(nil)
 
 func (m *Deposit) Validate() error {
@@ -58,7 +49,6 @@ func (m *Deposit) Validate() error {
 	} else if !m.Amount.IsPositive() {
 		errs = errors.AppendField(errs, "Amount", errors.Wrap(errors.ErrAmount, "must be greater than zero"))
 	}
-	errs = errors.AppendField(errs, "Rate", m.Rate.Validate())
 	errs = errors.AppendField(errs, "Depositor", m.Depositor.Validate())
 	errs = errors.AppendField(errs, "CreatedAt", m.CreatedAt.Validate())
 	return errs

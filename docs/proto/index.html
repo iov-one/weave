@@ -394,10 +394,6 @@
                 </li>
               
                 <li>
-                  <a href="#termdeposit.Frac"><span class="badge">M</span>Frac</a>
-                </li>
-              
-                <li>
                   <a href="#termdeposit.ReleaseDepositMsg"><span class="badge">M</span>ReleaseDepositMsg</a>
                 </li>
               
@@ -3782,7 +3778,7 @@ computation. </p></td>
               
                 <tr>
                   <td>rate</td>
-                  <td><a href="#termdeposit.Frac">Frac</a></td>
+                  <td><a href="#weave.Fraction">weave.Fraction</a></td>
                   <td></td>
                   <td><p>Pro-rated interest rate as detailed in the Confluence spec. </p></td>
                 </tr>
@@ -3834,10 +3830,10 @@ were already released or not. </p></td>
                 </tr>
               
                 <tr>
-                  <td>bonus_percentage</td>
-                  <td><a href="#int32">int32</a></td>
+                  <td>bonus</td>
+                  <td><a href="#weave.Fraction">weave.Fraction</a></td>
                   <td></td>
-                  <td><p>A percentage value of the deposit value; Value of 1 represents 1%. </p></td>
+                  <td><p>Bonus rate for given range. </p></td>
                 </tr>
               
             </tbody>
@@ -3922,36 +3918,6 @@ must not be expired. </p></td>
                   <td></td>
                   <td><p>Payback is an address that locked funds and interest are send back to once
 the contract expires. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-        
-
-        
-      
-        <h3 id="termdeposit.Frac">Frac</h3>
-        <p>A Frac represents a quotient numerator/denominator of arbitrary precision.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>numerator</td>
-                  <td><a href="#int64">int64</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>denominator</td>
-                  <td><a href="#int64">int64</a></td>
-                  <td></td>
-                  <td><p> </p></td>
                 </tr>
               
             </tbody>

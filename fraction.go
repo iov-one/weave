@@ -85,6 +85,36 @@ func uintGcd(a, b uint32) uint32 {
 	return a
 }
 
+// Compare returns an integer comparing two fraction numbers. The result will be
+//    0 if a == b,
+//   -1 if a < b,
+//   +1 if a > b
+// Comparison of invalid fraction values return undefined value.
+func (a Fraction) Compare(b Fraction) int {
+	if a.Numerator == 0 {
+		if b.Numerator == 0 {
+			return 0
+		}
+		return -1
+	}
+	if b.Numerator == 0 {
+		return 1
+	}
+
+	aNum := a.Numerator * b.Denominator
+	bNum := b.Numerator * a.Denominator
+	switch {
+	case aNum == bNum:
+		return 0
+	case aNum < bNum:
+		return -1
+	case aNum > bNum:
+		return 1
+	default:
+		panic("dead code")
+	}
+}
+
 // ParseFractionString returns a fraction value that is represented by given
 // string. This function fails if given string does not represent a fraction
 // value.

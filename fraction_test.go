@@ -106,3 +106,61 @@ func TestFractionMarshalJSON(t *testing.T) {
 		t.Fatalf("unexpected JSON format: %q", b)
 	}
 }
+
+func TestFractionCompare(t *testing.T) {
+	cases := map[string]struct {
+		a, b Fraction
+		Want int
+	}{
+		"two equal values": {
+			a:    Fraction{Numerator: 1, Denominator: 2},
+			b:    Fraction{Numerator: 2, Denominator: 4},
+			Want: 0,
+		},
+		"a greater than b": {
+			a:    Fraction{Numerator: 3, Denominator: 5},
+			b:    Fraction{Numerator: 2, Denominator: 4},
+			Want: 1,
+		},
+		"b greater than a": {
+			a:    Fraction{Numerator: 3, Denominator: 5},
+			b:    Fraction{Numerator: 3, Denominator: 4},
+			Want: -1,
+		},
+		"a is zero": {
+			a:    Fraction{Numerator: 0, Denominator: 2},
+			b:    Fraction{Numerator: 3, Denominator: 4},
+			Want: -1,
+		},
+		"a is zero value": {
+			a:    Fraction{Numerator: 0, Denominator: 0},
+			b:    Fraction{Numerator: 3, Denominator: 4},
+			Want: -1,
+		},
+		"b is zero": {
+			a:    Fraction{Numerator: 1, Denominator: 2},
+			b:    Fraction{Numerator: 0, Denominator: 3},
+			Want: 1,
+		},
+		"b is zero value": {
+			a:    Fraction{Numerator: 1, Denominator: 2},
+			b:    Fraction{Numerator: 0, Denominator: 0},
+			Want: 1,
+		},
+		"a and b are zero": {
+			a:    Fraction{Numerator: 0, Denominator: 123},
+			b:    Fraction{Numerator: 0, Denominator: 0},
+			Want: 0,
+		},
+	}
+
+	for testName, tc := range cases {
+		t.Run(testName, func(t *testing.T) {
+			got := tc.a.Compare(tc.b)
+			if got != tc.Want {
+				t.Logf("%v compare %v", tc.a, tc.b)
+				t.Fatalf("want %d, got %d", tc.Want, got)
+			}
+		})
+	}
+}
