@@ -42,14 +42,6 @@ func init() {
 		},
 		Migrate: rewriteUsernameAccounts,
 	})
-	datamigration.MustRegister("initialize preregistration configuration", datamigration.Migration{
-		RequiredSigners: []weave.Address{governingBoard},
-		ChainIDs: []string{
-			"iov-dancenet",
-			"iov-mainnet",
-		},
-		Migrate: initializePreregistrationConfiguration,
-	})
 	datamigration.MustRegister("rewrite preregistration records", datamigration.Migration{
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
@@ -80,17 +72,6 @@ func mustParse(encodedAddress string) weave.Address {
 		panic(err)
 	}
 	return a
-}
-
-func initializePreregistrationConfiguration(ctx context.Context, db weave.KVStore) error {
-	conf := preregistration.Configuration{
-		Metadata: &weave.Metadata{Schema: 1},
-		Owner:    technicalExecutors,
-	}
-	if err := gconf.Save(db, "preregistration", &conf); err != nil {
-		return errors.Wrap(err, "save")
-	}
-	return nil
 }
 
 func initializeMsgfeeConfiguration(ctx context.Context, db weave.KVStore) error {
