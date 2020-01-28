@@ -18,7 +18,7 @@ import (
 
 func init() {
 	datamigration.MustRegister("no-op test", datamigration.Migration{
-		RequiredSigners: []weave.Address{devnetRule2},
+		RequiredSigners: []weave.Address{economicExecutors},
 		ChainIDs: []string{
 			"iov-dancenet",
 			"local-iov-devnet",
@@ -70,7 +70,7 @@ func init() {
 
 var (
 	governingBoard     = mustParse("cond:gov/rule/0000000000000001")
-	devnetRule2        = mustParse("cond:gov/rule/0000000000000002")
+	economicExecutors  = mustParse("cond:gov/rule/0000000000000002")
 	technicalExecutors = mustParse("cond:gov/rule/0000000000000003")
 )
 
@@ -98,12 +98,12 @@ func initializeMsgfeeConfiguration(ctx context.Context, db weave.KVStore) error 
 	switch err := gconf.Load(db, "msgfee", &msgfee.Configuration{}); {
 	case errors.ErrNotFound.Is(err):
 		conf.Metadata = &weave.Metadata{Schema: 1}
-		conf.Owner = technicalExecutors
+		conf.Owner = economicExecutors
 	case err == nil:
 		if len(conf.Owner) != 0 {
 			return errors.Wrap(errors.ErrState, "configuration owner already set")
 		}
-		conf.Owner = technicalExecutors
+		conf.Owner = economicExecutors
 	default:
 		return errors.Wrap(err, "load")
 	}
