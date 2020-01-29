@@ -13,7 +13,6 @@ import (
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
 	"github.com/iov-one/weave/orm"
-	"github.com/iov-one/weave/x/msgfee"
 )
 
 func init() {
@@ -26,14 +25,6 @@ func init() {
 		Migrate: func(ctx context.Context, db weave.KVStore) error { return nil },
 	})
 
-	datamigration.MustRegister("initialize x/msgfee configuration owner", datamigration.Migration{
-		RequiredSigners: []weave.Address{governingBoard},
-		ChainIDs: []string{
-			"iov-dancenet",
-			"iov-mainnet",
-		},
-		Migrate: initializeMsgfeeConfiguration,
-	})
 	datamigration.MustRegister("rewrite username accounts", datamigration.Migration{
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
@@ -72,27 +63,6 @@ func mustParse(encodedAddress string) weave.Address {
 		panic(err)
 	}
 	return a
-}
-
-func initializeMsgfeeConfiguration(ctx context.Context, db weave.KVStore) error {
-	var conf msgfee.Configuration
-	switch err := gconf.Load(db, "msgfee", &msgfee.Configuration{}); {
-	case errors.ErrNotFound.Is(err):
-		conf.Metadata = &weave.Metadata{Schema: 1}
-		conf.Owner = economicExecutors
-	case err == nil:
-		if len(conf.Owner) != 0 {
-			return errors.Wrap(errors.ErrState, "configuration owner already set")
-		}
-		conf.Owner = economicExecutors
-	default:
-		return errors.Wrap(err, "load")
-	}
-
-	if err := gconf.Save(db, "msgfee", &conf); err != nil {
-		return errors.Wrap(err, "save")
-	}
-	return nil
 }
 
 func rewriteUsernameAccounts(ctx context.Context, db weave.KVStore) error {

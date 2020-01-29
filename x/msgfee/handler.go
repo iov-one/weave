@@ -78,5 +78,5 @@ func (h *setMsgFeeHandler) validate(ctx weave.Context, db weave.KVStore, tx weav
 
 func NewConfigHandler(auth x.Authenticator) weave.Handler {
 	var conf Configuration
-	return gconf.NewUpdateConfigurationHandler("cash", &conf, auth, migration.CurrentAdmin)
+	return gconf.NewUpdateConfigurationHandler("msgfee", &conf, auth, migration.CurrentAdmin)
 }
