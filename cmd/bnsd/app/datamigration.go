@@ -25,29 +25,13 @@ func init() {
 		Migrate: func(ctx context.Context, db weave.KVStore) error { return nil },
 	})
 
-	datamigration.MustRegister("rewrite username accounts", datamigration.Migration{
+	datamigration.MustRegister("version 1.0 release", datamigration.Migration{
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
 			"iov-dancenet",
 			"iov-mainnet",
 		},
-		Migrate: rewriteUsernameAccounts,
-	})
-	datamigration.MustRegister("rewrite preregistration records", datamigration.Migration{
-		RequiredSigners: []weave.Address{governingBoard},
-		ChainIDs: []string{
-			"iov-dancenet",
-			"iov-mainnet",
-		},
-		Migrate: rewritePreregistrationRecords,
-	})
-	datamigration.MustRegister("migrate account blockchain IDs to CAIP format", datamigration.Migration{
-		RequiredSigners: []weave.Address{governingBoard},
-		ChainIDs: []string{
-			"iov-dancenet",
-			"iov-mainnet",
-		},
-		Migrate: rewriteAccountBlockchainIDs,
+		Migrate: migrateRelease_1_0,
 	})
 }
 
@@ -63,6 +47,22 @@ func mustParse(encodedAddress string) weave.Address {
 		panic(err)
 	}
 	return a
+}
+
+// migrateRelease_1_0 clubs together several migrations required for the 1.0
+// release. Because they are running within a single migration execution,
+// atomic execution is guaranteed.
+func migrateRelease_1_0(ctx context.Context, db weave.KVStore) error {
+	if err := rewriteUsernameAccounts(ctx, db); err != nil {
+		return errors.Wrap(err, "rewrite username accounts")
+	}
+	if err := rewritePreregistrationRecords(ctx, db); err != nil {
+		return errors.Wrap(err, "rewrite preregistration records")
+	}
+	if err := rewriteAccountBlockchainIDs(ctx, db); err != nil {
+		return errors.Wrap(err, "rewrite account blockchain ID")
+	}
+	return nil
 }
 
 func rewriteUsernameAccounts(ctx context.Context, db weave.KVStore) error {
