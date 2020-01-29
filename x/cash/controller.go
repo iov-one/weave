@@ -2,7 +2,7 @@ package cash
 
 import (
 	"github.com/iov-one/weave"
-	coin "github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
 )
 
