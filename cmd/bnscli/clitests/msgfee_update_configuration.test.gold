@@ -1,0 +1,16 @@
+{
+	"Sum": {
+		"MsgfeeUpdateConfigurationMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"patch": {
+				"metadata": {
+					"schema": 1
+				},
+				"owner": "92066456B2BE7F1934624087D98C203A87F7752C",
+				"fee_admin": "21066456B2BE7F1934624087D98C203A87F7752C"
+			}
+		}
+	}
+}

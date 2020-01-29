@@ -95,6 +95,7 @@ message Tx {
     termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
     qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
     preregistration.UpdateConfigurationMsg preregistration_update_configuration_msg = 104;
+    msgfee.UpdateConfigurationMsg msgfee_update_configuration_msg = 105;
   }
 }
 
@@ -146,6 +147,7 @@ message ExecuteBatchMsg {
       termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
       qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
       preregistration.UpdateConfigurationMsg preregistration_update_configuration_msg = 104;
+      msgfee.UpdateConfigurationMsg msgfee_update_configuration_msg = 105;
     }
   }
   repeated Union messages = 1 ;
@@ -197,6 +199,7 @@ message ProposalOptions {
     termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
     qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
     preregistration.UpdateConfigurationMsg preregistration_update_configuration_msg = 104;
+    msgfee.UpdateConfigurationMsg msgfee_update_configuration_msg = 105;
   }
 }
 
@@ -244,6 +247,7 @@ message ExecuteProposalBatchMsg {
       termdeposit.UpdateConfigurationMsg termdeposit_update_configuration_msg = 102;
       qualityscore.UpdateConfigurationMsg qualityscore_update_configuration_msg = 103;
       preregistration.UpdateConfigurationMsg preregistration_update_configuration_msg = 104;
+      msgfee.UpdateConfigurationMsg msgfee_update_configuration_msg = 105;
     }
   }
   repeated Union messages = 1 ;

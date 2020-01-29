@@ -332,6 +332,12 @@ transaction (ie signatures) are being dropped.
 						PreregistrationUpdateConfigurationMsg: m,
 					},
 				})
+			case *msgfee.UpdateConfigurationMsg:
+				messages = append(messages, bnsd.ExecuteProposalBatchMsg_Union{
+					Sum: &bnsd.ExecuteProposalBatchMsg_Union_MsgfeeUpdateConfigurationMsg{
+						MsgfeeUpdateConfigurationMsg: m,
+					},
+				})
 			}
 		}
 		option.Option = &bnsd.ProposalOptions_ExecuteProposalBatchMsg{
@@ -478,6 +484,10 @@ transaction (ie signatures) are being dropped.
 	case *preregistration.UpdateConfigurationMsg:
 		option.Option = &bnsd.ProposalOptions_PreregistrationUpdateConfigurationMsg{
 			PreregistrationUpdateConfigurationMsg: msg,
+		}
+	case *msgfee.UpdateConfigurationMsg:
+		option.Option = &bnsd.ProposalOptions_MsgfeeUpdateConfigurationMsg{
+			MsgfeeUpdateConfigurationMsg: msg,
 		}
 	}
 

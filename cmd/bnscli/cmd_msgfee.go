@@ -55,3 +55,33 @@ Use a zero fee to unset an existing fee.
 	_, err := writeTx(output, tx)
 	return err
 }
+
+func cmdMsgFeeUpdateConfiguration(input io.Reader, output io.Writer, args []string) error {
+	fl := flag.NewFlagSet("", flag.ExitOnError)
+	fl.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), `
+Create a transaction for updating msgfee extension configuration.
+		`)
+		fl.PrintDefaults()
+	}
+	var (
+		ownerFl    = flAddress(fl, "owner", "", "A new configuration owner.")
+		feeAdminFl = flAddress(fl, "fee-admin", "", "A new fee admin address.")
+	)
+	fl.Parse(args)
+
+	tx := &bnsd.Tx{
+		Sum: &bnsd.Tx_MsgfeeUpdateConfigurationMsg{
+			MsgfeeUpdateConfigurationMsg: &msgfee.UpdateConfigurationMsg{
+				Metadata: &weave.Metadata{Schema: 1},
+				Patch: &msgfee.Configuration{
+					Metadata: &weave.Metadata{Schema: 1},
+					Owner:    *ownerFl,
+					FeeAdmin: *feeAdminFl,
+				},
+			},
+		},
+	}
+	_, err := writeTx(output, tx)
+	return err
+}
