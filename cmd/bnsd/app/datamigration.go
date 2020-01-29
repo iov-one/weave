@@ -12,6 +12,7 @@ import (
 	"github.com/iov-one/weave/datamigration"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
 
@@ -53,6 +54,20 @@ func mustParse(encodedAddress string) weave.Address {
 // release. Because they are running within a single migration execution,
 // atomic execution is guaranteed.
 func migrateRelease_1_0(ctx context.Context, db weave.KVStore) error {
+	if err := initializeSchema(db, "account"); err != nil {
+		return errors.Wrap(err, "initialize account schema")
+	}
+	if err := gconf.Save(db, "account", &account.Configuration{
+		Metadata:               &weave.Metadata{Schema: 1},
+		Owner:                  nil,
+		ValidDomain:            `TODO`,
+		ValidName:              `TODO`,
+		ValidBlockchainID:      `TODO`,
+		ValidBlockchainAddress: `TODO`,
+		DomainRenew:            weave.AsUnixDuration(72 * time.Hour),
+	}); err != nil {
+		return errors.Wrap(err, "save initial gconf configuration")
+	}
 	if err := rewriteUsernameAccounts(ctx, db); err != nil {
 		return errors.Wrap(err, "rewrite username accounts")
 	}
@@ -61,6 +76,40 @@ func migrateRelease_1_0(ctx context.Context, db weave.KVStore) error {
 	}
 	if err := rewriteAccountBlockchainIDs(ctx, db); err != nil {
 		return errors.Wrap(err, "rewrite account blockchain ID")
+	}
+	if err := gconf.Save(db, "account", &account.Configuration{
+		Metadata:               &weave.Metadata{Schema: 1},
+		Owner:                  nil,
+		ValidDomain:            `TODO`,
+		ValidName:              `TODO`,
+		ValidBlockchainID:      `TODO`,
+		ValidBlockchainAddress: `TODO`,
+		DomainRenew:            weave.AsUnixDuration(72 * time.Hour),
+	}); err != nil {
+		return errors.Wrap(err, "save final gconf configuration")
+	}
+	return nil
+}
+
+// initializeSchema register a schema information with version 1 for the given
+// package name (extension). This function fails if schema for requested
+// extension was already registered.
+func initializeSchema(db weave.KVStore, pkgName string) error {
+	b := migration.NewSchemaBucket()
+	switch ver, err := b.CurrentSchema(db, pkgName); {
+	case err == nil:
+		return errors.Wrapf(errors.ErrSchema, "initialized with version %d", ver)
+	case errors.ErrNotFound.Is(err):
+		schema := migration.Schema{
+			Metadata: &weave.Metadata{Schema: 1},
+			Pkg:      pkgName,
+			Version:  1,
+		}
+		if _, err := b.Create(db, &schema); err != nil {
+			return errors.Wrap(err, "create schema information")
+		}
+	default:
+		return errors.Wrap(err, "current schema version")
 	}
 	return nil
 }
