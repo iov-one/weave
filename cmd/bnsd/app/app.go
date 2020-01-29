@@ -51,10 +51,6 @@ func Authenticator() x.Authenticator {
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
 func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
-	// ctrl can be initialized with any implementation, but must be used
-	// consistently everywhere.
-	var ctrl cash.Controller = cash.NewController(cash.NewBucket())
-
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
@@ -79,7 +75,7 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 
 // ctrl can be initialized with any implementation, but must be used
 // consistently everywhere.
-var ctrl = cash.NewController(cash.NewBucket())
+var ctrl cash.Controller = BnsCashController(cash.NewController(cash.NewBucket()))
 
 // Router returns a default router, only dispatching to the
 // cash.SendMsg
