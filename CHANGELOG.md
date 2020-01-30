@@ -2,6 +2,7 @@
 
 ## HEAD
 
+- `bnsd`: set fee to zero for `preregistration.RegisterMsg`
 - `bnsd`: add `msgfee.UpdateConfigurationMsg` support
 - `bnsd`: a data migration for rewriting blockchain ID to CAIP specified format
 - a new `weave.Fraction` type was added to represent fractional values. It
