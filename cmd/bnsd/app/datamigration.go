@@ -12,6 +12,7 @@ import (
 	"github.com/iov-one/weave/datamigration"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/gconf"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
 
@@ -25,29 +26,13 @@ func init() {
 		Migrate: func(ctx context.Context, db weave.KVStore) error { return nil },
 	})
 
-	datamigration.MustRegister("rewrite username accounts", datamigration.Migration{
+	datamigration.MustRegister("version 1.0 release", datamigration.Migration{
 		RequiredSigners: []weave.Address{governingBoard},
 		ChainIDs: []string{
 			"iov-dancenet",
 			"iov-mainnet",
 		},
-		Migrate: rewriteUsernameAccounts,
-	})
-	datamigration.MustRegister("rewrite preregistration records", datamigration.Migration{
-		RequiredSigners: []weave.Address{governingBoard},
-		ChainIDs: []string{
-			"iov-dancenet",
-			"iov-mainnet",
-		},
-		Migrate: rewritePreregistrationRecords,
-	})
-	datamigration.MustRegister("migrate account blockchain IDs to CAIP format", datamigration.Migration{
-		RequiredSigners: []weave.Address{governingBoard},
-		ChainIDs: []string{
-			"iov-dancenet",
-			"iov-mainnet",
-		},
-		Migrate: rewriteAccountBlockchainIDs,
+		Migrate: migrateRelease_1_0,
 	})
 }
 
@@ -63,6 +48,70 @@ func mustParse(encodedAddress string) weave.Address {
 		panic(err)
 	}
 	return a
+}
+
+// migrateRelease_1_0 clubs together several migrations required for the 1.0
+// release. Because they are running within a single migration execution,
+// atomic execution is guaranteed.
+func migrateRelease_1_0(ctx context.Context, db weave.KVStore) error {
+	if err := initializeSchema(db, "account"); err != nil {
+		return errors.Wrap(err, "initialize account schema")
+	}
+	if err := gconf.Save(db, "account", &account.Configuration{
+		Metadata:               &weave.Metadata{Schema: 1},
+		Owner:                  technicalExecutors,
+		ValidDomain:            `^[a-z0-9]+$`,
+		ValidName:              `^[a-z0-9\-_.]{3,64}$`,
+		ValidBlockchainID:      `^[a-z0-9A-Z\-]+$`,
+		ValidBlockchainAddress: `^[a-z0-9A-Z]+$`,
+		DomainRenew:            weave.AsUnixDuration(365 * 24 * time.Hour + 6 * time.Hour),
+	}); err != nil {
+		return errors.Wrap(err, "save initial gconf configuration")
+	}
+	if err := rewriteUsernameAccounts(ctx, db); err != nil {
+		return errors.Wrap(err, "rewrite username accounts")
+	}
+	if err := rewritePreregistrationRecords(ctx, db); err != nil {
+		return errors.Wrap(err, "rewrite preregistration records")
+	}
+	if err := rewriteAccountBlockchainIDs(ctx, db); err != nil {
+		return errors.Wrap(err, "rewrite account blockchain ID")
+	}
+	if err := gconf.Save(db, "account", &account.Configuration{
+		Metadata:               &weave.Metadata{Schema: 1},
+		Owner:                  technicalExecutors,
+		ValidDomain:            `^[a-z0-9\-_]{3,16}$`,
+		ValidName:              `^[a-z0-9\-_.]{3,64}$`,
+		ValidBlockchainID:      `^[a-z0-9A-Z\-:]+$`,
+		ValidBlockchainAddress: `^[a-z0-9A-Z]+$`,
+		DomainRenew:            weave.AsUnixDuration(365 * 24 * time.Hour + 6 * time.Hour),
+	}); err != nil {
+		return errors.Wrap(err, "save final gconf configuration")
+	}
+	return nil
+}
+
+// initializeSchema register a schema information with version 1 for the given
+// package name (extension). This function fails if schema for requested
+// extension was already registered.
+func initializeSchema(db weave.KVStore, pkgName string) error {
+	b := migration.NewSchemaBucket()
+	switch ver, err := b.CurrentSchema(db, pkgName); {
+	case err == nil:
+		return errors.Wrapf(errors.ErrSchema, "initialized with version %d", ver)
+	case errors.ErrNotFound.Is(err):
+		schema := migration.Schema{
+			Metadata: &weave.Metadata{Schema: 1},
+			Pkg:      pkgName,
+			Version:  1,
+		}
+		if _, err := b.Create(db, &schema); err != nil {
+			return errors.Wrap(err, "create schema information")
+		}
+	default:
+		return errors.Wrap(err, "current schema version")
+	}
+	return nil
 }
 
 func rewriteUsernameAccounts(ctx context.Context, db weave.KVStore) error {
