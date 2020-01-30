@@ -59,12 +59,12 @@ func migrateRelease_1_0(ctx context.Context, db weave.KVStore) error {
 	}
 	if err := gconf.Save(db, "account", &account.Configuration{
 		Metadata:               &weave.Metadata{Schema: 1},
-		Owner:                  nil,
-		ValidDomain:            `TODO`,
-		ValidName:              `TODO`,
-		ValidBlockchainID:      `TODO`,
-		ValidBlockchainAddress: `TODO`,
-		DomainRenew:            weave.AsUnixDuration(72 * time.Hour),
+		Owner:                  technicalExecutors,
+		ValidDomain:            `^[a-z0-9]+$`,
+		ValidName:              `^[a-z0-9\-_.]{3,64}$`,
+		ValidBlockchainID:      `^[a-z0-9\-]+$`,
+		ValidBlockchainAddress: `^[a-z0-9A-Z]+$`,
+		DomainRenew:            weave.AsUnixDuration(365 * 24 * time.Hour + 6 * time.Hour),
 	}); err != nil {
 		return errors.Wrap(err, "save initial gconf configuration")
 	}
@@ -79,12 +79,12 @@ func migrateRelease_1_0(ctx context.Context, db weave.KVStore) error {
 	}
 	if err := gconf.Save(db, "account", &account.Configuration{
 		Metadata:               &weave.Metadata{Schema: 1},
-		Owner:                  nil,
-		ValidDomain:            `TODO`,
-		ValidName:              `TODO`,
-		ValidBlockchainID:      `TODO`,
-		ValidBlockchainAddress: `TODO`,
-		DomainRenew:            weave.AsUnixDuration(72 * time.Hour),
+		Owner:                  technicalExecutors,
+		ValidDomain:            `^[a-z0-9\-_]{3,16}$`,
+		ValidName:              `^[a-z0-9\-_.]{3,64}$`,
+		ValidBlockchainID:      `^[a-z0-9\-:]+$`,
+		ValidBlockchainAddress: `^[a-z0-9A-Z]+$`,
+		DomainRenew:            weave.AsUnixDuration(365 * 24 * time.Hour + 6 * time.Hour),
 	}); err != nil {
 		return errors.Wrap(err, "save final gconf configuration")
 	}
