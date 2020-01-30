@@ -63,6 +63,7 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 		cash.NewDynamicFeeDecorator(authFn, ctrl),
 		msgfee.NewAntispamFeeDecorator(minFee),
 		msgfee.NewFeeDecorator(),
+		preregistration.NewZeroFeeDecorator(),
 		account.NewAccountMsgFeeDecorator(),
 		// txfee decorator must be before batch to count the main
 		// transaction once, not for every message present in the
