@@ -2,6 +2,9 @@
 
 ## HEAD
 
+
+## 1.0.0
+
 - `bnsd`: set fee to zero for `preregistration.RegisterMsg`
 - `bnsd`: add `msgfee.UpdateConfigurationMsg` support
 - `bnsd`: a data migration for rewriting blockchain ID to CAIP specified format
