@@ -1,5 +1,5 @@
 BUILD_VERSION ?= manual
-BUILD_FLAGS := -mod=readonly -ldflags "-X main.buildHash=`git log -1 --pretty=format:"%H"` -X main.buildVersion=${BUILD_VERSION}"
+BUILD_FLAGS := -mod=readonly -ldflags "-X main.buildHash=`git log -1 --pretty=format:"%H"` -X util.BuildVersion=${BUILD_VERSION}"
 IMAGE_NAME = "iov1/bnsapi:${BUILD_VERSION}"
 
 all: dist
