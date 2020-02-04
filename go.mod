@@ -2,6 +2,7 @@ module github.com/iov-one/weave
 
 require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/btcsuite/btcd v0.0.0-20190523000118-16327141da8c // indirect
 	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
 	github.com/etcd-io/bbolt v1.3.3 // indirect
@@ -20,13 +21,15 @@ require (
 	github.com/rs/cors v1.6.0 // indirect
 	github.com/stellar/go v0.0.0-20190723221356-14eed5a46caf
 	github.com/stellar/go-xdr v0.0.0-20180917104419-0bc96f33a18e // indirect
+	github.com/swaggo/http-swagger v0.0.0-20200103000832-0e9263c4b516
+	github.com/swaggo/swag v1.6.5
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tendermint/go-amino v0.15.0
 	github.com/tendermint/iavl v0.12.2
 	github.com/tendermint/tendermint v0.31.11
 	github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef
 	go.etcd.io/bbolt v1.3.3 // indirect
-	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
+	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
 	google.golang.org/grpc v1.21.0 // indirect
 )
 
