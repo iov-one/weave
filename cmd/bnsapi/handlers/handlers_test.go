@@ -1,10 +1,11 @@
-package main
+package handlers
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/iov-one/weave/cmd/bnsapi/client"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -17,7 +18,7 @@ import (
 
 func TestAccountAccountDetailHandler(t *testing.T) {
 	bns := &bnsClientMock{
-		Results: map[string]abciQueryResponse{
+		Results: map[string]client.abciQueryResponse{
 			"/abci_query?data=%22foo%2Abar%22&path=%22%2Faccounts%22": newAbciQueryResponse(t,
 				[][]byte{
 					[]byte("foo*bar"),
@@ -67,16 +68,16 @@ func TestHexbytes(t *testing.T) {
 func TestBnsClientMock(t *testing.T) {
 	// Just to be sure, test the mock.
 
-	result := abciQueryResponse{
-		Response: abciQueryResponseResponse{
+	result := client.abciQueryResponse{
+		Response: client.abciQueryResponseResponse{
 			Key:   []byte("foo"),
 			Value: []byte("bar"),
 		},
 	}
-	bns := bnsClientMock{Results: map[string]abciQueryResponse{
+	bns := bnsClientMock{Results: map[string]client.abciQueryResponse{
 		"/foo": result,
 	}}
-	var response abciQueryResponse
+	var response client.abciQueryResponse
 	if err := bns.Get(context.Background(), "/foo", &response); err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +87,7 @@ func TestBnsClientMock(t *testing.T) {
 }
 
 type bnsClientMock struct {
-	Results map[string]abciQueryResponse
+	Results map[string]client.abciQueryResponse
 	Err     error
 }
 
@@ -114,7 +115,7 @@ func (mock *bnsClientMock) Get(ctx context.Context, path string, dest interface{
 
 func TestAccountAccountssHandler(t *testing.T) {
 	bns := &bnsClientMock{
-		Results: map[string]abciQueryResponse{
+		Results: map[string]client.abciQueryResponse{
 			"/abci_query?data=%22%3A%22&path=%22%2Faccounts%3Frange%22": newAbciQueryResponse(t,
 				[][]byte{
 					[]byte("first"),
@@ -146,7 +147,7 @@ func TestAccountAccountssHandler(t *testing.T) {
 
 func TestAccountAccountssHandlerOffsetAndFilter(t *testing.T) {
 	bns := &bnsClientMock{
-		Results: map[string]abciQueryResponse{
+		Results: map[string]client.abciQueryResponse{
 			"/abci_query?data=%2261646f6d61696e%3A36363639373237333734%3A61646f6d61696f%22&path=%22%2Faccounts%2Fdomain%3Frange%22": newAbciQueryResponse(t, nil, nil),
 		},
 	}
@@ -161,7 +162,7 @@ func TestAccountAccountssHandlerOffsetAndFilter(t *testing.T) {
 
 func TestAccountDomainsHandler(t *testing.T) {
 	bns := &bnsClientMock{
-		Results: map[string]abciQueryResponse{
+		Results: map[string]client.abciQueryResponse{
 			"/abci_query?data=%22%3A%22&path=%22%2Fdomains%3Frange%22": newAbciQueryResponse(t,
 				[][]byte{
 					[]byte("first"),
@@ -192,12 +193,12 @@ func TestAccountDomainsHandler(t *testing.T) {
 	})
 }
 
-func newAbciQueryResponse(t testing.TB, keys [][]byte, models []weave.Persistent) abciQueryResponse {
+func newAbciQueryResponse(t testing.TB, keys [][]byte, models []weave.Persistent) client.abciQueryResponse {
 	t.Helper()
-	k, v := serializePairs(t, keys, models)
+	k, v := client.serializePairs(t, keys, models)
 
-	return abciQueryResponse{
-		Response: abciQueryResponseResponse{
+	return client.abciQueryResponse{
+		Response: client.abciQueryResponseResponse{
 			Key:   k,
 			Value: v,
 		},

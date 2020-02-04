@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/base64"
@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/iov-one/weave/cmd/bnsapi/client"
+	"github.com/iov-one/weave/cmd/bnsapi/util"
 	"log"
 	"math"
 	"net/http"
@@ -26,7 +28,7 @@ import (
 )
 
 type GovProposalsHandler struct {
-	bns BnsClient
+	Bns client.BnsClient
 }
 
 func (h *GovProposalsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +39,7 @@ func (h *GovProposalsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var it ABCIIterator
+	var it client.ABCIIterator
 	offset := extractIDFromKey(q.Get("offset"))
 	if e := q.Get("electorate"); len(e) > 0 {
 		rawAddr, err := base64.StdEncoding.DecodeString(e)
@@ -46,7 +48,7 @@ func (h *GovProposalsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		end := nextKeyValue(rawAddr)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/proposals/electorate", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/proposals/electorate", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
 	} else if e := q.Get("electorate_id"); len(e) > 0 {
 		n, err := strconv.ParseInt(e, 10, 64)
 		if err != nil {
@@ -55,7 +57,7 @@ func (h *GovProposalsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 		start := encodeSequence(uint64(n))
 		end := nextKeyValue(start)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/proposals/electorate", fmt.Sprintf("%x:%x:%x", start, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/proposals/electorate", fmt.Sprintf("%x:%x:%x", start, offset, end))
 	} else if s := q.Get("author"); len(s) > 0 {
 		rawAddr, err := weave.ParseAddress(s)
 		if err != nil {
@@ -63,9 +65,9 @@ func (h *GovProposalsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		end := nextKeyValue(rawAddr)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/proposals/author", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/proposals/author", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
 	} else {
-		it = ABCIRangeQuery(r.Context(), h.bns, "/proposals", fmt.Sprintf("%x:", offset))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/proposals", fmt.Sprintf("%x:", offset))
 	}
 
 	objects := make([]KeyValue, 0, paginationMaxItems)
@@ -98,7 +100,7 @@ fetchProposals:
 }
 
 type GovVotesHandler struct {
-	bns BnsClient
+	Bns client.BnsClient
 }
 
 func (h *GovVotesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +111,7 @@ func (h *GovVotesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var it ABCIIterator
+	var it client.ABCIIterator
 	offset := extractIDFromKey(q.Get("offset"))
 	if e := q.Get("elector"); len(e) > 0 {
 		rawAddr, err := weave.ParseAddress(e)
@@ -118,7 +120,7 @@ func (h *GovVotesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		end := nextKeyValue(rawAddr)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/votes/electors", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/votes/electors", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
 	} else if e := q.Get("elector_id"); len(e) > 0 {
 		// TODO - is elector the same as electorate?
 		n, err := strconv.ParseInt(e, 10, 64)
@@ -128,7 +130,7 @@ func (h *GovVotesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		start := encodeSequence(uint64(n))
 		end := nextKeyValue(start)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/votes/electors", fmt.Sprintf("%x:%x:%x", start, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/votes/electors", fmt.Sprintf("%x:%x:%x", start, offset, end))
 	} else if p := q.Get("proposal"); len(p) > 0 {
 		rawAddr, err := weave.ParseAddress(p)
 		if err != nil {
@@ -136,7 +138,7 @@ func (h *GovVotesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		end := nextKeyValue(rawAddr)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/votes/proposals", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/votes/proposals", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
 	} else if p := q.Get("proposal_id"); len(p) > 0 {
 		n, err := strconv.ParseInt(p, 10, 64)
 		if err != nil {
@@ -145,9 +147,9 @@ func (h *GovVotesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		start := encodeSequence(uint64(n))
 		end := nextKeyValue(start)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/votes/proposals", fmt.Sprintf("%x:%x:%x", start, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/votes/proposals", fmt.Sprintf("%x:%x:%x", start, offset, end))
 	} else {
-		it = ABCIRangeQuery(r.Context(), h.bns, "/votes", fmt.Sprintf("%x:", offset))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/votes", fmt.Sprintf("%x:", offset))
 	}
 
 	objects := make([]KeyValue, 0, paginationMaxItems)
@@ -180,7 +182,7 @@ fetchVotes:
 }
 
 type EscrowEscrowsHandler struct {
-	bns BnsClient
+	Bns client.BnsClient
 }
 
 func (h *EscrowEscrowsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -191,7 +193,7 @@ func (h *EscrowEscrowsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var it ABCIIterator
+	var it client.ABCIIterator
 	offset := extractIDFromKey(q.Get("offset"))
 	if d := q.Get("destination"); len(d) > 0 {
 		rawAddr, err := weave.ParseAddress(d)
@@ -200,7 +202,7 @@ func (h *EscrowEscrowsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return
 		}
 		end := nextKeyValue(rawAddr)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/escrows/destination", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/escrows/destination", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
 	} else if s := q.Get("source"); len(s) > 0 {
 		rawAddr, err := weave.ParseAddress(s)
 		if err != nil {
@@ -208,9 +210,9 @@ func (h *EscrowEscrowsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return
 		}
 		end := nextKeyValue(rawAddr)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/escrows/source", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/escrows/source", fmt.Sprintf("%x:%x:%x", rawAddr, offset, end))
 	} else {
-		it = ABCIRangeQuery(r.Context(), h.bns, "/escrows", fmt.Sprintf("%x:", offset))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/escrows", fmt.Sprintf("%x:", offset))
 	}
 
 	objects := make([]KeyValue, 0, paginationMaxItems)
@@ -243,12 +245,12 @@ fetchEscrows:
 }
 
 type MultisigContractsHandler struct {
-	bns BnsClient
+	Bns client.BnsClient
 }
 
 func (h *MultisigContractsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	offset := extractIDFromKey(r.URL.Query().Get("offset"))
-	it := ABCIRangeQuery(r.Context(), h.bns, "/contracts", fmt.Sprintf("%x:", offset))
+	it := client.ABCIRangeQuery(r.Context(), h.Bns, "/contracts", fmt.Sprintf("%x:", offset))
 
 	objects := make([]KeyValue, 0, paginationMaxItems)
 fetchContracts:
@@ -280,12 +282,12 @@ fetchContracts:
 }
 
 type TermdepositContractsHandler struct {
-	bns BnsClient
+	Bns client.BnsClient
 }
 
 func (h *TermdepositContractsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	offset := extractIDFromKey(r.URL.Query().Get("offset"))
-	it := ABCIRangeQuery(r.Context(), h.bns, "/depositcontracts", fmt.Sprintf("%x:", offset))
+	it := client.ABCIRangeQuery(r.Context(), h.Bns, "/depositcontracts", fmt.Sprintf("%x:", offset))
 
 	objects := make([]KeyValue, 0, paginationMaxItems)
 fetchContracts:
@@ -317,7 +319,7 @@ fetchContracts:
 }
 
 type TermdepositDepositsHandler struct {
-	bns BnsClient
+	Bns client.BnsClient
 }
 
 func (h *TermdepositDepositsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -328,7 +330,7 @@ func (h *TermdepositDepositsHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var it ABCIIterator
+	var it client.ABCIIterator
 	offset := extractIDFromKey(q.Get("offset"))
 	if d := q.Get("depositor"); len(d) > 0 {
 		rawAddr, err := weave.ParseAddress(d)
@@ -337,7 +339,7 @@ func (h *TermdepositDepositsHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			return
 		}
 		end := nextKeyValue(rawAddr)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits/depositor", fmt.Sprintf("%s:%x:%x", d, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/deposits/depositor", fmt.Sprintf("%s:%x:%x", d, offset, end))
 	} else if c := q.Get("contract_id"); len(c) > 0 {
 		n, err := strconv.ParseInt(c, 10, 64)
 		if err != nil {
@@ -346,7 +348,7 @@ func (h *TermdepositDepositsHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		}
 		cid := encodeSequence(uint64(n))
 		end := nextKeyValue(cid)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits/contract", fmt.Sprintf("%x:%x:%x", cid, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/deposits/contract", fmt.Sprintf("%x:%x:%x", cid, offset, end))
 	} else if c := q.Get("contract"); len(c) > 0 {
 		cid, err := base64.StdEncoding.DecodeString(c)
 		if err != nil {
@@ -354,9 +356,9 @@ func (h *TermdepositDepositsHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			return
 		}
 		end := nextKeyValue(cid)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits/contract", fmt.Sprintf("%x:%x:%x", cid, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/deposits/contract", fmt.Sprintf("%x:%x:%x", cid, offset, end))
 	} else {
-		it = ABCIRangeQuery(r.Context(), h.bns, "/deposits", fmt.Sprintf("%x:", offset))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/deposits", fmt.Sprintf("%x:", offset))
 	}
 
 	objects := make([]KeyValue, 0, paginationMaxItems)
@@ -389,13 +391,13 @@ fetchDeposits:
 }
 
 type GconfHandler struct {
-	bns   BnsClient
-	confs map[string]func() gconf.Configuration
+	Bns   client.BnsClient
+	Confs map[string]func() gconf.Configuration
 }
 
 func (h *GconfHandler) knownConfigurations() []string {
-	known := make([]string, 0, len(h.confs))
-	for name := range h.confs {
+	known := make([]string, 0, len(h.Confs))
+	for name := range h.Confs {
 		known = append(known, name)
 	}
 	sort.Strings(known)
@@ -411,7 +413,7 @@ func (h *GconfHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var conf gconf.Configuration
-	if fn, ok := h.confs[extensionName]; ok {
+	if fn, ok := h.Confs[extensionName]; ok {
 		conf = fn()
 	} else {
 		log.Printf("extension %q gconf configuration entity unknown to gconf handler", extensionName)
@@ -420,7 +422,7 @@ func (h *GconfHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	switch err := ABCIKeyQuery(r.Context(), h.bns, "/gconf", []byte(extensionName), conf); {
+	switch err := client.ABCIKeyQuery(r.Context(), h.Bns, "/gconf", []byte(extensionName), conf); {
 	case err == nil:
 		JSONResp(w, http.StatusOK, conf)
 	case errors.ErrNotFound.Is(err):
@@ -438,13 +440,13 @@ func (h *InfoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		BuildHash    string `json:"build_hash"`
 		BuildVersion string `json:"build_version"`
 	}{
-		BuildHash:    buildHash,
-		BuildVersion: buildVersion,
+		BuildHash:    util.BuildHash,
+		BuildVersion: util.BuildVersion,
 	})
 }
 
 type BlocksHandler struct {
-	bns BnsClient
+	Bns client.BnsClient
 }
 
 func (h *BlocksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -461,8 +463,8 @@ func (h *BlocksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// We do not care about payload, proxy all!
 	var payload json.RawMessage
-	if err := h.bns.Get(r.Context(), fmt.Sprintf("/block?height=%d", height), &payload); err != nil {
-		log.Printf("bns block height info: %s", err)
+	if err := h.Bns.Get(r.Context(), fmt.Sprintf("/block?height=%d", height), &payload); err != nil {
+		log.Printf("Bns block height info: %s", err)
 		JSONErr(w, http.StatusBadGateway, http.StatusText(http.StatusBadGateway))
 		return
 	}
@@ -494,11 +496,11 @@ func (h *DefaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type AccountDomainsHandler struct {
-	bns BnsClient
+	Bns client.BnsClient
 }
 
 func (h *AccountDomainsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var it ABCIIterator
+	var it client.ABCIIterator
 	q := r.URL.Query()
 	offset := extractIDFromKey(q.Get("offset"))
 	if admin := q.Get("admin"); len(admin) > 0 {
@@ -508,9 +510,9 @@ func (h *AccountDomainsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			return
 		}
 		end := nextKeyValue(rawAddr)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/domains/admin", fmt.Sprintf("%s:%x:%x", admin, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/domains/admin", fmt.Sprintf("%s:%x:%x", admin, offset, end))
 	} else {
-		it = ABCIRangeQuery(r.Context(), h.bns, "/domains", fmt.Sprintf("%x:", offset))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/domains", fmt.Sprintf("%x:", offset))
 	}
 
 	objects := make([]KeyValue, 0, paginationMaxItems)
@@ -542,13 +544,13 @@ fetchDomains:
 }
 
 type AccountAccountDetailHandler struct {
-	bns BnsClient
+	Bns client.BnsClient
 }
 
 func (h *AccountAccountDetailHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	accountKey := lastChunk(r.URL.Path)
 	var acc account.Account
-	switch err := ABCIKeyQuery(r.Context(), h.bns, "/accounts", []byte(accountKey), &acc); {
+	switch err := client.ABCIKeyQuery(r.Context(), h.Bns, "/accounts", []byte(accountKey), &acc); {
 	case err == nil:
 		JSONResp(w, http.StatusOK, acc)
 	case errors.ErrNotFound.Is(err):
@@ -560,7 +562,7 @@ func (h *AccountAccountDetailHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 }
 
 type AccountAccountsHandler struct {
-	bns BnsClient
+	Bns client.BnsClient
 }
 
 func (h *AccountAccountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -571,11 +573,11 @@ func (h *AccountAccountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var it ABCIIterator
+	var it client.ABCIIterator
 	offset := extractIDFromKey(q.Get("offset"))
 	if d := q.Get("domain"); len(d) > 0 {
 		end := nextKeyValue([]byte(d))
-		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts/domain", fmt.Sprintf("%x:%x:%x", d, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/accounts/domain", fmt.Sprintf("%x:%x:%x", d, offset, end))
 	} else if o := q.Get("owner"); len(o) > 0 {
 		rawAddr, err := weave.ParseAddress(o)
 		if err != nil {
@@ -583,9 +585,9 @@ func (h *AccountAccountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			return
 		}
 		end := nextKeyValue(rawAddr)
-		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts/owner", fmt.Sprintf("%s:%x:%x", o, offset, end))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/accounts/owner", fmt.Sprintf("%s:%x:%x", o, offset, end))
 	} else {
-		it = ABCIRangeQuery(r.Context(), h.bns, "/accounts", fmt.Sprintf("%x:", offset))
+		it = client.ABCIRangeQuery(r.Context(), h.Bns, "/accounts", fmt.Sprintf("%x:", offset))
 	}
 
 	objects := make([]KeyValue, 0, paginationMaxItems)
