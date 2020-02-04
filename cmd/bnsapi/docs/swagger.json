@@ -5,5 +5,11 @@
         "contact": {},
         "license": {}
     },
-    "paths": {}
+    "paths": {
+        "/info": {
+            "get": {
+                "summary": "Returns information about this instance of `bnsapi`."
+            }
+        }
+    }
 }

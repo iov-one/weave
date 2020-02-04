@@ -12,6 +12,12 @@ clean:
 build:
 	GOARCH=amd64 CGO_ENABLED=0 GOOS=linux go build $(BUILD_FLAGS) -o bnsapi .
 
+install: docs
+	go install $(BUILD_FLAGS) .
+
+docs:
+	swag init
+
 image:
 	docker build --pull -t $(IMAGE_NAME) .
 

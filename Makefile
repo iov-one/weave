@@ -3,7 +3,7 @@
 # make sure we turn on go modules
 export GO111MODULE := on
 
-TOOLS := cmd/bnsd cmd/bnscli
+TOOLS := cmd/bnsd cmd/bnscli cmd/bnsapi
 
 # MODE=count records heat map in test coverage
 # MODE=set just records which lines were hit by one test

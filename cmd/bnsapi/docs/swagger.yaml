@@ -2,5 +2,8 @@ info:
   contact: {}
   license: {}
   title: BNSAPI documentation
-paths: {}
+paths:
+  /info:
+    get:
+      summary: Returns information about this instance of `bnsapi`.
 swagger: "2.0"
