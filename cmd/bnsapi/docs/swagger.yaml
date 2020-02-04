@@ -1,9 +1,218 @@
+definitions:
+  json.RawMessage:
+    items:
+      type: integer
+    type: array
 info:
   contact: {}
   license: {}
   title: BNSAPI documentation
 paths:
-  /info:
+  /account/accounts:
     get:
+      description: At most one of the query parameters must exist(excluding offset)
+      parameters:
+      - description: Domain name
+        in: query
+        name: domainKey
+        type: string
+      - description: Admin address
+        in: query
+        name: ownerKey
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+      summary: Returns a list of `bnsd/x/account` Account entitiy.
+  /account/accounts/{accountKey}:
+    get:
+      parameters:
+      - description: Address of the admin
+        in: path
+        name: accountKey
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+      summary: Returns a list of `bnsd/x/account` Account entitiy.
+  /account/domains/:
+    get:
+      parameters:
+      - description: Address of the admin
+        in: query
+        name: admin
+        type: string
+      - description: Iteration offset
+        in: query
+        name: offset
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+      summary: Returns a list of `bnsd/x/account` Domain entities.
+  /blocks/{blockHeight}:
+    get:
+      description: get block detail by blockHeight
+      parameters:
+      - description: Block Height
+        in: path
+        name: blockHeight
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+      summary: Get block details by height
+  /escrow/escrows:
+    get:
+      description: At most one of the query parameters must exist(excluding offset)
+      parameters:
+      - description: Iteration offset
+        in: query
+        name: offset
+        type: string
+      - description: Source address
+        in: query
+        name: source
+        type: string
+      - description: Destination address
+        in: query
+        name: destination
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "500": {}
+      summary: Returns a list of x/escrow Escrow entities.
+  /gconf/{extensionName}:
+    get:
+      parameters:
+      - description: Extension name
+        in: path
+        name: extensionName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "500": {}
+      summary: Get configuration with extension name
+  /info/:
+    get:
+      responses:
+        "200": {}
       summary: Returns information about this instance of `bnsapi`.
+  /multisig/contracts:
+    get:
+      description: At most one of the query parameters must exist(excluding offset)
+      parameters:
+      - description: Iteration offset
+        in: query
+        name: offset
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "500": {}
+      summary: Returns a list of multisig Contract entities.
+  /termdeposit/contracts:
+    get:
+      description: At most one of the query parameters must exist(excluding offset)
+      parameters:
+      - description: Iteration offset
+        in: query
+        name: offset
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "500": {}
+      summary: Returns a list of bnsd/x/termdeposit Contract entities.
+  /termdeposit/deposits:
+    get:
+      description: At most one of the query parameters must exist(excluding offset)
+      parameters:
+      - description: Depositor address
+        in: query
+        name: depositor
+        type: string
+      - description: Base64 encoded ID
+        in: query
+        name: contract
+        type: string
+      - description: Contract ID as integer
+        in: query
+        name: contract_id
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/json.RawMessage'
+        "500": {}
+      summary: Returns a list of bnsd/x/termdeposit Deposit entities.
 swagger: "2.0"

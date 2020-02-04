@@ -27,6 +27,18 @@ import (
 	"github.com/iov-one/weave/x/multisig"
 )
 
+// GovProposalsHandler godoc
+// @Summary Returns a list of x/gov Votes entities.
+// @Description At most one of the query parameters must exist(excluding offset)
+// @Param author query string false "Author address"
+// @Param electorate query string false "Base64 encoded electorate ID"
+// @Param elector query string false "Base64 encoded Elector ID"
+// @Param electorID query int false "Elector ID"
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Failure 400 {object} json.RawMessage
+// @Failure 500
+// @Router /gov/proposals [get]
 type GovProposalsHandler struct {
 	Bns client.BnsClient
 }
@@ -99,6 +111,18 @@ fetchProposals:
 	})
 }
 
+// GovVotesHandler godoc
+// @Summary Returns a list of x/gov Votes entities.
+// @Description At most one of the query parameters must exist(excluding offset)
+// @Param proposal query string false "Base64 encoded Proposal ID"
+// @Param proposalID query int false "Proposal ID"
+// @Param elector query string false "Base64 encoded Elector ID"
+// @Param electorID query int false "Elector ID"
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Failure 400 {object} json.RawMessage
+// @Failure 500
+// @Router /gov/votes [get]
 type GovVotesHandler struct {
 	Bns client.BnsClient
 }
@@ -185,6 +209,17 @@ type EscrowEscrowsHandler struct {
 	Bns client.BnsClient
 }
 
+// EscrowEscrowsHandler godoc
+// @Summary Returns a list of x/escrow Escrow entities.
+// @Description At most one of the query parameters must exist(excluding offset)
+// @Param offset query string false "Iteration offset"
+// @Param source query string false "Source address"
+// @Param destination query string false "Destination address"
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Failure 400 {object} json.RawMessage
+// @Failure 500
+// @Router /escrow/escrows [get]
 func (h *EscrowEscrowsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
@@ -248,6 +283,14 @@ type MultisigContractsHandler struct {
 	Bns client.BnsClient
 }
 
+// MultisigContractsHandler godoc
+// @Summary Returns a list of multisig Contract entities.
+// @Description At most one of the query parameters must exist(excluding offset)
+// @Param offset query string false "Iteration offset"
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Failure 500
+// @Router /multisig/contracts [get]
 func (h *MultisigContractsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	offset := extractIDFromKey(r.URL.Query().Get("offset"))
 	it := client.ABCIRangeQuery(r.Context(), h.Bns, "/contracts", fmt.Sprintf("%x:", offset))
@@ -285,6 +328,14 @@ type TermdepositContractsHandler struct {
 	Bns client.BnsClient
 }
 
+// TermdepositContractsHandler  godoc
+// @Summary Returns a list of bnsd/x/termdeposit Contract entities.
+// @Description At most one of the query parameters must exist(excluding offset)
+// @Param offset query string false "Iteration offset"
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Failure 500
+// @Router /termdeposit/contracts [get]
 func (h *TermdepositContractsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	offset := extractIDFromKey(r.URL.Query().Get("offset"))
 	it := client.ABCIRangeQuery(r.Context(), h.Bns, "/depositcontracts", fmt.Sprintf("%x:", offset))
@@ -322,6 +373,16 @@ type TermdepositDepositsHandler struct {
 	Bns client.BnsClient
 }
 
+// TermdepositDepositsHandler  godoc
+// @Summary Returns a list of bnsd/x/termdeposit Deposit entities.
+// @Description At most one of the query parameters must exist(excluding offset)
+// @Param depositor query string false "Depositor address"
+// @Param contract query string false "Base64 encoded ID"
+// @Param contract_id query int false "Contract ID as integer"
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Failure 500
+// @Router /termdeposit/deposits [get]
 func (h *TermdepositDepositsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
@@ -395,6 +456,13 @@ type GconfHandler struct {
 	Confs map[string]func() gconf.Configuration
 }
 
+// GConfHandler godoc
+// @Summary Get configuration with extension name
+// @Param extensionName path string true "Extension name"
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Failure 500
+// @Router /gconf/{extensionName} [get]
 func (h *GconfHandler) knownConfigurations() []string {
 	known := make([]string, 0, len(h.Confs))
 	for name := range h.Confs {
@@ -514,11 +582,11 @@ type AccountDomainsHandler struct {
 // AccountDomainsHandler godoc
 // @Summary Returns a list of `bnsd/x/account` Domain entities.
 // @Param admin query string false "Address of the admin"
-// @Param offset query string false "Pagination offset"
+// @Param offset query string false "Iteration offset"
 // @Success 200 {object} json.RawMessage
 // @Failure 404 {object} json.RawMessage
 // @Redirect 303
-// @Router /accounts/domains/ [get]
+// @Router /account/domains/ [get]
 func (h *AccountDomainsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var it client.ABCIIterator
 	q := r.URL.Query()
@@ -563,18 +631,18 @@ fetchDomains:
 	})
 }
 
-type AccountsAccountsDetailHandler struct {
+type AccountAccountsDetailHandler struct {
 	Bns client.BnsClient
 }
 
-// AccountsAccountsDetailHandler godoc
+// AccountAccountsDetailHandler godoc
 // @Summary Returns a list of `bnsd/x/account` Account entitiy.
 // @Param accountKey path string false "Address of the admin"
 // @Success 200 {object} json.RawMessage
 // @Failure 404 {object} json.RawMessage
 // @Failure 500 {object} json.RawMessage
-// @Router /accounts/accounts/{accountKey} [get]
-func (h *AccountsAccountsDetailHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// @Router /account/accounts/{accountKey} [get]
+func (h *AccountAccountsDetailHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	accountKey := lastChunk(r.URL.Path)
 	var acc account.Account
 	switch err := client.ABCIKeyQuery(r.Context(), h.Bns, "/accounts", []byte(accountKey), &acc); {
@@ -588,18 +656,20 @@ func (h *AccountsAccountsDetailHandler) ServeHTTP(w http.ResponseWriter, r *http
 	}
 }
 
-// AccountAccountsDetailHandler godoc
-// @Summary Returns a list of `bnsd/x/account` Account entitiy.
-// @Param accountKey path string false "Address of the admin"
-// @Success 200 {object} json.RawMessage
-// @Failure 404 {object} json.RawMessage
-// @Failure 500 {object} json.RawMessage
-// @Router /accounts/accounts/{accountKey} [get]
-type AccountsAccountsHandler struct {
+type AccountAccountsHandler struct {
 	Bns client.BnsClient
 }
 
-func (h *AccountsAccountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// AccountAccountsDetailHandler godoc
+// @Summary Returns a list of `bnsd/x/account` Account entitiy.
+// @Param domainKey query string false "Domain name"
+// @Param ownerKey query string false "Admin address"
+// @Description At most one of the query parameters must exist(excluding offset)
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Failure 500 {object} json.RawMessage
+// @Router /account/accounts [get]
+func (h *AccountAccountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
 	if !atMostOne(q, "domain", "owner") {

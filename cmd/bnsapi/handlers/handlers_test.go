@@ -32,7 +32,7 @@ func TestAccountAccountDetailHandler(t *testing.T) {
 				}),
 		},
 	}
-	h := AccountsAccountsDetailHandler{Bns: bns}
+	h := AccountAccountsDetailHandler{Bns: bns}
 
 	r, _ := http.NewRequest("GET", "/something/xyz/foo*bar", nil)
 	w := httptest.NewRecorder()
@@ -128,7 +128,7 @@ func TestAccountAccountssHandler(t *testing.T) {
 				}),
 		},
 	}
-	h := AccountsAccountsHandler{Bns: bns}
+	h := AccountAccountsHandler{Bns: bns}
 
 	r, _ := http.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
@@ -152,7 +152,7 @@ func TestAccountAccountssHandlerOffsetAndFilter(t *testing.T) {
 			"/abci_query?data=%2261646f6d61696e%3A36363639373237333734%3A61646f6d61696f%22&path=%22%2Faccounts%2Fdomain%3Frange%22": newAbciQueryResponse(t, nil, nil),
 		},
 	}
-	h := AccountsAccountsHandler{Bns: bns}
+	h := AccountAccountsHandler{Bns: bns}
 
 	r, _ := http.NewRequest("GET", "/?offset=6669727374&domain=adomain", nil)
 	w := httptest.NewRecorder()
