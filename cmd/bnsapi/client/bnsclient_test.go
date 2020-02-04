@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/iov-one/weave/cmd/bnsapi/util"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -13,7 +14,6 @@ import (
 	"testing"
 
 	"github.com/iov-one/weave"
-	weaveapp "github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 )
@@ -170,7 +170,7 @@ func (ignoreModel) Unmarshal([]byte) error { return nil }
 func writeServerResponse(t testing.TB, w http.ResponseWriter, keys [][]byte, models []weave.Persistent) {
 	t.Helper()
 
-	k, v := serializePairs(t, keys, models)
+	k, v := util.SerializePairs(t, keys, models)
 
 	// Minimal acceptable by our code jsonrpc response.
 	type dict map[string]interface{}
@@ -186,40 +186,6 @@ func writeServerResponse(t testing.TB, w http.ResponseWriter, keys [][]byte, mod
 		t.Fatalf("cannot write response: %s", err)
 	}
 
-}
-
-func serializePairs(t testing.TB, keys [][]byte, models []weave.Persistent) ([]byte, []byte) {
-	t.Helper()
-
-	if len(keys) != len(models) {
-		t.Fatalf("keys and models length must be the same: %d != %d", len(keys), len(models))
-	}
-
-	kset := weaveapp.ResultSet{
-		Results: keys,
-	}
-	kraw, err := kset.Marshal()
-	if err != nil {
-		t.Fatalf("cannot marshal keys: %s", err)
-	}
-
-	var values [][]byte
-	for i, m := range models {
-		raw, err := m.Marshal()
-		if err != nil {
-			t.Fatalf("cannot marshal %d model: %s", i, err)
-		}
-		values = append(values, raw)
-	}
-	vset := weaveapp.ResultSet{
-		Results: values,
-	}
-	vraw, err := vset.Marshal()
-	if err != nil {
-		t.Fatalf("cannot marshal values: %s", err)
-	}
-
-	return kraw, vraw
 }
 
 type persistentMock struct {

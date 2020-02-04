@@ -5,4 +5,3 @@ var (
 	BuildHash    = "dev"
 	BuildVersion = "dev"
 )
-

@@ -435,6 +435,10 @@ func (h *GconfHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type InfoHandler struct{}
 
+// InfoHandler godoc
+// @Summary Returns information about this instance of `bnsapi`.
+// @Success 200
+// @Router /info/ [get]
 func (h *InfoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	JSONResp(w, http.StatusOK, struct {
 		BuildHash    string `json:"build_hash"`
@@ -449,6 +453,14 @@ type BlocksHandler struct {
 	Bns client.BnsClient
 }
 
+// BlocksHandler godoc
+// @Summary Get block details by height
+// @Description get block detail by blockHeight
+// @Param blockHeight path int true "Block Height"
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Redirect 303
+// @Router /blocks/{blockHeight} [get]
 func (h *BlocksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	heightStr := lastChunk(r.URL.Path)
 	if heightStr == "" {
@@ -499,6 +511,14 @@ type AccountDomainsHandler struct {
 	Bns client.BnsClient
 }
 
+// AccountDomainsHandler godoc
+// @Summary Returns a list of `bnsd/x/account` Domain entities.
+// @Param admin query string false "Address of the admin"
+// @Param offset query string false "Pagination offset"
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Redirect 303
+// @Router /accounts/domains/ [get]
 func (h *AccountDomainsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var it client.ABCIIterator
 	q := r.URL.Query()
@@ -543,11 +563,18 @@ fetchDomains:
 	})
 }
 
-type AccountAccountDetailHandler struct {
+type AccountsAccountsDetailHandler struct {
 	Bns client.BnsClient
 }
 
-func (h *AccountAccountDetailHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// AccountsAccountsDetailHandler godoc
+// @Summary Returns a list of `bnsd/x/account` Account entitiy.
+// @Param accountKey path string false "Address of the admin"
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Failure 500 {object} json.RawMessage
+// @Router /accounts/accounts/{accountKey} [get]
+func (h *AccountsAccountsDetailHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	accountKey := lastChunk(r.URL.Path)
 	var acc account.Account
 	switch err := client.ABCIKeyQuery(r.Context(), h.Bns, "/accounts", []byte(accountKey), &acc); {
@@ -561,11 +588,18 @@ func (h *AccountAccountDetailHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	}
 }
 
-type AccountAccountsHandler struct {
+// AccountAccountsDetailHandler godoc
+// @Summary Returns a list of `bnsd/x/account` Account entitiy.
+// @Param accountKey path string false "Address of the admin"
+// @Success 200 {object} json.RawMessage
+// @Failure 404 {object} json.RawMessage
+// @Failure 500 {object} json.RawMessage
+// @Router /accounts/accounts/{accountKey} [get]
+type AccountsAccountsHandler struct {
 	Bns client.BnsClient
 }
 
-func (h *AccountAccountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *AccountsAccountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
 	if !atMostOne(q, "domain", "owner") {

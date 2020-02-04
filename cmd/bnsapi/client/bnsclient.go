@@ -88,7 +88,7 @@ func ABCIKeyQuery(ctx context.Context, c BnsClient, path string, entityKey []byt
 	v.Add("data", `"`+string(entityKey)+`"`)
 	apiPath := "/abci_query?" + v.Encode()
 
-	var abciResponse abciQueryResponse
+	var abciResponse AbciQueryResponse
 	if err := c.Get(ctx, apiPath, &abciResponse); err != nil {
 		return errors.Wrap(err, "response")
 	}
@@ -113,7 +113,7 @@ func ABCIRangeQuery(ctx context.Context, c BnsClient, path string, data string) 
 	v.Add("data", `"`+data+`"`)
 	apiPath := "/abci_query?" + v.Encode()
 
-	var abciResponse abciQueryResponse
+	var abciResponse AbciQueryResponse
 	if err := c.Get(ctx, apiPath, &abciResponse); err != nil {
 		return &resultIterator{err: errors.Wrap(err, "bns client")}
 	}
@@ -133,11 +133,11 @@ func ABCIRangeQuery(ctx context.Context, c BnsClient, path string, data string) 
 	}
 }
 
-type abciQueryResponse struct {
-	Response abciQueryResponseResponse
+type AbciQueryResponse struct {
+	Response AbciQueryResponseResponse
 }
 
-type abciQueryResponseResponse struct {
+type AbciQueryResponseResponse struct {
 	Key   []byte
 	Value []byte
 }
