@@ -3,6 +3,7 @@
 ## HEAD
 
 - `bnsapi`: move bnsapi to new repo
+- `bnscli`: move bnscli to bns repo
 
 ## 1.0.0
 
