@@ -1,6 +1,0 @@
-#!/bin/sh
-
-set -e
-
-bnscli flush-domain -domain mydomain \
-	| bnscli view

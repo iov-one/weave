@@ -14,7 +14,6 @@ require (
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/nullstyle/go-xdr v0.0.0-20180726165426-f4c839f75077 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v0.9.3 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a // indirect
 	github.com/rs/cors v1.6.0 // indirect
@@ -24,7 +23,6 @@ require (
 	github.com/tendermint/go-amino v0.15.0
 	github.com/tendermint/iavl v0.12.2
 	github.com/tendermint/tendermint v0.31.11
-	github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef
 	go.etcd.io/bbolt v1.3.3 // indirect
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 	google.golang.org/grpc v1.21.0 // indirect

@@ -2,7 +2,6 @@ run:
   skip-dirs:
     - vendor/*
     - x/*
-    - cmd/bnscli/*
     - cmd/bnsd/*
     - cmd/cleanproto/*
     - cmd/validators/*

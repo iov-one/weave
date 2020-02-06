@@ -1,6 +1,0 @@
-#!/bin/sh
-
-set -e
-
-bnscli del-proposal -proposal-id 123 \
-	| bnscli view

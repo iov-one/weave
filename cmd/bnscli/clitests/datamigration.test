@@ -1,7 +1,0 @@
-#!/bin/sh
-
-set -e
-
-bnscli datamigration \
-  -id 'initialize x/msgfee configuration' \
-   | bnscli view

@@ -1,6 +1,0 @@
-#!/bin/sh
-
-set -e
-
-bnscli delete-domain -domain mydomain \
-	| bnscli view

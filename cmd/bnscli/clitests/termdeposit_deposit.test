@@ -1,9 +1,0 @@
-#!/bin/sh
-
-set -e
-
-bnscli termdeposit-deposit \
-		-amount "824.2 IOV" \
-		-contract 2 \
-		-depositor 92066456B2BE7F1934624087D98C203A87F7752C \
-	| bnscli view

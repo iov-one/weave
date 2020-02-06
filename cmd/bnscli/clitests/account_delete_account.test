@@ -1,6 +1,0 @@
-#!/bin/sh
-
-set -e
-
-bnscli delete-account -domain mydomain -name myaccount \
-	| bnscli view
