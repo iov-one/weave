@@ -2,6 +2,7 @@
 
 ## HEAD
 
+- `bnsapi`: move bnsapi to new repo
 
 ## 1.0.0
 
