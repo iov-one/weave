@@ -3,6 +3,7 @@
 ## HEAD
 
 - `bnsapi`: move bnsapi to new repo
+- `bnscli`: fix boolean flag bug
 
 ## 1.0.0
 
