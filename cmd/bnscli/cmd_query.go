@@ -41,7 +41,7 @@ Execute a ABCI query and print JSON encoded result.
 			"Tendermint node address. Use proper NETWORK name. You can use BNSCLI_TM_ADDR environment variable to set it.")
 		pathFl        = fl.String("path", "", "Path to be queried. Must be one of the supported.")
 		dataFl        = fl.String("data", "", "individual query data. Format depends on the queried entity. Use 'id/version' for electoraterules, electorates")
-		prefixQueryFl = fl.String("prefix", "true", "If true, use prefix queries instead of the exact match with provided data. [true/false]")
+		prefixQueryFl = fl.String("prefix", "false", "If true, use prefix queries instead of the exact match with provided data. [true/false]")
 	)
 	fl.Parse(args)
 
