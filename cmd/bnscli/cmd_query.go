@@ -41,7 +41,7 @@ Execute a ABCI query and print JSON encoded result.
 			"Tendermint node address. Use proper NETWORK name. You can use BNSCLI_TM_ADDR environment variable to set it.")
 		pathFl        = fl.String("path", "", "Path to be queried. Must be one of the supported.")
 		dataFl        = fl.String("data", "", "individual query data. Format depends on the queried entity. Use 'id/version' for electoraterules, electorates")
-		prefixQueryFl = fl.Bool("prefix", false, "If true, use prefix queries instead of the exact match with provided data.")
+		prefixQueryFl = fl.String("prefix", "false", "If true, use prefix queries instead of the exact match with provided data. [true/false]")
 	)
 	fl.Parse(args)
 
@@ -55,6 +55,10 @@ Execute a ABCI query and print JSON encoded result.
 		return fmt.Errorf("available query paths:\n\t- %s", strings.Join(paths, "\n\t- "))
 	}
 
+	prefixQuery, err := strconv.ParseBool(*prefixQueryFl)
+	if err != nil {
+		return fmt.Errorf("provide valid super user input: %s", err)
+	}
 	var data []byte
 	if len(*dataFl) != 0 {
 		var err error
@@ -63,7 +67,7 @@ Execute a ABCI query and print JSON encoded result.
 		}
 	}
 	queryPath := *pathFl
-	if *prefixQueryFl || *dataFl == "" {
+	if prefixQuery || *dataFl == "" {
 		queryPath += "?" + weave.PrefixQueryMod
 	}
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"strconv"
 	"time"
 
 	"github.com/iov-one/weave"
@@ -25,17 +26,22 @@ address defined by the account functionality configuration.
 	var (
 		domainFl          = fl.String("domain", "", "Domain name to register.")
 		adminFl           = flAddress(fl, "admin", "", "An address that the newly registered domain will belong to. Transaction does not have to be signed by this address.")
-		hasSuperuserFl    = fl.Bool("superuser", true, "Domain has a superuser account?")
+		hasSuperUserFl    = fl.String("superuser", "true", "Domain has a superuser account? [true/false]")
 		thirdPartyTokenFl = fl.String("third-party-token", "", "Third party token.")
 		accountRenewFl    = fl.Duration("account-renew", 30*24*time.Hour, "Account renewal duration.")
 	)
 	fl.Parse(args)
 
+	hasSuperUser, err := strconv.ParseBool(*hasSuperUserFl)
+	if err != nil {
+		return fmt.Errorf("provide valid super user input: %s", err)
+	}
+
 	msg := account.RegisterDomainMsg{
 		Metadata:        &weave.Metadata{Schema: 1},
 		Domain:          *domainFl,
 		Admin:           *adminFl,
-		HasSuperuser:    *hasSuperuserFl,
+		HasSuperuser:    hasSuperUser,
 		ThirdPartyToken: []byte(*thirdPartyTokenFl),
 		AccountRenew:    weave.AsUnixDuration(*accountRenewFl),
 	}
@@ -48,7 +54,7 @@ address defined by the account functionality configuration.
 			AccountRegisterDomainMsg: &msg,
 		},
 	}
-	_, err := writeTx(output, tx)
+	_, err = writeTx(output, tx)
 	return err
 }
 
