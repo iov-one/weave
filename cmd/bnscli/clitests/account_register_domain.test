@@ -5,7 +5,7 @@ set -e
 bnscli register-domain \
 		-domain "mydomain" \
 		-admin "92066456B2BE7F1934624087D98C203A87F7752C" \
-		-superuser "false" \
+		-superuser "true" \
 		-account-renew 12345h \
 		-third-party-token 3p-token \
 	| bnscli view
@@ -16,7 +16,7 @@ echo
 bnscli register-domain \
         -domain "another-domain" \
         -admin "92066456B2BE7F1934624087D98C203A87F7752C" \
-        -superuser true \
+        -superuser false \
         -account-renew "1h4m" \
     | bnscli with-account-msg-fee -path 'account/first_msg' -amount "5 IOV" \
     | bnscli with-account-msg-fee -path 'account/second_msg' -amount "9 IOV" \
