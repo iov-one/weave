@@ -97,7 +97,7 @@ func TestPrivKeyEd25519FromSeed(t *testing.T) {
 			expected: nil,
 		},
 	}
-	
+
 	for _, tc := range cases {
 		if tc.expected != nil {
 			privKey := PrivKeyEd25519FromSeed(tc.seed)
