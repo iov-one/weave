@@ -647,7 +647,9 @@ func init() {
 	proto.RegisterType((*UpdateConfigurationMsg)(nil), "termdeposit.UpdateConfigurationMsg")
 }
 
-func init() { proto.RegisterFile("cmd/bnsd/x/termdeposit/codec.proto", fileDescriptor_a75d003f77d30257) }
+func init() {
+	proto.RegisterFile("cmd/bnsd/x/termdeposit/codec.proto", fileDescriptor_a75d003f77d30257)
+}
 
 var fileDescriptor_a75d003f77d30257 = []byte{
 	// 674 bytes of a gzipped FileDescriptorProto
