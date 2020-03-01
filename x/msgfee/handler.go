@@ -25,6 +25,11 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r.Handle(&UpdateConfigurationMsg{}, NewConfigHandler(auth))
 }
 
+// RegisterQuery register queries from buckets in this package
+func RegisterQuery(qr weave.QueryRouter) {
+	NewMsgFeeBucket().Register("msgfee", qr)
+}
+
 type setMsgFeeHandler struct {
 	auth x.Authenticator
 	fees orm.ModelBucket
