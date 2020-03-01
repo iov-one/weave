@@ -31,6 +31,11 @@ message Domain {
   // Account review defines the duration of the account renewal period for each
   // account that belongs to this domain.
   int64 account_renew = 7 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
+  // Third party token is an arbitrary data that can be provided by a middleman
+  // (i.e. retailer) that although does not participate directly in the
+  // transaction, helped a user to register a domain. Storing a third party
+  // token helps identify contribution of such party later.
+  bytes third_party_token = 8;
 }
 
 // AccountMsgFee defines a fee for processing a message of a given type,
