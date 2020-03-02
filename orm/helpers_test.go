@@ -13,7 +13,7 @@ func TestLimitIterator(t *testing.T) {
 	db := store.MemStore()
 
 	b := NewSerialModelBucket("cnts", &CounterWithID{},
-			WithIndexSerial("counter", lexographicCountIndex, true))
+		WithIndexSerial("counter", lexographicCountIndex, true))
 
 	var expected []*CounterWithID
 	for i := 0; i < 30; i++ {
