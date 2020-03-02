@@ -52,7 +52,7 @@ func (msg *RegisterDomainMsg) Validate() error {
 	errs = errors.AppendField(errs, "Admin", msg.Admin.Validate())
 	errs = errors.AppendField(errs, "Domain", validateDomain(msg.Domain))
 	errs = errors.AppendField(errs, "MsgFees", validateMsgFees(msg.MsgFees))
-	errs = errors.AppendField(errs, "ThirdPartyToken", validateThirdPartyToken(msg.ThirdPartyToken))
+	errs = errors.AppendField(errs, "Broker", validateBroker(msg.Broker))
 	return errs
 }
 
@@ -110,7 +110,7 @@ func (msg *RegisterAccountMsg) Validate() error {
 		errs = errors.AppendField(errs, "Owner", msg.Owner.Validate())
 	}
 	// NewTargets cannot be validated here because it requires Configuration instance
-	errs = errors.AppendField(errs, "ThirdPartyToken", validateThirdPartyToken(msg.ThirdPartyToken))
+	errs = errors.AppendField(errs, "ThirdPartyToken", validateBroker(msg.ThirdPartyToken))
 	return errs
 }
 
@@ -216,8 +216,8 @@ func validateDomain(domain string) error {
 	return nil
 }
 
-// validateThirdPartyToken returns an error if provided token is not valid.
-func validateThirdPartyToken(token []byte) error {
+// validateBroker returns an error if provided token is not valid.
+func validateBroker(token []byte) error {
 	const maxLen = 64
 	if len(token) > maxLen {
 		return errors.Wrapf(errors.ErrInput, "must not be longer than %d characters", maxLen)

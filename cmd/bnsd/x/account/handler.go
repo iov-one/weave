@@ -161,7 +161,7 @@ func (h *registerDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx 
 		MsgFees:         msg.MsgFees,
 		AccountRenew:    msg.AccountRenew,
 		HasSuperuser:    msg.HasSuperuser,
-		ThirdPartyToken: msg.ThirdPartyToken,
+		Broker: msg.Broker,
 	}
 	if _, err := h.domains.Put(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, errors.Wrap(err, "cannot store domain entity")
