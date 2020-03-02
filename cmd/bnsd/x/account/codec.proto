@@ -71,6 +71,11 @@ message Account {
   int64 valid_until = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
   repeated BlockchainAddress targets = 6 [(gogoproto.nullable) = false];
   repeated bytes certificates = 7;
+  // Broker token is an arbitrary data that can be provided by a middleman
+  // (i.e. retailer) that although does not participate directly in the
+  // transaction, helped a user to renew a domain. Storing a third party token
+  // helps identify contribution of such party later.
+  bytes broker = 8;
 }
 
 // BlockchainAddress represents a blochain address. This structure clubs together
@@ -192,11 +197,11 @@ message RegisterAccountMsg {
   // leave the administration to the domain owner only.
   bytes owner = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   repeated BlockchainAddress targets = 5 [(gogoproto.nullable) = false];
-  // Third party token is an arbitrary data that can be provided by a middleman
+  // Broker token is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
   // transaction, helped a user to renew a domain. Storing a third party token
   // helps identify contribution of such party later.
-  bytes third_party_token = 6;
+  bytes broker = 6;
 }
 
 // TransferAccountMsg is issuing an ownership transfer over specified account.

@@ -110,7 +110,7 @@ func (msg *RegisterAccountMsg) Validate() error {
 		errs = errors.AppendField(errs, "Owner", msg.Owner.Validate())
 	}
 	// NewTargets cannot be validated here because it requires Configuration instance
-	errs = errors.AppendField(errs, "ThirdPartyToken", validateBroker(msg.ThirdPartyToken))
+	errs = errors.AppendField(errs, "Broker", validateBroker(msg.Broker))
 	return errs
 }
 
