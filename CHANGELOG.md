@@ -4,7 +4,7 @@
 
 - `bnsapi`: move bnsapi to new repo
 - `bnscli`: fix boolean flag bug
-- `bugfix`: [issue#1165](https://github.com/iov-one/weave/issues/1165) 
+- `bug`: Refactor register domain message [issue#1165](https://github.com/iov-one/weave/issues/1165)
 
 ## 1.0.0
 

@@ -154,14 +154,14 @@ func (h *registerDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx 
 		return nil, errors.Wrap(errors.ErrState, "block time not present in context")
 	}
 	domain := Domain{
-		Metadata:        &weave.Metadata{},
-		Domain:          msg.Domain,
-		Admin:           msg.Admin,
-		ValidUntil:      weave.AsUnixTime(now.Add(conf.DomainRenew.Duration())),
-		MsgFees:         msg.MsgFees,
-		AccountRenew:    msg.AccountRenew,
-		HasSuperuser:    msg.HasSuperuser,
-		Broker: msg.Broker,
+		Metadata:     &weave.Metadata{},
+		Domain:       msg.Domain,
+		Admin:        msg.Admin,
+		ValidUntil:   weave.AsUnixTime(now.Add(conf.DomainRenew.Duration())),
+		MsgFees:      msg.MsgFees,
+		AccountRenew: msg.AccountRenew,
+		HasSuperuser: msg.HasSuperuser,
+		Broker:       msg.Broker,
 	}
 	if _, err := h.domains.Put(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, errors.Wrap(err, "cannot store domain entity")
