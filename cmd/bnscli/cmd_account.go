@@ -27,7 +27,7 @@ address defined by the account functionality configuration.
 		domainFl       = fl.String("domain", "", "Domain name to register.")
 		adminFl        = flAddress(fl, "admin", "", "An address that the newly registered domain will belong to. Transaction does not have to be signed by this address.")
 		hasSuperUserFl = fl.String("superuser", "true", "Domain has a superuser account? [true/false]")
-		BrokerFl       = fl.String("broker", "", "Address of the issuer entity")
+		brokerFl       = fl.String("broker", "", "Address of the issuer entity")
 		accountRenewFl = fl.Duration("account-renew", 30*24*time.Hour, "Account renewal duration.")
 	)
 	fl.Parse(args)
@@ -42,7 +42,7 @@ address defined by the account functionality configuration.
 		Domain:       *domainFl,
 		Admin:        *adminFl,
 		HasSuperuser: hasSuperUser,
-		Broker:       []byte(*BrokerFl),
+		Broker:       []byte(*brokerFl),
 		AccountRenew: weave.AsUnixDuration(*accountRenewFl),
 	}
 	if err := msg.Validate(); err != nil {
@@ -112,19 +112,19 @@ Create a transaction for registering an account within a given domain.
 		fl.PrintDefaults()
 	}
 	var (
-		nameFl            = fl.String("name", "", "Account name")
-		domainFl          = fl.String("domain", "", "Account domain.")
-		adminFl           = flAddress(fl, "owner", "", "An address that the newly registered account will belong to.")
-		thirdPartyTokenFl = fl.String("third-party-token", "", "Third party token.")
+		nameFl   = fl.String("name", "", "Account name")
+		domainFl = fl.String("domain", "", "Account domain.")
+		adminFl  = flAddress(fl, "owner", "", "An address that the newly registered account will belong to.")
+		brokerFl = fl.String("broker", "", "Address of the issuer entity")
 	)
 	fl.Parse(args)
 
 	msg := account.RegisterAccountMsg{
-		Metadata:        &weave.Metadata{Schema: 1},
-		Name:            *nameFl,
-		Domain:          *domainFl,
-		Owner:           *adminFl,
-		ThirdPartyToken: []byte(*thirdPartyTokenFl),
+		Metadata: &weave.Metadata{Schema: 1},
+		Name:     *nameFl,
+		Domain:   *domainFl,
+		Owner:    *adminFl,
+		Broker:   []byte(*brokerFl),
 	}
 	if err := msg.Validate(); err != nil {
 		return fmt.Errorf("given data produce an invalid message: %s", err)

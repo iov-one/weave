@@ -6,7 +6,8 @@
 			},
 			"domain": "mydomain",
 			"name": "myaccount",
-			"targets": null
+			"targets": null,
+			"broker": "dGVzdDEyMzQ="
 		}
 	}
 }

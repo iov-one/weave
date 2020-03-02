@@ -2,7 +2,7 @@
 
 set -e
 
-bnscli register-account -domain "mydomain" -name "myaccount" \
+bnscli register-account -domain "mydomain" -name "myaccount" -broker "test1234" \
 	| bnscli view
 
 echo
