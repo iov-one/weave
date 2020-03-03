@@ -2,6 +2,7 @@ package account
 
 import (
 	"crypto/sha256"
+	"regexp"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
@@ -216,13 +217,30 @@ func validateDomain(domain string) error {
 	return nil
 }
 
-// validateBroker returns an error if provided token is not valid.
+// isEmail checks if the given string is an email
+var isEmail = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$").MatchString
+
+// validateBroker returns an error if provided token exists and not valid.
+// if an address is passed be sure to add format as prefix. example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
 func validateBroker(token []byte) error {
-	const maxLen = 64
-	if len(token) > maxLen {
-		return errors.Wrapf(errors.ErrInput, "must not be longer than %d characters", maxLen)
+	broker := string(token)
+
+	if len(token) == 0 {
+		return nil
 	}
-	return nil
+
+
+	if isEmail(broker) {
+		return nil
+	}
+	if _, err := weave.ParseAddress(broker); err == nil {
+		return nil
+	}
+
+	var errs error
+	errs = errors.AppendField(errs, "Broker", errors.Wrapf(errors.ErrInput, "must be a mail or an address(remember to add format prefix: %s", broker))
+
+	return errs
 }
 
 var _ weave.Msg = (*ReplaceAccountMsgFeesMsg)(nil)
