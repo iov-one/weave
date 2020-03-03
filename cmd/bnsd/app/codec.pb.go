@@ -4860,25 +4860,22 @@ type ExecuteProposalBatchMsg_Union_MsgfeeUpdateConfigurationMsg struct {
 	MsgfeeUpdateConfigurationMsg *msgfee.UpdateConfigurationMsg `protobuf:"bytes,105,opt,name=msgfee_update_configuration_msg,json=msgfeeUpdateConfigurationMsg,proto3,oneof"`
 }
 
-func (*ExecuteProposalBatchMsg_Union_SendMsg) isExecuteProposalBatchMsg_Union_Sum()                {}
-func (*ExecuteProposalBatchMsg_Union_EscrowReleaseMsg) isExecuteProposalBatchMsg_Union_Sum()       {}
-func (*ExecuteProposalBatchMsg_Union_UpdateEscrowPartiesMsg) isExecuteProposalBatchMsg_Union_Sum() {}
-func (*ExecuteProposalBatchMsg_Union_MultisigUpdateMsg) isExecuteProposalBatchMsg_Union_Sum()      {}
-func (*ExecuteProposalBatchMsg_Union_ValidatorsApplyDiffMsg) isExecuteProposalBatchMsg_Union_Sum() {}
-func (*ExecuteProposalBatchMsg_Union_UsernameRegisterTokenMsg) isExecuteProposalBatchMsg_Union_Sum() {
-}
-func (*ExecuteProposalBatchMsg_Union_UsernameTransferTokenMsg) isExecuteProposalBatchMsg_Union_Sum() {
-}
+func (*ExecuteProposalBatchMsg_Union_SendMsg) isExecuteProposalBatchMsg_Union_Sum()                  {}
+func (*ExecuteProposalBatchMsg_Union_EscrowReleaseMsg) isExecuteProposalBatchMsg_Union_Sum()         {}
+func (*ExecuteProposalBatchMsg_Union_UpdateEscrowPartiesMsg) isExecuteProposalBatchMsg_Union_Sum()   {}
+func (*ExecuteProposalBatchMsg_Union_MultisigUpdateMsg) isExecuteProposalBatchMsg_Union_Sum()        {}
+func (*ExecuteProposalBatchMsg_Union_ValidatorsApplyDiffMsg) isExecuteProposalBatchMsg_Union_Sum()   {}
+func (*ExecuteProposalBatchMsg_Union_UsernameRegisterTokenMsg) isExecuteProposalBatchMsg_Union_Sum() {}
+func (*ExecuteProposalBatchMsg_Union_UsernameTransferTokenMsg) isExecuteProposalBatchMsg_Union_Sum() {}
 func (*ExecuteProposalBatchMsg_Union_UsernameChangeTokenTargetsMsg) isExecuteProposalBatchMsg_Union_Sum() {
 }
 func (*ExecuteProposalBatchMsg_Union_UsernameUpdateConfigurationMsg) isExecuteProposalBatchMsg_Union_Sum() {
 }
-func (*ExecuteProposalBatchMsg_Union_DistributionCreateMsg) isExecuteProposalBatchMsg_Union_Sum()  {}
-func (*ExecuteProposalBatchMsg_Union_DistributionMsg) isExecuteProposalBatchMsg_Union_Sum()        {}
-func (*ExecuteProposalBatchMsg_Union_DistributionResetMsg) isExecuteProposalBatchMsg_Union_Sum()   {}
-func (*ExecuteProposalBatchMsg_Union_GovUpdateElectorateMsg) isExecuteProposalBatchMsg_Union_Sum() {}
-func (*ExecuteProposalBatchMsg_Union_GovUpdateElectionRuleMsg) isExecuteProposalBatchMsg_Union_Sum() {
-}
+func (*ExecuteProposalBatchMsg_Union_DistributionCreateMsg) isExecuteProposalBatchMsg_Union_Sum()    {}
+func (*ExecuteProposalBatchMsg_Union_DistributionMsg) isExecuteProposalBatchMsg_Union_Sum()          {}
+func (*ExecuteProposalBatchMsg_Union_DistributionResetMsg) isExecuteProposalBatchMsg_Union_Sum()     {}
+func (*ExecuteProposalBatchMsg_Union_GovUpdateElectorateMsg) isExecuteProposalBatchMsg_Union_Sum()   {}
+func (*ExecuteProposalBatchMsg_Union_GovUpdateElectionRuleMsg) isExecuteProposalBatchMsg_Union_Sum() {}
 func (*ExecuteProposalBatchMsg_Union_GovCreateTextResolutionMsg) isExecuteProposalBatchMsg_Union_Sum() {
 }
 func (*ExecuteProposalBatchMsg_Union_MsgfeeSetMsgFeeMsg) isExecuteProposalBatchMsg_Union_Sum() {}
@@ -4886,14 +4883,12 @@ func (*ExecuteProposalBatchMsg_Union_DatamigrationExecuteMigrationMsg) isExecute
 }
 func (*ExecuteProposalBatchMsg_Union_AccountUpdateConfigurationMsg) isExecuteProposalBatchMsg_Union_Sum() {
 }
-func (*ExecuteProposalBatchMsg_Union_AccountRegisterDomainMsg) isExecuteProposalBatchMsg_Union_Sum() {
-}
+func (*ExecuteProposalBatchMsg_Union_AccountRegisterDomainMsg) isExecuteProposalBatchMsg_Union_Sum() {}
 func (*ExecuteProposalBatchMsg_Union_AccountReplaceAccountMsgFeesMsg) isExecuteProposalBatchMsg_Union_Sum() {
 }
-func (*ExecuteProposalBatchMsg_Union_AccountTransferDomainMsg) isExecuteProposalBatchMsg_Union_Sum() {
-}
-func (*ExecuteProposalBatchMsg_Union_AccountRenewDomainMsg) isExecuteProposalBatchMsg_Union_Sum()  {}
-func (*ExecuteProposalBatchMsg_Union_AccountDeleteDomainMsg) isExecuteProposalBatchMsg_Union_Sum() {}
+func (*ExecuteProposalBatchMsg_Union_AccountTransferDomainMsg) isExecuteProposalBatchMsg_Union_Sum() {}
+func (*ExecuteProposalBatchMsg_Union_AccountRenewDomainMsg) isExecuteProposalBatchMsg_Union_Sum()    {}
+func (*ExecuteProposalBatchMsg_Union_AccountDeleteDomainMsg) isExecuteProposalBatchMsg_Union_Sum()   {}
 func (*ExecuteProposalBatchMsg_Union_AccountRegisterAccountMsg) isExecuteProposalBatchMsg_Union_Sum() {
 }
 func (*ExecuteProposalBatchMsg_Union_AccountTransferAccountMsg) isExecuteProposalBatchMsg_Union_Sum() {

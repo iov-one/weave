@@ -50,10 +50,12 @@ type Domain struct {
 	// Account review defines the duration of the account renewal period for each
 	// account that belongs to this domain.
 	AccountRenew github_com_iov_one_weave.UnixDuration `protobuf:"varint,7,opt,name=account_renew,json=accountRenew,proto3,casttype=github.com/iov-one/weave.UnixDuration" json:"account_renew,omitempty"`
-	// Broker token is an arbitrary data that can be provided by a middleman
+	// Broker is an arbitrary data that can be provided by a middleman
 	// (i.e. retailer) that although does not participate directly in the
 	// transaction, helped a user to register a domain. Storing a third party
-	// token helps identify contribution of such party later.
+	// token helps identify contribution of such party later. Must be an email or
+	// a weave address that starts with a format or hex.
+	// example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
 	Broker []byte `protobuf:"bytes,8,opt,name=broker,proto3" json:"broker,omitempty"`
 }
 
@@ -226,10 +228,12 @@ type Account struct {
 	ValidUntil   github_com_iov_one_weave.UnixTime `protobuf:"varint,5,opt,name=valid_until,json=validUntil,proto3,casttype=github.com/iov-one/weave.UnixTime" json:"valid_until,omitempty"`
 	Targets      []BlockchainAddress               `protobuf:"bytes,6,rep,name=targets,proto3" json:"targets"`
 	Certificates [][]byte                          `protobuf:"bytes,7,rep,name=certificates,proto3" json:"certificates,omitempty"`
-	// Broker token is an arbitrary data that can be provided by a middleman
+	// Broker is an arbitrary data that can be provided by a middleman
 	// (i.e. retailer) that although does not participate directly in the
 	// transaction, helped a user to renew a domain. Storing a third party token
-	// helps identify contribution of such party later.
+	// helps identify contribution of such party later. Must be an email or
+	// a weave address that starts with a format or hex.
+	// example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
 	Broker []byte `protobuf:"bytes,8,opt,name=broker,proto3" json:"broker,omitempty"`
 }
 
@@ -558,10 +562,12 @@ type RegisterDomainMsg struct {
 	Admin github_com_iov_one_weave.Address `protobuf:"bytes,3,opt,name=admin,proto3,casttype=github.com/iov-one/weave.Address" json:"admin,omitempty"`
 	// Has Superuser is a feature switch flag.
 	HasSuperuser bool `protobuf:"varint,4,opt,name=has_superuser,json=hasSuperuser,proto3" json:"has_superuser,omitempty"`
-	// Broker token is an arbitrary data that can be provided by a middleman
+	// Broker is an arbitrary data that can be provided by a middleman
 	// (i.e. retailer) that although does not participate directly in the
 	// transaction, helped a user to register a domain. Storing a third party
-	// token helps identify contribution of such party later.
+	// token helps identify contribution of such party later. Must be an email or
+	// a weave address that starts with a format or hex.
+	// example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
 	Broker       []byte                                `protobuf:"bytes,5,opt,name=broker,proto3" json:"broker,omitempty"`
 	MsgFees      []AccountMsgFee                       `protobuf:"bytes,6,rep,name=msg_fees,json=msgFees,proto3" json:"msg_fees"`
 	AccountRenew github_com_iov_one_weave.UnixDuration `protobuf:"varint,7,opt,name=account_renew,json=accountRenew,proto3,casttype=github.com/iov-one/weave.UnixDuration" json:"account_renew,omitempty"`
@@ -901,10 +907,12 @@ type RegisterAccountMsg struct {
 	// leave the administration to the domain owner only.
 	Owner   github_com_iov_one_weave.Address `protobuf:"bytes,4,opt,name=owner,proto3,casttype=github.com/iov-one/weave.Address" json:"owner,omitempty"`
 	Targets []BlockchainAddress              `protobuf:"bytes,5,rep,name=targets,proto3" json:"targets"`
-	// Broker token is an arbitrary data that can be provided by a middleman
+	// Broker is an arbitrary data that can be provided by a middleman
 	// (i.e. retailer) that although does not participate directly in the
 	// transaction, helped a user to renew a domain. Storing a third party token
-	// helps identify contribution of such party later.
+	// helps identify contribution of such party later. Must be an email or
+	// a weave address that starts with a format or hex.
+	// example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
 	Broker []byte `protobuf:"bytes,6,opt,name=broker,proto3" json:"broker,omitempty"`
 }
 

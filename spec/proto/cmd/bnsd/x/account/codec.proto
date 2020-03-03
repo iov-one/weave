@@ -30,11 +30,13 @@ message Domain {
   // Account review defines the duration of the account renewal period for each
   // account that belongs to this domain.
   int64 account_renew = 7 ;
-  // Third party token is an arbitrary data that can be provided by a middleman
+  // Broker is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
   // transaction, helped a user to register a domain. Storing a third party
-  // token helps identify contribution of such party later.
-  bytes third_party_token = 8;
+  // token helps identify contribution of such party later. Must be an email or
+  // a weave address that starts with a format or hex.
+  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
+  bytes broker = 8;
 }
 
 // AccountMsgFee defines a fee for processing a message of a given type,
@@ -70,6 +72,13 @@ message Account {
   int64 valid_until = 5 ;
   repeated BlockchainAddress targets = 6 ;
   repeated bytes certificates = 7;
+  // Broker is an arbitrary data that can be provided by a middleman
+  // (i.e. retailer) that although does not participate directly in the
+  // transaction, helped a user to renew a domain. Storing a third party token
+  // helps identify contribution of such party later. Must be an email or
+  // a weave address that starts with a format or hex.
+  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
+  bytes broker = 8;
 }
 
 // BlockchainAddress represents a blochain address. This structure clubs together
@@ -132,11 +141,13 @@ message RegisterDomainMsg {
   bytes admin = 3 ;
   // Has Superuser is a feature switch flag.
   bool has_superuser = 4;
-  // Third party token is an arbitrary data that can be provided by a middleman
+  // Broker is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
   // transaction, helped a user to register a domain. Storing a third party
-  // token helps identify contribution of such party later.
-  bytes third_party_token = 5;
+  // token helps identify contribution of such party later. Must be an email or
+  // a weave address that starts with a format or hex.
+  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
+  bytes broker = 5;
   repeated AccountMsgFee msg_fees = 6 ;
   int64 account_renew = 7 ;
 }
@@ -191,11 +202,13 @@ message RegisterAccountMsg {
   // leave the administration to the domain owner only.
   bytes owner = 4 ;
   repeated BlockchainAddress targets = 5 ;
-  // Third party token is an arbitrary data that can be provided by a middleman
+  // Broker is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
   // transaction, helped a user to renew a domain. Storing a third party token
-  // helps identify contribution of such party later.
-  bytes third_party_token = 6;
+  // helps identify contribution of such party later. Must be an email or
+  // a weave address that starts with a format or hex.
+  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
+  bytes broker = 6;
 }
 
 // TransferAccountMsg is issuing an ownership transfer over specified account.

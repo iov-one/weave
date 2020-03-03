@@ -31,10 +31,12 @@ message Domain {
   // Account review defines the duration of the account renewal period for each
   // account that belongs to this domain.
   int64 account_renew = 7 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
-  // Broker token is an arbitrary data that can be provided by a middleman
+  // Broker is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
   // transaction, helped a user to register a domain. Storing a third party
-  // token helps identify contribution of such party later.
+  // token helps identify contribution of such party later. Must be an email or
+  // a weave address that starts with a format or hex.
+  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
   bytes broker = 8;
 }
 
@@ -71,10 +73,12 @@ message Account {
   int64 valid_until = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
   repeated BlockchainAddress targets = 6 [(gogoproto.nullable) = false];
   repeated bytes certificates = 7;
-  // Broker token is an arbitrary data that can be provided by a middleman
+  // Broker is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
   // transaction, helped a user to renew a domain. Storing a third party token
-  // helps identify contribution of such party later.
+  // helps identify contribution of such party later. Must be an email or
+  // a weave address that starts with a format or hex.
+  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
   bytes broker = 8;
 }
 
@@ -138,10 +142,12 @@ message RegisterDomainMsg {
   bytes admin = 3 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   // Has Superuser is a feature switch flag.
   bool has_superuser = 4;
-  // Broker token is an arbitrary data that can be provided by a middleman
+  // Broker is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
   // transaction, helped a user to register a domain. Storing a third party
-  // token helps identify contribution of such party later.
+  // token helps identify contribution of such party later. Must be an email or
+  // a weave address that starts with a format or hex.
+  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
   bytes broker = 5;
   repeated AccountMsgFee msg_fees = 6 [(gogoproto.nullable) = false];
   int64 account_renew = 7 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
@@ -197,10 +203,12 @@ message RegisterAccountMsg {
   // leave the administration to the domain owner only.
   bytes owner = 4 [(gogoproto.casttype) = "github.com/iov-one/weave.Address"];
   repeated BlockchainAddress targets = 5 [(gogoproto.nullable) = false];
-  // Broker token is an arbitrary data that can be provided by a middleman
+  // Broker is an arbitrary data that can be provided by a middleman
   // (i.e. retailer) that although does not participate directly in the
   // transaction, helped a user to renew a domain. Storing a third party token
-  // helps identify contribution of such party later.
+  // helps identify contribution of such party later. Must be an email or
+  // a weave address that starts with a format or hex.
+  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
   bytes broker = 6;
 }
 
