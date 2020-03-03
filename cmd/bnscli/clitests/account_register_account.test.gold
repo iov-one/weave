@@ -7,7 +7,35 @@
 			"domain": "mydomain",
 			"name": "myaccount",
 			"targets": null,
-			"broker": "dGVzdDEyMzQ="
+			"broker": "b3JrdW5AaW92Lm9uZQ=="
+		}
+	}
+}
+
+{
+	"Sum": {
+		"AccountRegisterAccountMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"name": "myaccount",
+			"targets": null,
+			"broker": "YmVjaDMyOnRpb3YxNmh6cG1oZWNkNjV1OTkzbGFzbWV4cmRsa3ZoY3h0bG5mN2Y0d3M="
+		}
+	}
+}
+
+{
+	"Sum": {
+		"AccountRegisterAccountMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"name": "myaccount",
+			"targets": null,
+			"broker": "RDVDNDFEREYzODZFQTlDMjk2M0ZFQzM3OTMwREJGQjMyRjgzMkZGMw=="
 		}
 	}
 }

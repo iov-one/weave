@@ -2,7 +2,19 @@
 
 set -e
 
-bnscli register-account -domain "mydomain" -name "myaccount" -broker "test1234" \
+bnscli register-account -domain "mydomain" -name "myaccount" -broker "orkun@iov.one" \
+	| bnscli view
+
+echo
+echo
+
+bnscli register-account -domain "mydomain" -name "myaccount" -broker "bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws" \
+	| bnscli view
+
+echo
+echo
+
+bnscli register-account -domain "mydomain" -name "myaccount" -broker "D5C41DDF386EA9C2963FEC37930DBFB32F832FF3" \
 	| bnscli view
 
 echo

@@ -7,7 +7,39 @@
 			"domain": "mydomain",
 			"admin": "92066456B2BE7F1934624087D98C203A87F7752C",
 			"has_superuser": true,
-			"broker": "M3AtdG9rZW4=",
+			"broker": "b3JrdW5AaW92Lm9uZQ==",
+			"msg_fees": null,
+			"account_renew": 44442000
+		}
+	}
+}
+
+{
+	"Sum": {
+		"AccountRegisterDomainMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"admin": "92066456B2BE7F1934624087D98C203A87F7752C",
+			"has_superuser": true,
+			"broker": "YmVjaDMyOnRpb3YxNmh6cG1oZWNkNjV1OTkzbGFzbWV4cmRsa3ZoY3h0bG5mN2Y0d3M=",
+			"msg_fees": null,
+			"account_renew": 44442000
+		}
+	}
+}
+
+{
+	"Sum": {
+		"AccountRegisterDomainMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"admin": "92066456B2BE7F1934624087D98C203A87F7752C",
+			"has_superuser": true,
+			"broker": "RDVDNDFEREYzODZFQTlDMjk2M0ZFQzM3OTMwREJGQjMyRjgzMkZGMw==",
 			"msg_fees": null,
 			"account_renew": 44442000
 		}
