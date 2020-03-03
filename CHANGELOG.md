@@ -6,6 +6,7 @@
 - `bnscli`: fix boolean flag bug
 - `bug`: Refactor register domain message [issue#1165](https://github.com/iov-one/weave/issues/1165)
 - `bug`: Add broker to Account model and RegisterAccountMsg
+- `feature`: Validate broker field
 
 ## 1.0.0
 
