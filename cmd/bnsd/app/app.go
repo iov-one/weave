@@ -132,6 +132,7 @@ func QueryRouter(minFee coin.Coin) weave.QueryRouter {
 		termdeposit.RegisterQuery,
 		gconf.RegisterQuery,
 		preregistration.RegisterQuery,
+		msgfee.RegisterQuery,
 	)
 	return r
 }
