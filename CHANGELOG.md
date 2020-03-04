@@ -4,6 +4,7 @@
 
 - `bnsapi`: move bnsapi to new repo
 - `bnscli`: fix boolean flag bug
+- `bnsd`: Expose msgfee bucket to the query router
 
 ## 1.0.0
 
