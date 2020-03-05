@@ -51,7 +51,9 @@ func (msg *RegisterDomainMsg) Validate() error {
 	errs = errors.AppendField(errs, "Admin", msg.Admin.Validate())
 	errs = errors.AppendField(errs, "Domain", validateDomain(msg.Domain))
 	errs = errors.AppendField(errs, "MsgFees", validateMsgFees(msg.MsgFees))
-	errs = errors.AppendField(errs, "Broker", msg.Broker.Validate())
+	if msg.Broker != nil {
+		errs = errors.AppendField(errs, "Broker", msg.Broker.Validate())
+	}
 	return errs
 }
 
@@ -109,7 +111,9 @@ func (msg *RegisterAccountMsg) Validate() error {
 		errs = errors.AppendField(errs, "Owner", msg.Owner.Validate())
 	}
 	// NewTargets cannot be validated here because it requires Configuration instance
-	errs = errors.AppendField(errs, "Broker", msg.Broker.Validate())
+	if msg.Broker != nil {
+		errs = errors.AppendField(errs, "Broker", msg.Broker.Validate())
+	}
 	return errs
 }
 
