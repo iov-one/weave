@@ -7,18 +7,7 @@ bnscli register-domain \
 		-admin "92066456B2BE7F1934624087D98C203A87F7752C" \
 		-superuser "true" \
 		-account-renew 12345h \
-		-broker "orkun@iov.one"\
-	| bnscli view
-
-echo
-echo
-
-bnscli register-domain \
-		-domain "mydomain" \
-		-admin "92066456B2BE7F1934624087D98C203A87F7752C" \
-		-superuser "true" \
-		-account-renew 12345h \
-		-broker "bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws" \
+		-broker "bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws"\
 	| bnscli view
 
 echo
