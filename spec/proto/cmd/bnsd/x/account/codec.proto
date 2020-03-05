@@ -36,7 +36,7 @@ message Domain {
   // the contribution of such a party, which allows for automated commission distribution through
   // an IOV reward initiative, for example. Must be a weave address that starts with a format or hex
   // for example: bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws.
-  bytes broker = 8;
+  bytes broker = 8 ;
 }
 
 // AccountMsgFee defines a fee for processing a message of a given type,
@@ -78,7 +78,7 @@ message Account {
   // the contribution of such a party, which allows for automated commission distribution through
   // an IOV reward initiative, for example. Must be a weave address that starts with a format or hex
   // for example: bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws.
-  bytes broker = 8;
+  bytes broker = 8 ;
 }
 
 // BlockchainAddress represents a blochain address. This structure clubs together
@@ -147,7 +147,7 @@ message RegisterDomainMsg {
   // the contribution of such a party, which allows for automated commission distribution through
   // an IOV reward initiative, for example. Must be a weave address that starts with a format or hex
   // for example: bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws.
-  bytes broker = 5;
+  bytes broker = 5 ;
   repeated AccountMsgFee msg_fees = 6 ;
   int64 account_renew = 7 ;
 }
@@ -208,7 +208,7 @@ message RegisterAccountMsg {
   // the contribution of such a party, which allows for automated commission distribution through
   // an IOV reward initiative, for example. Must be a weave address that starts with a format or hex
   // for example: bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws.
-  bytes broker = 6;
+  bytes broker = 6 ;
 }
 
 // TransferAccountMsg is issuing an ownership transfer over specified account.
