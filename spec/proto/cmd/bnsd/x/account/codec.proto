@@ -30,12 +30,12 @@ message Domain {
   // Account review defines the duration of the account renewal period for each
   // account that belongs to this domain.
   int64 account_renew = 7 ;
-  // Broker is an arbitrary data that can be provided by a middleman
-  // (i.e. retailer) that although does not participate directly in the
-  // transaction, helped a user to register a domain. Storing a third party
-  // token helps identify contribution of such party later. Must be an email or
-  // a weave address that starts with a format or hex.
-  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
+  // Broker is a weave address (bech32 or hex) that can be provided by a middleman that helped
+  // facilitate the registration transaction. For example, an IOV token holder that registers
+  // a domain in exchange for fiat from a client is a broker. Storing the broker helps identify
+  // the contribution of such a party, which allows for automated commission distribution through
+  // an IOV reward initiative, for example. Must be a weave address that starts with a format or hex
+  // for example: bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws.
   bytes broker = 8;
 }
 
@@ -72,12 +72,12 @@ message Account {
   int64 valid_until = 5 ;
   repeated BlockchainAddress targets = 6 ;
   repeated bytes certificates = 7;
-  // Broker is an arbitrary data that can be provided by a middleman
-  // (i.e. retailer) that although does not participate directly in the
-  // transaction, helped a user to renew a domain. Storing a third party token
-  // helps identify contribution of such party later. Must be an email or
-  // a weave address that starts with a format or hex.
-  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
+  // Broker is a weave address (bech32 or hex) that can be provided by a middleman that helped
+  // facilitate the registration transaction. For example, an IOV token holder that registers
+  // a domain in exchange for fiat from a client is a broker. Storing the broker helps identify
+  // the contribution of such a party, which allows for automated commission distribution through
+  // an IOV reward initiative, for example. Must be a weave address that starts with a format or hex
+  // for example: bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws.
   bytes broker = 8;
 }
 
@@ -141,12 +141,12 @@ message RegisterDomainMsg {
   bytes admin = 3 ;
   // Has Superuser is a feature switch flag.
   bool has_superuser = 4;
-  // Broker is an arbitrary data that can be provided by a middleman
-  // (i.e. retailer) that although does not participate directly in the
-  // transaction, helped a user to register a domain. Storing a third party
-  // token helps identify contribution of such party later. Must be an email or
-  // a weave address that starts with a format or hex.
-  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
+  // Broker is a weave address (bech32 or hex) that can be provided by a middleman that helped
+  // facilitate the registration transaction. For example, an IOV token holder that registers
+  // a domain in exchange for fiat from a client is a broker. Storing the broker helps identify
+  // the contribution of such a party, which allows for automated commission distribution through
+  // an IOV reward initiative, for example. Must be a weave address that starts with a format or hex
+  // for example: bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws.
   bytes broker = 5;
   repeated AccountMsgFee msg_fees = 6 ;
   int64 account_renew = 7 ;
@@ -202,12 +202,12 @@ message RegisterAccountMsg {
   // leave the administration to the domain owner only.
   bytes owner = 4 ;
   repeated BlockchainAddress targets = 5 ;
-  // Broker is an arbitrary data that can be provided by a middleman
-  // (i.e. retailer) that although does not participate directly in the
-  // transaction, helped a user to renew a domain. Storing a third party token
-  // helps identify contribution of such party later. Must be an email or
-  // a weave address that starts with a format or hex.
-  // example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
+  // Broker is a weave address (bech32 or hex) that can be provided by a middleman that helped
+  // facilitate the registration transaction. For example, an IOV token holder that registers
+  // a domain in exchange for fiat from a client is a broker. Storing the broker helps identify
+  // the contribution of such a party, which allows for automated commission distribution through
+  // an IOV reward initiative, for example. Must be a weave address that starts with a format or hex
+  // for example: bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws.
   bytes broker = 6;
 }
 
