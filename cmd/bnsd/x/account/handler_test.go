@@ -32,6 +32,7 @@ func TestUseCases(t *testing.T) {
 		aliceCond   = weavetest.NewCondition()
 		bobCond     = weavetest.NewCondition()
 		charlieCond = weavetest.NewCondition()
+		brokerCond  = weavetest.NewCondition()
 
 		now = weave.UnixTime(1572247483)
 	)
@@ -52,7 +53,7 @@ func TestUseCases(t *testing.T) {
 							Admin:        aliceCond.Address(),
 							HasSuperuser: true,
 							AccountRenew: 1000,
-							Broker:       []byte("orkun@iov.one"),
+							Broker:       brokerCond.Address(),
 						},
 					},
 					BlockHeight: 1,
@@ -68,7 +69,7 @@ func TestUseCases(t *testing.T) {
 							Admin:        aliceCond.Address(),
 							HasSuperuser: true,
 							AccountRenew: 1000,
-							Broker:       []byte("orkun@iov.one"),
+							Broker:       brokerCond.Address(),
 						},
 					},
 					BlockHeight: 2,

@@ -25,7 +25,7 @@ func (a *Account) Validate() error {
 		errs = errors.AppendField(errs, "Owner", a.Owner.Validate())
 	}
 	errs = errors.AppendField(errs, "ValidUntil", a.ValidUntil.Validate())
-	errs = errors.AppendField(errs, "Broker", validateBroker(a.Broker))
+	errs = errors.AppendField(errs, "Broker", a.Broker.Validate())
 	return errs
 }
 
@@ -64,7 +64,7 @@ func (d *Domain) Validate() error {
 	if d.AccountRenew < 0 {
 		errs = errors.AppendField(errs, "AccountRenew", errors.Wrap(errors.ErrInput, "must be non negative"))
 	}
-	errs = errors.AppendField(errs, "Broker", validateBroker(d.Broker))
+	errs = errors.AppendField(errs, "Broker", d.Broker.Validate())
 	return errs
 }
 

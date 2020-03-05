@@ -2,8 +2,6 @@ package account
 
 import (
 	"crypto/sha256"
-	"regexp"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -53,7 +51,7 @@ func (msg *RegisterDomainMsg) Validate() error {
 	errs = errors.AppendField(errs, "Admin", msg.Admin.Validate())
 	errs = errors.AppendField(errs, "Domain", validateDomain(msg.Domain))
 	errs = errors.AppendField(errs, "MsgFees", validateMsgFees(msg.MsgFees))
-	errs = errors.AppendField(errs, "Broker", validateBroker(msg.Broker))
+	errs = errors.AppendField(errs, "Broker", msg.Broker.Validate())
 	return errs
 }
 
@@ -111,7 +109,7 @@ func (msg *RegisterAccountMsg) Validate() error {
 		errs = errors.AppendField(errs, "Owner", msg.Owner.Validate())
 	}
 	// NewTargets cannot be validated here because it requires Configuration instance
-	errs = errors.AppendField(errs, "Broker", validateBroker(msg.Broker))
+	errs = errors.AppendField(errs, "Broker", msg.Broker.Validate())
 	return errs
 }
 
@@ -215,32 +213,6 @@ func validateDomain(domain string) error {
 		return errors.ErrEmpty
 	}
 	return nil
-}
-
-// isEmail checks if the given string is an email
-var isEmail = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$").MatchString
-
-// validateBroker returns an error if provided token exists and not valid.
-// if an address is passed be sure to add format as prefix. example bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws
-func validateBroker(token []byte) error {
-	broker := string(token)
-
-	if len(token) == 0 {
-		return nil
-	}
-
-
-	if isEmail(broker) {
-		return nil
-	}
-	if _, err := weave.ParseAddress(broker); err == nil {
-		return nil
-	}
-
-	var errs error
-	errs = errors.AppendField(errs, "Broker", errors.Wrapf(errors.ErrInput, "must be a mail or an address(remember to add format prefix: %s", broker))
-
-	return errs
 }
 
 var _ weave.Msg = (*ReplaceAccountMsgFeesMsg)(nil)
