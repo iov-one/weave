@@ -2,6 +2,11 @@
 
 set -e
 
+bnscli register-account -domain "mydomain" -name "myaccount" | bnscli view
+
+echo
+echo
+
 bnscli register-account -domain "mydomain" -name "myaccount" -broker "bech32:tiov16hzpmhecd65u993lasmexrdlkvhcxtlnf7f4ws" \
 	| bnscli view
 
