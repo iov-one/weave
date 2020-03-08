@@ -19,6 +19,34 @@
 			},
 			"domain": "mydomain",
 			"name": "myaccount",
+			"targets": null,
+			"broker": "D5C41DDF386EA9C2963FEC37930DBFB32F832FF3"
+		}
+	}
+}
+
+{
+	"Sum": {
+		"AccountRegisterAccountMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"name": "myaccount",
+			"targets": null,
+			"broker": "D5C41DDF386EA9C2963FEC37930DBFB32F832FF3"
+		}
+	}
+}
+
+{
+	"Sum": {
+		"AccountRegisterAccountMsg": {
+			"metadata": {
+				"schema": 1
+			},
+			"domain": "mydomain",
+			"name": "myaccount",
 			"targets": [
 				{
 					"blockchain_id": "unichain",

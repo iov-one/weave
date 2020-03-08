@@ -24,11 +24,11 @@ address defined by the account functionality configuration.
 		fl.PrintDefaults()
 	}
 	var (
-		domainFl          = fl.String("domain", "", "Domain name to register.")
-		adminFl           = flAddress(fl, "admin", "", "An address that the newly registered domain will belong to. Transaction does not have to be signed by this address.")
-		hasSuperUserFl    = fl.String("superuser", "true", "Domain has a superuser account? [true/false]")
-		thirdPartyTokenFl = fl.String("third-party-token", "", "Third party token.")
-		accountRenewFl    = fl.Duration("account-renew", 30*24*time.Hour, "Account renewal duration.")
+		domainFl       = fl.String("domain", "", "Domain name to register.")
+		adminFl        = flAddress(fl, "admin", "", "An address that the newly registered domain will belong to. Transaction does not have to be signed by this address.")
+		hasSuperUserFl = fl.String("superuser", "true", "Domain has a superuser account? [true/false]")
+		brokerFl       = flAddress(fl, "broker", "", "Address of the issuer entity")
+		accountRenewFl = fl.Duration("account-renew", 30*24*time.Hour, "Account renewal duration.")
 	)
 	fl.Parse(args)
 
@@ -38,12 +38,12 @@ address defined by the account functionality configuration.
 	}
 
 	msg := account.RegisterDomainMsg{
-		Metadata:        &weave.Metadata{Schema: 1},
-		Domain:          *domainFl,
-		Admin:           *adminFl,
-		HasSuperuser:    hasSuperUser,
-		ThirdPartyToken: []byte(*thirdPartyTokenFl),
-		AccountRenew:    weave.AsUnixDuration(*accountRenewFl),
+		Metadata:     &weave.Metadata{Schema: 1},
+		Domain:       *domainFl,
+		Admin:        *adminFl,
+		HasSuperuser: hasSuperUser,
+		Broker:       *brokerFl,
+		AccountRenew: weave.AsUnixDuration(*accountRenewFl),
 	}
 	if err := msg.Validate(); err != nil {
 		return fmt.Errorf("given data produce an invalid message: %s", err)
@@ -112,19 +112,19 @@ Create a transaction for registering an account within a given domain.
 		fl.PrintDefaults()
 	}
 	var (
-		nameFl            = fl.String("name", "", "Account name")
-		domainFl          = fl.String("domain", "", "Account domain.")
-		adminFl           = flAddress(fl, "owner", "", "An address that the newly registered account will belong to.")
-		thirdPartyTokenFl = fl.String("third-party-token", "", "Third party token.")
+		nameFl   = fl.String("name", "", "Account name")
+		domainFl = fl.String("domain", "", "Account domain.")
+		adminFl  = flAddress(fl, "owner", "", "An address that the newly registered account will belong to.")
+		brokerFl       = flAddress(fl, "broker", "", "Address of the issuer entity")
 	)
 	fl.Parse(args)
 
 	msg := account.RegisterAccountMsg{
-		Metadata:        &weave.Metadata{Schema: 1},
-		Name:            *nameFl,
-		Domain:          *domainFl,
-		Owner:           *adminFl,
-		ThirdPartyToken: []byte(*thirdPartyTokenFl),
+		Metadata: &weave.Metadata{Schema: 1},
+		Name:     *nameFl,
+		Domain:   *domainFl,
+		Owner:    *adminFl,
+		Broker:   *brokerFl,
 	}
 	if err := msg.Validate(); err != nil {
 		return fmt.Errorf("given data produce an invalid message: %s", err)

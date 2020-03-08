@@ -2,7 +2,6 @@ package account
 
 import (
 	"crypto/sha256"
-
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
@@ -52,7 +51,9 @@ func (msg *RegisterDomainMsg) Validate() error {
 	errs = errors.AppendField(errs, "Admin", msg.Admin.Validate())
 	errs = errors.AppendField(errs, "Domain", validateDomain(msg.Domain))
 	errs = errors.AppendField(errs, "MsgFees", validateMsgFees(msg.MsgFees))
-	errs = errors.AppendField(errs, "ThirdPartyToken", validateThirdPartyToken(msg.ThirdPartyToken))
+	if msg.Broker != nil {
+		errs = errors.AppendField(errs, "Broker", msg.Broker.Validate())
+	}
 	return errs
 }
 
@@ -110,7 +111,9 @@ func (msg *RegisterAccountMsg) Validate() error {
 		errs = errors.AppendField(errs, "Owner", msg.Owner.Validate())
 	}
 	// NewTargets cannot be validated here because it requires Configuration instance
-	errs = errors.AppendField(errs, "ThirdPartyToken", validateThirdPartyToken(msg.ThirdPartyToken))
+	if msg.Broker != nil {
+		errs = errors.AppendField(errs, "Broker", msg.Broker.Validate())
+	}
 	return errs
 }
 
@@ -212,15 +215,6 @@ func (msg *AddAccountCertificateMsg) Validate() error {
 func validateDomain(domain string) error {
 	if len(domain) == 0 {
 		return errors.ErrEmpty
-	}
-	return nil
-}
-
-// validateThirdPartyToken returns an error if provided token is not valid.
-func validateThirdPartyToken(token []byte) error {
-	const maxLen = 64
-	if len(token) > maxLen {
-		return errors.Wrapf(errors.ErrInput, "must not be longer than %d characters", maxLen)
 	}
 	return nil
 }

@@ -4,6 +4,9 @@
 
 - `bnsapi`: move bnsapi to new repo
 - `bnscli`: fix boolean flag bug
+- `bug`: Refactor register domain message [issue#1165](https://github.com/iov-one/weave/issues/1165)
+- `bug`: Add broker to Account model and RegisterAccountMsg
+- `feature`: Validate broker field
 - `bnsd`: Expose msgfee bucket to the query router
 
 ## 1.0.0

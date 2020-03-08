@@ -161,6 +161,7 @@ func (h *registerDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx 
 		MsgFees:      msg.MsgFees,
 		AccountRenew: msg.AccountRenew,
 		HasSuperuser: msg.HasSuperuser,
+		Broker:       msg.Broker,
 	}
 	if _, err := h.domains.Put(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, errors.Wrap(err, "cannot store domain entity")
@@ -517,6 +518,7 @@ func (h *registerAccountHandler) Deliver(ctx weave.Context, db weave.KVStore, tx
 		Name:       msg.Name,
 		Targets:    msg.Targets,
 		ValidUntil: weave.AsUnixTime(now.Add(domain.AccountRenew.Duration())),
+		Broker:     msg.Broker,
 	}
 	if _, err := h.accounts.Put(db, accountKey(msg.Name, msg.Domain), &account); err != nil {
 		return nil, errors.Wrap(err, "cannot store account")
