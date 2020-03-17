@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -27,13 +28,16 @@ kind of operation are you authorizing.
 		var buf bytes.Buffer
 		tx, _, err := readTx(io.TeeReader(input, &buf))
 		if err == nil {
+			a, _ := tx.Marshal()
+			_, _ = output.Write([]byte(base64.StdEncoding.EncodeToString(a)))
+
 			// Protobuf compiler is exposing all attributes as JSON as
 			// well. This will produce a beautiful summary.
-			pretty, err := json.MarshalIndent(tx, "", "\t")
+			//pretty, err := json.MarshalIndent(tx, "", "\t")
 			if err != nil {
 				return fmt.Errorf("cannot JSON serialize: %s", err)
 			}
-			_, _ = output.Write(pretty)
+			//_, _ = output.Write(pretty)
 
 			// When printing a transaction of a proposal, the embeded in proposal
 			// message is obfuscated. Extract it and print additionally.
