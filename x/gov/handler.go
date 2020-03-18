@@ -211,10 +211,16 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	}()
 
 	if common.Result != Proposal_Accepted {
-		res := &weave.DeliverResult{
-			Log: fmt.Sprintf("Proposal %q not accepted", msg.ProposalID),
-		}
-		return res, nil
+		/*
+			// NOTE(fdymylja) culprit of PR77.
+			// to support this logging what I would propose is to set a fork here
+			// if currBlock > hardForkBlockOfBNSD1.0.0 then use this otherwise fallback to the other one
+			res := &weave.DeliverResult{
+					Log: fmt.Sprintf("Proposal %q not accepted", msg.ProposalID),
+				}
+				return res, nil
+		*/
+		return &weave.DeliverResult{Log: "Proposal not accepted"}, nil
 	}
 
 	// we only execute the store options upon success

@@ -12,3 +12,4 @@ _build
 .vscode
 .gitian-builder-cache/
 bns-build-linux/
+.idea/
