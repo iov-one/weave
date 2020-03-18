@@ -2,7 +2,6 @@ package gov
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"reflect"
 	"strings"
@@ -876,7 +875,7 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:         Proposal_Rejected,
 			ExpExecutorResult: Proposal_NotRun,
-			WantDeliverLog:    fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog:    "Proposal not accepted",
 			PostChecks: func(t *testing.T, db weave.KVStore) {
 				obj, err := NewResolutionBucket().Get(db, weavetest.SequenceID(1))
 				assert.Nil(t, obj)
@@ -894,7 +893,7 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:         Proposal_Rejected,
 			ExpExecutorResult: Proposal_NotRun,
-			WantDeliverLog:    fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Rejected without voters": {
 			Src: tallySetup{
@@ -903,7 +902,7 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:         Proposal_Rejected,
 			ExpExecutorResult: Proposal_NotRun,
-			WantDeliverLog:    fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Rejected without enough votes: 2/3": {
 			Src: tallySetup{
@@ -913,7 +912,7 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:         Proposal_Rejected,
 			ExpExecutorResult: Proposal_NotRun,
-			WantDeliverLog:    fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Accepted with quorum and acceptance thresholds exceeded: 5/9": {
 			Src: tallySetup{
@@ -935,7 +934,7 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:         Proposal_Rejected,
 			ExpExecutorResult: Proposal_NotRun,
-			WantDeliverLog:    fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Accepted with quorum and acceptance thresholds exceeded: 4/9": {
 			Src: tallySetup{
@@ -959,7 +958,7 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:         Proposal_Rejected,
 			ExpExecutorResult: Proposal_NotRun,
-			WantDeliverLog:    fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Rejected by single No when unanimity required": {
 			Src: tallySetup{
@@ -971,7 +970,7 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:         Proposal_Rejected,
 			ExpExecutorResult: Proposal_NotRun,
-			WantDeliverLog:    fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Rejected by missing vote when all required": {
 			Src: tallySetup{
@@ -982,7 +981,7 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:         Proposal_Rejected,
 			ExpExecutorResult: Proposal_NotRun,
-			WantDeliverLog:    fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Accept on quorum fraction 1/1": {
 			Src: tallySetup{
@@ -1031,7 +1030,7 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:         Proposal_Rejected,
 			ExpExecutorResult: Proposal_NotRun,
-			WantDeliverLog:    fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Accepted with acceptance thresholds < quorum": {
 			Src: tallySetup{
@@ -1080,7 +1079,7 @@ func TestTally(t *testing.T) {
 			},
 			ExpResult:         Proposal_Rejected,
 			ExpExecutorResult: Proposal_NotRun,
-			WantDeliverLog:    fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Updates latest electorate on success": {
 			Init: func(t *testing.T, db weave.KVStore) {
@@ -1198,7 +1197,7 @@ func TestTally(t *testing.T) {
 					t.Errorf("expected %v but got %v", exp, got)
 				}
 			},
-			WantDeliverLog: fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on second tally": {
 			Mods: func(_ weave.Context, p *Proposal) {
@@ -1211,7 +1210,7 @@ func TestTally(t *testing.T) {
 			WantDeliverErr:    errors.ErrState,
 			ExpResult:         Proposal_Accepted,
 			ExpExecutorResult: Proposal_Success,
-			WantDeliverLog:    fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog:    "Proposal not accepted",
 		},
 		"Fails on tally before end date": {
 			Mods: func(ctx weave.Context, p *Proposal) {
@@ -1223,7 +1222,7 @@ func TestTally(t *testing.T) {
 			},
 			WantDeliverErr: errors.ErrState,
 			ExpResult:      Proposal_Undefined,
-			WantDeliverLog: fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on tally at end date": {
 			Mods: func(ctx weave.Context, p *Proposal) {
@@ -1235,7 +1234,7 @@ func TestTally(t *testing.T) {
 			},
 			WantDeliverErr: errors.ErrState,
 			ExpResult:      Proposal_Undefined,
-			WantDeliverLog: fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog: "Proposal not accepted",
 		},
 		"Fails on withdrawn proposal": {
 			Mods: func(ctx weave.Context, p *Proposal) {
@@ -1247,7 +1246,7 @@ func TestTally(t *testing.T) {
 			},
 			WantDeliverErr: errors.ErrState,
 			ExpResult:      Proposal_Undefined,
-			WantDeliverLog: fmt.Sprintf("Proposal %q not accepted", weavetest.SequenceID(1)),
+			WantDeliverLog: "Proposal not accepted",
 		},
 	}
 	rt := app.NewRouter()
