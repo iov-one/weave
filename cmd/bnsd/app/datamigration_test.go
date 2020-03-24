@@ -264,3 +264,118 @@ func TestRewriteAccountBlockchainIDs(t *testing.T) {
 		t.Fatalf("unexpected targets: %+v", acc.Targets)
 	}
 }
+
+func Test_migrateAccountTargetBlockchainID(t *testing.T) {
+	// this test checks the values in a way that order matters
+	type args struct {
+		targets []account.BlockchainAddress
+	}
+	tests := []struct {
+		name       string
+		args       args
+		want       []account.BlockchainAddress
+		wantUpdate bool
+	}{
+		{
+			name: "success",
+			args: args{
+				targets: []account.BlockchainAddress{
+					{
+						BlockchainID: "cosmos-binance-chain-tigris",
+					},
+					{
+						BlockchainID: "bip122-tmp-bitcoin",
+					},
+					{
+						BlockchainID: "bip122-tmp-bcash",
+					},
+					{
+						BlockchainID: "cosmos-cosmoshub-3",
+					},
+					{
+						BlockchainID: "ethereum-eip155-1",
+					},
+					{
+						BlockchainID: "iov-mainnet",
+					},
+					{
+						BlockchainID: "cosmos-irishub",
+					},
+					{
+						BlockchainID: "cosmos-kava-2",
+					},
+					{
+						BlockchainID: "lisk-ed14889723",
+					},
+					{
+						BlockchainID: "bip122-tmp-litecoin",
+					},
+					{
+						BlockchainID: "cosmos-columbus-3",
+					},
+					{
+						BlockchainID: "tezos-tmp-mainnet",
+					},
+				},
+			},
+			want: []account.BlockchainAddress{
+				{
+					BlockchainID: "cosmos:Binance-Chain-Tigris",
+				},
+				{
+					BlockchainID: "bip122:000000000019d6689c085ae165831e93",
+				},
+				{
+					BlockchainID: "bip122:000000000000000000651ef99cb9fcbe",
+				},
+				{
+					BlockchainID: "cosmos:cosmoshub-3",
+				},
+				{
+					BlockchainID: "eip155:1",
+				},
+				{
+					BlockchainID: "cosmos:iov-mainnet",
+				},
+				{
+					BlockchainID: "cosmos:irishub",
+				},
+				{
+					BlockchainID: "cosmos:kava-2",
+				},
+				{
+					BlockchainID: "lip9:9ee11e9df416b18b",
+				},
+				{
+					BlockchainID: "bip122:12a765e31ffd4059bada1e25190f6e98",
+				},
+				{
+					BlockchainID: "cosmos:columbus-3",
+				},
+				{
+					BlockchainID: "tezos:NetXdQprcVkpaWU",
+				},
+			},
+			wantUpdate: true,
+		},
+		{
+			name: "no update",
+			args: args{
+				targets: nil,
+			},
+			want:       nil,
+			wantUpdate: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 := migrateAccountTargetBlockchainID(tt.args.targets)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("migrateAccountTargetBlockchainID() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.wantUpdate {
+				t.Errorf("migrateAccountTargetBlockchainID() got1 = %v, want %v", got1, tt.wantUpdate)
+			}
+		})
+	}
+}
