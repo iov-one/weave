@@ -130,6 +130,7 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 		Auth           x.Authenticator
 		WantCheckErr   *errors.Error
 		WantDeliverErr *errors.Error
+		AfterTest      func(t *testing.T, db weave.KVStore) // if nil, will be ignored
 	}{
 		"success": {
 			Tx: &weavetest.Tx{
@@ -140,6 +141,18 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 				},
 			},
 			Auth: &weavetest.Auth{Signer: aliceCond},
+			AfterTest: func(t *testing.T, db weave.KVStore) {
+				// get token
+				tokenBucket := NewTokenBucket()
+				var token Token
+				if err := tokenBucket.One(db, []byte("alice*iov"), &token); err != nil {
+					t.Fatalf("could not get token: %s", err)
+				}
+				// verify that targets were cleared
+				if len(token.Targets) != 0 {
+					t.Fatalf("token targets were not cleared: %#v", token.Targets)
+				}
+			},
 		},
 		"only the owner can change the token": {
 			Tx: &weavetest.Tx{
@@ -203,6 +216,10 @@ func TestChangeTokenOwnerHandler(t *testing.T) {
 			cache.Discard()
 			if _, err := h.Deliver(context.TODO(), db, tc.Tx); !tc.WantDeliverErr.Is(err) {
 				t.Fatalf("unexpected deliver error: %s", err)
+			}
+			// do after test checks
+			if tc.AfterTest != nil {
+				tc.AfterTest(t, db)
 			}
 		})
 	}

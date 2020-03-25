@@ -8,6 +8,7 @@
 - `bug`: Add broker to Account model and RegisterAccountMsg
 - `feature`: Validate broker field
 - `bnsd`: Expose msgfee bucket to the query router
+- `bnsd`: username targets are cleared after a transfer
 
 ## 1.0.0
 

@@ -103,8 +103,10 @@ func (h *transferTokenHandler) Deliver(ctx weave.Context, db weave.KVStore, tx w
 	if err != nil {
 		return nil, err
 	}
-
+	// update owner
 	token.Owner = msg.NewOwner
+	// clear targets
+	token.Targets = nil
 	if _, err := h.bucket.Put(db, []byte(msg.Username), token); err != nil {
 		return nil, errors.Wrap(err, "cannot store token")
 	}
