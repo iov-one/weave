@@ -277,6 +277,7 @@ func migrateAccountTargetBlockchainID(targets []account.BlockchainAddress) ([]ac
 		"bip122-tmp-litecoin":         "bip122:12a765e31ffd4059bada1e25190f6e98",
 		"cosmos-columbus-3":           "cosmos:columbus-3",
 		"tezos-tmp-mainnet":           "tezos:NetXdQprcVkpaWU",
+		"cosmos-emoney-1":             "cosmos:emoney-1",
 	}
 	// iterate over the accounts
 	for i, t := range targets {

@@ -316,6 +316,12 @@ func Test_migrateAccountTargetBlockchainID(t *testing.T) {
 					{
 						BlockchainID: "tezos-tmp-mainnet",
 					},
+					{
+						BlockchainID: "cosmos-emoney-1",
+					},
+					{
+						BlockchainID: "this-must-be-ignored",
+					},
 				},
 			},
 			want: []account.BlockchainAddress{
@@ -354,6 +360,12 @@ func Test_migrateAccountTargetBlockchainID(t *testing.T) {
 				},
 				{
 					BlockchainID: "tezos:NetXdQprcVkpaWU",
+				},
+				{
+					BlockchainID: "cosmos:emoney-1",
+				},
+				{
+					BlockchainID: "this-must-be-ignored",
 				},
 			},
 			wantUpdate: true,
