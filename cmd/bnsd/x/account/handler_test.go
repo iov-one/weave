@@ -1515,7 +1515,7 @@ func TestUseCases(t *testing.T) {
 				}
 			},
 		},
-		"accounts ownership is transferred to new domain owner": {
+		"accounts ownership is transferred to new domain owner after clearing certs and targets": {
 			Requests: []Request{
 				// register domain
 				{
@@ -1543,16 +1543,37 @@ func TestUseCases(t *testing.T) {
 							Domain:   "wunderland",
 							Name:     "test-account",
 							Owner:    aliceCond.Address(),
-							Targets:  nil,
-							Broker:   nil,
+							Targets: []BlockchainAddress{
+								{
+									BlockchainID: "blockchain-id",
+									Address:      "blockchain-address",
+								},
+							},
+							Broker: nil,
 						},
 						Err: nil,
 					},
 					BlockHeight: 101,
 				},
+				// add certs to to account
+				{
+					Now:        now + 2,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &AddAccountCertificateMsg{
+							Metadata:    &weave.Metadata{Schema: 1},
+							Domain:      "wunderland",
+							Name:        "test-account",
+							Certificate: []byte("a-mock-certificate"),
+						},
+						Err: nil,
+					},
+					BlockHeight: 102,
+					WantErr:     nil,
+				},
 				// transfer domain
 				{
-					Now:        now + 1,
+					Now:        now + 3,
 					Conditions: []weave.Condition{aliceCond},
 					Tx: &weavetest.Tx{
 						Msg: &TransferDomainMsg{
@@ -1561,7 +1582,7 @@ func TestUseCases(t *testing.T) {
 							NewAdmin: bobCond.Address(),
 						},
 					},
-					BlockHeight: 101,
+					BlockHeight: 103,
 					WantErr:     nil,
 				},
 			},
@@ -1585,6 +1606,13 @@ func TestUseCases(t *testing.T) {
 						// check if an account has had an ownership change
 						if !bobCond.Address().Equals(acc.Owner) {
 							t.Fatalf("account ownership not changed for account %#v, expected: %s, got: %s", acc, bobCond.Address(), acc.Owner)
+						}
+						// check if certs were cleared
+						if len(acc.Certificates) != 0 {
+							t.Fatalf("account certificates were not cleared")
+						}
+						if len(acc.Targets) != 0 {
+							t.Fatalf("account targets were not cleared")
 						}
 					// case we finish iterating
 					case errors.ErrIteratorDone.Is(err):
