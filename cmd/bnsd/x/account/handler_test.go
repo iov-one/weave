@@ -1515,6 +1515,114 @@ func TestUseCases(t *testing.T) {
 				}
 			},
 		},
+		"accounts ownership is transferred to new domain owner after clearing certs and targets": {
+			Requests: []Request{
+				// register domain
+				{
+					Now:        now,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterDomainMsg{
+							Metadata:     &weave.Metadata{Schema: 1},
+							Domain:       "wunderland",
+							Admin:        aliceCond.Address(),
+							HasSuperuser: true,
+							AccountRenew: 1000,
+						},
+					},
+					BlockHeight: 100,
+					WantErr:     nil,
+				},
+				// add account to domain
+				{
+					Now:        now + 1,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterAccountMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+							Name:     "test-account",
+							Owner:    aliceCond.Address(),
+							Targets: []BlockchainAddress{
+								{
+									BlockchainID: "blockchain-id",
+									Address:      "blockchain-address",
+								},
+							},
+							Broker: nil,
+						},
+						Err: nil,
+					},
+					BlockHeight: 101,
+				},
+				// add certs to to account
+				{
+					Now:        now + 2,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &AddAccountCertificateMsg{
+							Metadata:    &weave.Metadata{Schema: 1},
+							Domain:      "wunderland",
+							Name:        "test-account",
+							Certificate: []byte("a-mock-certificate"),
+						},
+						Err: nil,
+					},
+					BlockHeight: 102,
+					WantErr:     nil,
+				},
+				// transfer domain
+				{
+					Now:        now + 3,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &TransferDomainMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+							NewAdmin: bobCond.Address(),
+						},
+					},
+					BlockHeight: 103,
+					WantErr:     nil,
+				},
+			},
+			AfterTest: func(t *testing.T, db weave.KVStore) {
+				domainBucket := NewDomainBucket()
+				accountsBucket := NewAccountBucket()
+				var d Domain
+				if err := domainBucket.One(db, []byte("wunderland"), &d); err != nil {
+					t.Fatalf("cannot get wunderland domain: %s", err)
+				}
+				// create iterator
+				iterator := domainAccountIter{
+					db:       db,
+					domain:   []byte("wunderland"),
+					accounts: accountsBucket,
+				}
+				// check if account ownership was correctly transferred
+				for {
+					switch acc, err := iterator.Next(); {
+					case err == nil:
+						// check if an account has had an ownership change
+						if !bobCond.Address().Equals(acc.Owner) {
+							t.Fatalf("account ownership not changed for account %#v, expected: %s, got: %s", acc, bobCond.Address(), acc.Owner)
+						}
+						// check if certs were cleared
+						if len(acc.Certificates) != 0 {
+							t.Fatalf("account certificates were not cleared")
+						}
+						if len(acc.Targets) != 0 {
+							t.Fatalf("account targets were not cleared")
+						}
+					// case we finish iterating
+					case errors.ErrIteratorDone.Is(err):
+						return
+					default:
+						t.Fatalf("iterator error: %s", err)
+					}
+				}
+			},
+		},
 		"expired domain ownership (domain admin) cannot be changed": {
 			Requests: []Request{
 				{

@@ -246,10 +246,13 @@ func (h *transferDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx 
 	for {
 		switch a, err := iter.Next(); {
 		case err == nil:
-			if len(a.Certificates) == 0 {
-				continue
-			}
+			// clear account certificates
 			a.Certificates = nil
+			// clear account targets
+			a.Targets = nil
+			// update account owner
+			a.Owner = msg.NewAdmin
+			// update account key
 			if _, err := h.accounts.Put(db, accountKey(a.Name, a.Domain), a); err != nil {
 				return nil, errors.Wrapf(err, "cannot update %s*%s", a.Name, a.Domain)
 			}
