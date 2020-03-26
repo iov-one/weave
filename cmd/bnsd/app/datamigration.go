@@ -263,21 +263,35 @@ func rewriteAccountBlockchainIDs(ctx context.Context, db weave.KVStore) error {
 // See https://github.com/ChainAgnostic/CAIPs/tree/master/CAIPs
 func migrateAccountTargetBlockchainID(targets []account.BlockchainAddress) ([]account.BlockchainAddress, bool) {
 	var updated bool
-	for i, t := range targets {
-		switch t.BlockchainID {
-		case "ethereum-eip155-1":
-			targets[i].BlockchainID = "eip155:1"
-			updated = true
-		case "iov-mainnet":
-			targets[i].BlockchainID = "cosmos:iov-mainnet"
-			updated = true
-		case "lisk-ed14889723":
-			targets[i].BlockchainID = "lip9:9ee11e9df416b18b"
-			updated = true
-		default:
-			// Unknown chain IDs are ignored.
-		}
+	// this is a set of old chain ID to new chain ID
+	var oldToNewChainID = map[string]string{
+		"ethereum-eip155-1":           "eip155:1",
+		"iov-mainnet":                 "cosmos:iov-mainnet",
+		"lisk-ed14889723":             "lip9:9ee11e9df416b18b",
+		"cosmos-binance-chain-tigris": "cosmos:Binance-Chain-Tigris",
+		"bip122-tmp-bitcoin":          "bip122:000000000019d6689c085ae165831e93",
+		"bip122-tmp-bcash":            "bip122:000000000000000000651ef99cb9fcbe",
+		"cosmos-cosmoshub-3":          "cosmos:cosmoshub-3",
+		"cosmos-irishub":              "cosmos:irishub",
+		"cosmos-kava-2":               "cosmos:kava-2",
+		"bip122-tmp-litecoin":         "bip122:12a765e31ffd4059bada1e25190f6e98",
+		"cosmos-columbus-3":           "cosmos:columbus-3",
+		"tezos-tmp-mainnet":           "tezos:NetXdQprcVkpaWU",
+		"cosmos-emoney-1":             "cosmos:emoney-1",
 	}
-
+	// iterate over the accounts
+	for i, t := range targets {
+		// check if blockchain ID is in the set of IDs
+		// that require to be updated
+		updatedID, ok := oldToNewChainID[t.BlockchainID]
+		// if the ID is not found in the ones we need to update
+		// then continue iterating over blockchain addresses
+		if !ok {
+			continue
+		}
+		// otherwise update the blockchain ID
+		targets[i].BlockchainID = updatedID
+		updated = true
+	}
 	return targets, updated
 }
