@@ -211,10 +211,7 @@ func (h TallyHandler) Deliver(ctx weave.Context, db weave.KVStore, tx weave.Tx) 
 	}()
 
 	if common.Result != Proposal_Accepted {
-		res := &weave.DeliverResult{
-			Log: fmt.Sprintf("Proposal %q not accepted", msg.ProposalID),
-		}
-		return res, nil
+		return &weave.DeliverResult{Log: "Proposal not accepted"}, nil
 	}
 
 	// we only execute the store options upon success
