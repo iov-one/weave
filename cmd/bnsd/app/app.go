@@ -76,7 +76,7 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 
 // ctrl can be initialized with any implementation, but must be used
 // consistently everywhere.
-var ctrl cash.Controller = BnsCashController(cash.NewController(cash.NewBucket()))
+var ctrl = cash.NewController(cash.NewBucket())
 
 // Router returns a default router, only dispatching to the
 // cash.SendMsg
