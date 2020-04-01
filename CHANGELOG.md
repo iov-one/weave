@@ -1,6 +1,7 @@
 # Changelog
 
 ## HEAD
+- `bnsd`: return app version on abci_info
 - `bnsd`: revert burn feature
 - `bnsd`: when a domain is transferred accounts ownership is transferred to the new domain owner and accounts' targets are cleared
 - `bnsapi`: move bnsapi to new repo
