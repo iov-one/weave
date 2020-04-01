@@ -70,7 +70,7 @@ script:
     tar -zxf $TRAVIS_BUILD_DIR/bns-build-linux/build/out/bnsd-${VERSION}-linux-amd64.tar.gz -C ${TRAVIS_BUILD_DIR} ;
     docker build --pull  --file ${TRAVIS_BUILD_DIR}/cmd/bnsd/Dockerfile --tag ${IMAGE_NAME} . ;
     # provide weave proto spec on release
-    tar -czvf spec/weave-${VERSION}-proto-spec.tar.gz ${TRAVIS_BUILD_DIR}/spec/proto
+    tar -czvf spec/weave-${VERSION}-proto-spec.tar.gz ${TRAVIS_BUILD_DIR}/spec/proto ;
     fi;
 
     if [[ $release_latest == "yes" ]]; then
