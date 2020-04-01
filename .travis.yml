@@ -54,39 +54,36 @@ script:
   - make install
   - make all
   - if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" ]]; then
-       make cover;
-       ./coverage/upload.sh;
-     fi;
+    make cover;
+    ./coverage/upload.sh;
+    fi;
   - printenv TRAVIS_COMMIT_MESSAGE > commit.msg
   - unset TRAVIS_COMMIT_MESSAGE && printenv | grep -Ev "PATH|path|GEM" > env.list
   - export TRAVIS_COMMIT_MESSAGE=`cat commit.msg` && rm -rf commit.msg
   - docker run -it --rm --env-file env.list -v "$(pwd):/usr/src/app" iov1ops/danger:latest > danger.out; cat danger.out
   - if [[ "$TRAVIS_GO_VERSION" == "$MAIN_GO_VERSION" && "$TRAVIS_OS_NAME" == "linux" ]]; then
-      release_latest=$( [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_TAG" == "" && "$TRAVIS_PULL_REQUEST_BRANCH" == "" ]] && echo "yes" || echo "no" );
-      release_tag=$( [[ "$TRAVIS_TAG" != "" ]] && echo "yes" || echo "no" );
+    release_latest=$( [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_TAG" == "" && "$TRAVIS_PULL_REQUEST_BRANCH" == "" ]] && echo "yes" || echo "no" );
+    release_tag=$( [[ "$TRAVIS_TAG" != "" ]] && echo "yes" || echo "no" );
 
-      if [[ $release_latest == "yes" || $release_tag == "yes" ]]; then
-        ./contrib/gitian-build.sh linux ;
-        tar -zxf $TRAVIS_BUILD_DIR/bns-build-linux/build/out/bnsd-${VERSION}-linux-amd64.tar.gz -C ${TRAVIS_BUILD_DIR} ;
-        docker build --pull  --file ${TRAVIS_BUILD_DIR}/cmd/bnsd/Dockerfile --tag ${IMAGE_NAME} . ;
+    if [[ $release_latest == "yes" || $release_tag == "yes" ]]; then
+    ./contrib/gitian-build.sh linux ;
+    tar -zxf $TRAVIS_BUILD_DIR/bns-build-linux/build/out/bnsd-${VERSION}-linux-amd64.tar.gz -C ${TRAVIS_BUILD_DIR} ;
+    docker build --pull  --file ${TRAVIS_BUILD_DIR}/cmd/bnsd/Dockerfile --tag ${IMAGE_NAME} . ;
+    fi;
 
-        # provide weave proto spec in the release
-        tar -czvf spec/weave-${VERSION}-proto-spec.tar.gz ${TRAVIS_BUILD_DIR}/spec/proto ;
-      fi;
+    if [[ $release_latest == "yes" ]]; then
+    docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+    docker tag  "iov1/bnsd:${BUILD_VERSION}" "iov1/bnsd:latest" ;
+    docker push "iov1/bnsd:latest";
+    docker logout;
+    fi;
 
-      if [[ $release_latest == "yes" ]]; then
-        docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-        docker tag  "iov1/bnsd:${BUILD_VERSION}" "iov1/bnsd:latest" ;
-        docker push "iov1/bnsd:latest";
-        docker logout;
-      fi;
-
-      if [[ $release_tag == "yes" ]]; then
-        docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-        docker tag  "iov1/bnsd:${BUILD_VERSION}" "iov1/bnsd:$TRAVIS_TAG" ;
-        docker push "iov1/bnsd:$TRAVIS_TAG";
-        docker logout;
-      fi;
+    if [[ $release_tag == "yes" ]]; then
+    docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+    docker tag  "iov1/bnsd:${BUILD_VERSION}" "iov1/bnsd:$TRAVIS_TAG" ;
+    docker push "iov1/bnsd:$TRAVIS_TAG";
+    docker logout;
+    fi;
     fi;
 
 notifications:
@@ -107,7 +104,6 @@ deploy:
     - ${TRAVIS_BUILD_DIR}/bns-build-linux/build/out/bnsd-${VERSION}-linux-amd64.tar.gz
     - ${TRAVIS_BUILD_DIR}/bns-build-linux/build/out/src/bnsd-${VERSION}.tar.gz
     - ${TRAVIS_BUILD_DIR}/bns-build-linux/result/bns-linux-res.yml
-    - ${TRAVIS_BUILD_DIR}/spec/weave-${VERSION}-proto-spec.tar.gz
   skip_cleanup: true
   on:
     tags: true
