@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -29,7 +29,7 @@ kind of operation are you authorizing.
 		tx, _, err := readTx(io.TeeReader(input, &buf))
 		if err == nil {
 			a, _ := tx.Marshal()
-			_, _ = output.Write([]byte(hex.EncodeToString(a)))
+			_, _ = output.Write([]byte(base64.StdEncoding.EncodeToString(a)))
 
 			// Protobuf compiler is exposing all attributes as JSON as
 			// well. This will produce a beautiful summary.
