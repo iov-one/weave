@@ -1228,7 +1228,7 @@ func TestUseCases(t *testing.T) {
 					WantErr:     nil,
 				},
 				{
-					Now:        now + 2,
+					Now:        now + 1,
 					Conditions: []weave.Condition{aliceCond},
 					Tx: &weavetest.Tx{
 						Msg: &RenewDomainMsg{
@@ -1236,7 +1236,7 @@ func TestUseCases(t *testing.T) {
 							Domain:   "wunderland",
 						},
 					},
-					BlockHeight: 102,
+					BlockHeight: 101,
 					WantErr:     nil,
 				},
 			},
@@ -1246,15 +1246,15 @@ func TestUseCases(t *testing.T) {
 				if err := b.One(db, []byte("wunderland"), &d); err != nil {
 					t.Fatalf("cannot get wunderland domain: %s", err)
 				}
-				// Expiration time should be execution time
-				// (block time) which is now + 2, plus
-				// expiration offset.
-				if got, want := d.ValidUntil, weave.UnixTime(now+2+1000); want != got {
+				// expiration time should be old expiration time which is
+				// registration block time (now) + configuration domain renew (1000) + configuration domain renew(10000)
+				if got, want := d.ValidUntil, weave.UnixTime(now+1000+1000); want != got {
 					t.Fatalf("want valid till %s, got %s", want, got)
 				}
 			},
 		},
-		"renewing a domain does not shorten its expiration time": {
+		"if after renew domain is expired then domain valid until becomes now + conf domain renew": {
+			// create domain
 			Requests: []Request{
 				{
 					Now:        now,
@@ -1271,28 +1271,9 @@ func TestUseCases(t *testing.T) {
 					BlockHeight: 100,
 					WantErr:     nil,
 				},
+				// renew it after expiration (which is now + 1000) + next offset (1000)
 				{
-					Now:        now + 1,
-					Conditions: []weave.Condition{adminCond},
-					Tx: &weavetest.Tx{
-						Msg: &UpdateConfigurationMsg{
-							Metadata: &weave.Metadata{Schema: 1},
-							Patch: &Configuration{
-								Metadata:               &weave.Metadata{Schema: 1},
-								Owner:                  aliceCond.Address(),
-								ValidName:              `^[a-z]+$`,
-								ValidDomain:            `^[a-z]+$`,
-								ValidBlockchainID:      `^[a-z]+$`,
-								ValidBlockchainAddress: `^[a-z]+$`,
-								DomainRenew:            1,
-							},
-						},
-					},
-					BlockHeight: 101,
-					WantErr:     nil,
-				},
-				{
-					Now:        now + 2,
+					Now:        now + 2001,
 					Conditions: []weave.Condition{aliceCond},
 					Tx: &weavetest.Tx{
 						Msg: &RenewDomainMsg{
@@ -1310,9 +1291,8 @@ func TestUseCases(t *testing.T) {
 				if err := b.One(db, []byte("wunderland"), &d); err != nil {
 					t.Fatalf("cannot get wunderland domain: %s", err)
 				}
-				// Expiration time should not be updated
-				// because it would be shortened.
-				if got, want := d.ValidUntil, weave.UnixTime(now+1000); want != got {
+				// expiration time should be actual block time + 1000
+				if got, want := d.ValidUntil, weave.UnixTime(now+2001+1000); want != got {
 					t.Logf("want %d %s", want, want)
 					t.Logf(" got %d %s", got, got)
 					t.Fatal("unexpected valid till")
