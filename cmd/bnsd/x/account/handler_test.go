@@ -2234,6 +2234,105 @@ func TestUseCases(t *testing.T) {
 				}
 			},
 		},
+		"when an account is transferred targets and certificates are reset": {
+			Requests: []Request{
+				// register domain
+				{
+					Now:        now,
+					Conditions: []weave.Condition{adminCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterDomainMsg{
+							Metadata:     &weave.Metadata{Schema: 1},
+							Domain:       "wunderland",
+							Admin:        aliceCond.Address(),
+							HasSuperuser: false,
+							AccountRenew: 1000,
+						},
+					},
+					BlockHeight: 100,
+					WantErr:     nil,
+				},
+				// register acc
+				{
+					Now:        now + 1,
+					Conditions: []weave.Condition{bobCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterAccountMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+							Name:     "bob",
+							Owner:    bobCond.Address(),
+						},
+					},
+					BlockHeight: 101,
+					WantErr:     nil,
+				},
+				// add cert
+				{
+					Now:        now + 2,
+					Conditions: []weave.Condition{bobCond},
+					Tx: &weavetest.Tx{
+						Msg: &AddAccountCertificateMsg{
+							Metadata:    &weave.Metadata{Schema: 1},
+							Domain:      "wunderland",
+							Name:        "bob",
+							Certificate: []byte("cert"),
+						},
+					},
+					BlockHeight: 102,
+					WantErr:     nil,
+				},
+				// add target
+				{
+					Now:        now + 3,
+					Conditions: []weave.Condition{bobCond},
+					Tx: &weavetest.Tx{
+						Msg: &ReplaceAccountTargetsMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+							Name:     "bob",
+							NewTargets: []BlockchainAddress{{
+								BlockchainID: "some-bc-id",
+								Address:      "some-address",
+							}},
+						},
+						Err: nil,
+					},
+					BlockHeight: 103,
+					WantErr:     nil,
+				},
+				// transfer account
+				{
+					Now:        now + 4,
+					Conditions: []weave.Condition{bobCond},
+					Tx: &weavetest.Tx{
+						Msg: &TransferAccountMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+							Name:     "bob",
+							NewOwner: charlieCond.Address(),
+						},
+					},
+					BlockHeight: 104,
+					WantErr:     nil,
+				},
+			},
+			AfterTest: func(t *testing.T, db weave.KVStore) {
+				accounts := NewAccountBucket()
+				var a Account
+				if err := accounts.One(db, accountKey("bob", "wunderland"), &a); err != nil {
+					t.Fatalf("cannot get wunderland account: %s", err)
+				}
+				// check if targets are cleared
+				if len(a.Targets) != 0 {
+					t.Fatalf("targets were not cleared: %#v", a.Targets)
+				}
+				if len(a.Certificates) != 0 {
+					t.Fatalf("certificates were not cleared: %#v", a.Certificates)
+				}
+			},
+		},
+
 		"an account owner can delete a single certificate identified by sha256 hash of the content": {
 			Requests: []Request{
 				{

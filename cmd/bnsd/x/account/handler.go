@@ -594,8 +594,12 @@ func (h *transferAccountHandler) Deliver(ctx weave.Context, db weave.KVStore, tx
 	if err != nil {
 		return nil, err
 	}
+	// set new owner
 	account.Owner = msg.NewOwner
+	// reset certificates
 	account.Certificates = nil
+	// reset targets
+	account.Targets = nil
 	if _, err := h.accounts.Put(db, accountKey(msg.Name, msg.Domain), account); err != nil {
 		return nil, errors.Wrap(err, "cannot store account")
 	}
