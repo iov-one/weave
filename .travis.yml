@@ -35,8 +35,7 @@ env:
     - GO111MODULE=on
     - TM_VERSION=v0.31.11
     - BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
-    - INT_TAG=$(echo ${TRAVIS_TAG} | tr -dc '0-9')
-    - APP_VERSION=${INT_TAG:=0}
+    - APP_VERSION=$(echo ${TRAVIS_TAG} | tr -dc '0-9')
     - MAIN_GO_VERSION=1.12.14
     - GORACE="halt_on_error=1"
     - FORCE_TM_TEST=1
