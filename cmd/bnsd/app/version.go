@@ -2,9 +2,8 @@ package bnsd
 
 import "strconv"
 
-// AppVersion should be set by build flags: `git describe --tags`
-// It must be release tag without v prefix and dots
-var AppVersion = "please set in makefile"
+// AppVersion should be set by release tag without v prefix and dots, example: v1.0.1 -> 101
+var AppVersion = "0"
 
 // tendermint expects app version as uint64
 func getAppVersion() uint64 {
