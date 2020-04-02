@@ -457,6 +457,7 @@ func (h *deleteDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx we
 }
 
 func consumeKeys(it weave.Iterator, maxitems int) ([][]byte, error) {
+	// the iterator needs to be released before changes can be applied to the state
 	defer it.Release()
 
 	res := make([][]byte, 0, maxitems)
@@ -760,22 +761,35 @@ func (h *flushDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, err
 	}
 
-	// This loads into memory all accounts. This is not performant
-	// implementation but a lazy attempt to provide the functionality using
-	// tools we have.
-	var accounts []*Account
-	if _, err := NewAccountBucket().ByIndex(db, "domain", []byte(msg.Domain), &accounts); err != nil {
-		return nil, errors.Wrap(err, "domain index")
-	}
-	for _, a := range accounts {
-		if a.Name == "" {
-			continue
+	// Delete accounts in batches, only account ignored is the empty account ""
+	const batchSize = 100
+	for {
+		idx, err := h.accounts.Index("domain")
+		if err != nil {
+			return nil, errors.Wrap(err, "impossible to generate index")
 		}
-		if err := h.accounts.Delete(db, accountKey(a.Name, a.Domain)); err != nil {
-			return nil, errors.Wrapf(err, "cannot delete %s*%s", a.Name, a.Domain)
+		ids, err := consumeKeys(idx.Keys(db, []byte(msg.Domain)), batchSize)
+		if err != nil {
+			return nil, errors.Wrap(err, "consume keys")
+		}
+		for _, accountID := range ids {
+			// exclude account key that matches the empty account
+			if bytes.Equal(accountID, accountKey("", msg.Domain)) {
+				continue
+			}
+			// delete account
+			err := h.accounts.Delete(db, accountID)
+			if err != nil {
+				return nil, errors.Wrapf(err, "unable to delete %q", accountID)
+			}
+		}
+		// if number of ids is less than batch size it means we reached the end of
+		// the iteration
+		if len(ids) < batchSize {
+			break
 		}
 	}
-
+	// success
 	return &weave.DeliverResult{Data: nil}, nil
 }
 
