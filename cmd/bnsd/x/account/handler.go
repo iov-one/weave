@@ -733,7 +733,7 @@ func (h *deleteAccountHandler) validate(ctx weave.Context, db weave.KVStore, tx 
 		authenticated = h.auth.HasAddress(ctx, domain.Admin)
 	}
 	if !authenticated {
-		return nil, errors.Wrap(errors.ErrUnauthorized, "only owner can delete an account")
+		return nil, errors.Wrap(errors.ErrUnauthorized, "only account owner or domain owner (if domain has a superuser) can delete an account")
 	}
 	return &msg, nil
 }
@@ -844,7 +844,7 @@ func (h *addAccountCertificateHandler) validate(ctx weave.Context, db weave.KVSt
 
 	var account Account
 	if err := h.accounts.One(db, accountKey(msg.Name, msg.Domain), &account); err != nil {
-		return nil, nil, errors.Wrap(err, "account")
+		return nil, nil, errors.Wrapf(err, "account %s does not exist", msg.Name)
 	}
 	if weave.IsExpired(ctx, account.ValidUntil) {
 		return nil, nil, errors.Wrap(errors.ErrExpired, "account")
