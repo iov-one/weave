@@ -1,6 +1,8 @@
 # Changelog
 
 ## HEAD
+
+## 1.0.1
 - `bnsd`: updated error messages to better reflect the account module spec
 - `bnsd`: account targets are cleared when an account is transferred
 - `bnsd`: domain renew expiration time equals to domain expiration time + configuration domain renew duration, if this time is before current block time then renew time becomes current block time + configuration domain renew duration
