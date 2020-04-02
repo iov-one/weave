@@ -175,6 +175,7 @@ func CronStack() weave.Handler {
 // for the Handler, just use Stack().
 func Application(
 	name string,
+	appVersion uint64,
 	h weave.Handler,
 	tx weave.TxDecoder,
 	dbPath string,
@@ -185,7 +186,7 @@ func Application(
 	if err != nil {
 		return app.BaseApp{}, errors.Wrap(err, "cannot create store")
 	}
-	store := app.NewStoreApp(name, kv, QueryRouter(options.MinFee), ctx)
+	store := app.NewStoreApp(name, appVersion, kv, QueryRouter(options.MinFee), ctx)
 	ticker := cron.NewTicker(CronStack(), CronTaskMarshaler)
 	base := app.NewBaseApp(store, tx, h, ticker, options.Debug)
 	return base, nil

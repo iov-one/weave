@@ -86,7 +86,7 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 	}
 
 	stack := Stack(nil, options.MinFee)
-	application, err := Application("bnsd", stack, TxDecoder, dbPath, options)
+	application, err := Application("bnsd", getAppVersion(), stack, TxDecoder, dbPath, options)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func InlineApp(kv weave.CommitKVStore, logger log.Logger, debug bool) abci.Appli
 	minFee := coin.Coin{}
 	stack := Stack(nil, minFee)
 	ctx := context.Background()
-	store := app.NewStoreApp("bnsd", kv, QueryRouter(minFee), ctx)
+	store := app.NewStoreApp("bnsd", getAppVersion(), kv, QueryRouter(minFee), ctx)
 	base := app.NewBaseApp(store, TxDecoder, stack, nil, debug)
 	return DecorateApp(base, logger)
 }

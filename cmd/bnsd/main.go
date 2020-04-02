@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/iov-one/weave"
 	bnsd "github.com/iov-one/weave/cmd/bnsd/app"
 	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/commands/server"
@@ -70,7 +69,7 @@ func main() {
 	case "testgen":
 		err = commands.TestGenCmd(bnsd.Examples(), rest)
 	case "version":
-		fmt.Println(weave.Version)
+		fmt.Println(bnsd.AppVersion)
 	default:
 		err = fmt.Errorf("unknown command: %s", cmd)
 	}

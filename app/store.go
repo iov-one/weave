@@ -52,16 +52,20 @@ type StoreApp struct {
 	// blockContext contains context info that is valid for the
 	// current block (eg. height, header), reset on BeginBlock
 	blockContext weave.Context
+
+	// current version of bnsd
+	appVersion uint64
 }
 
 // NewStoreApp initializes this app into a ready state with some defaults
 //
 // panics if unable to properly load the state from the given store
 // TODO: is this correct? nothing else to do really....
-func NewStoreApp(name string, store weave.CommitKVStore,
+func NewStoreApp(name string, appVersion uint64, store weave.CommitKVStore,
 	queryRouter weave.QueryRouter, baseContext weave.Context) *StoreApp {
 	s := &StoreApp{
-		name: name,
+		name:       name,
+		appVersion: appVersion,
 		// note: panics if trouble initializing from store
 		store:       NewCommitStore(store),
 		queryRouter: queryRouter,
@@ -183,6 +187,7 @@ func (s *StoreApp) Info(req abci.RequestInfo) abci.ResponseInfo {
 
 	return abci.ResponseInfo{
 		Data:             s.name,
+		AppVersion:       s.appVersion,
 		LastBlockHeight:  info.Version,
 		LastBlockAppHash: info.Hash,
 	}
