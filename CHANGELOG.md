@@ -1,6 +1,7 @@
 # Changelog
 
 ## HEAD
+- `bnsd`: domain renew expiration time equals to domain expiration time + configuration domain renew duration, if this time is before current block time then renew time becomes current block time + configuration domain renew duration
 - `bnsd`: revert burn feature
 - `bnsd`: when a domain is transferred accounts ownership is transferred to the new domain owner and accounts' targets are cleared
 - `bnsapi`: move bnsapi to new repo
