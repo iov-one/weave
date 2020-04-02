@@ -375,23 +375,26 @@ func (h *renewDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, err
 	}
 
-	now, err := weave.BlockTime(ctx)
-	if err != nil {
-		return nil, errors.Wrap(errors.ErrState, "block time not present in context")
-	}
 	conf, err := loadConf(db)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot load configuration")
 	}
-	nextValidUntil := now.Add(conf.DomainRenew.Duration())
-	// ValidUntil time is only extended. We want to avoid the situation when
-	// the configuration is changed, limiting the expiration time period
-	// and renewing a domain by shortening its expiration date.
-	if nextValidUntil.After(domain.ValidUntil.Time()) {
-		domain.ValidUntil = weave.AsUnixTime(nextValidUntil)
-		if _, err := h.domains.Put(db, []byte(msg.Domain), domain); err != nil {
-			return nil, errors.Wrap(err, "cannot store domain")
-		}
+	// nextValidUntil is domain actual expiration date + configuration domain renew time
+	nextValidUntil := domain.ValidUntil.Add(conf.DomainRenew.Duration()).Time()
+	// get current block time
+	now, err := weave.BlockTime(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get current block time")
+	}
+	// next valid until appears to be in the past then
+	// the new ValidUntil becomes now + DomainRenew duration
+	if now.After(nextValidUntil) {
+		nextValidUntil = now.Add(conf.DomainRenew.Duration())
+	}
+	// update domain
+	domain.ValidUntil = weave.AsUnixTime(nextValidUntil)
+	if _, err := h.domains.Put(db, []byte(msg.Domain), domain); err != nil {
+		return nil, errors.Wrap(err, "cannot store domain")
 	}
 	return &weave.DeliverResult{Data: nil}, nil
 }
