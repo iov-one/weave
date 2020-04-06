@@ -65,6 +65,7 @@ func migrateRelease_1_0(ctx context.Context, db weave.KVStore) error {
 		ValidBlockchainID:      `^[a-z0-9A-Z\-]+$`,
 		ValidBlockchainAddress: `^[a-z0-9A-Z]+$`,
 		DomainRenew:            weave.AsUnixDuration(365*24*time.Hour + 6*time.Hour),
+		DomainGracePeriod:      weave.AsUnixDuration(30 * 24 * time.Hour),
 	}); err != nil {
 		return errors.Wrap(err, "save initial gconf configuration")
 	}
@@ -85,6 +86,7 @@ func migrateRelease_1_0(ctx context.Context, db weave.KVStore) error {
 		ValidBlockchainID:      `^[a-z0-9A-Z\-:]+$`,
 		ValidBlockchainAddress: `^[a-z0-9A-Z]+$`,
 		DomainRenew:            weave.AsUnixDuration(365*24*time.Hour + 6*time.Hour),
+		DomainGracePeriod:      weave.AsUnixDuration(30 * 24 * time.Hour),
 	}); err != nil {
 		return errors.Wrap(err, "save final gconf configuration")
 	}
