@@ -2435,6 +2435,68 @@ func TestUseCases(t *testing.T) {
 				}
 			},
 		},
+		"a domain cannot be deleted by a non owner between valid until and grace period": {
+			Requests: []Request{
+				{
+					Now:        now,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterDomainMsg{
+							Metadata:     &weave.Metadata{Schema: 1},
+							Domain:       "wunderland",
+							Admin:        aliceCond.Address(),
+							HasSuperuser: true,
+							AccountRenew: 1000,
+						},
+					},
+					BlockHeight: 100,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 1001,
+					Conditions: []weave.Condition{bobCond},
+					Tx: &weavetest.Tx{
+						Msg: &DeleteDomainMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+						},
+					},
+					BlockHeight: 101,
+					WantErr:     errors.ErrUnauthorized,
+				},
+			},
+		},
+		"a non owner can delete domain after grace period ends": {
+			Requests: []Request{
+				{
+					Now:        now,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterDomainMsg{
+							Metadata:     &weave.Metadata{Schema: 1},
+							Domain:       "wunderland",
+							Admin:        aliceCond.Address(),
+							HasSuperuser: true,
+							AccountRenew: 1000,
+						},
+					},
+					BlockHeight: 100,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 1002,
+					Conditions: []weave.Condition{bobCond},
+					Tx: &weavetest.Tx{
+						Msg: &DeleteDomainMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+						},
+					},
+					BlockHeight: 101,
+					WantErr:     nil,
+				},
+			},
+		},
 	}
 
 	for testName, tc := range cases {
@@ -2454,6 +2516,7 @@ func TestUseCases(t *testing.T) {
 				ValidBlockchainID:      `^[a-z0-9]{2,64}$`,
 				ValidBlockchainAddress: `^[a-z0-9]{3,128}$`,
 				DomainRenew:            1000,
+				DomainGracePeriod:      1,
 			}
 			if err := gconf.Save(db, "account", &config); err != nil {
 				t.Fatalf("cannot save configuration: %s", err)

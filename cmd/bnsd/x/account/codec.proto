@@ -119,8 +119,11 @@ message Configuration {
   // Valid blockchain address defines a regular expression that a valid target
   // blockchain address must match.
   string valid_blockchain_address = 6;
-  // Domain review defines the duration of the domain renewal period.
+  // Domain renew defines the duration of the domain renewal period.
   int64 domain_renew = 7 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
+  // Domain grace period defines the duration of the release duration of a domain. A non-admin
+  // can delete the domain after the grace period ends.
+  int64 domain_grace_period = 8 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixDuration"];
 }
 
 // UpdateConfigurationMsg is used by the gconf extension to update the
