@@ -115,7 +115,7 @@ Create a transaction for registering an account within a given domain.
 		nameFl   = fl.String("name", "", "Account name")
 		domainFl = fl.String("domain", "", "Account domain.")
 		adminFl  = flAddress(fl, "owner", "", "An address that the newly registered account will belong to.")
-		brokerFl       = flAddress(fl, "broker", "", "Address of the issuer entity")
+		brokerFl = flAddress(fl, "broker", "", "Address of the issuer entity")
 	)
 	fl.Parse(args)
 
@@ -201,6 +201,7 @@ Create a transaction to change account extension configuration.
 		validBlockchainID   = fl.String("valid-bl-id", "", "Regular expression defining a rule for a valid blockchain ID string.")
 		validBlockchainAddr = fl.String("valid-bl-address", "", "Regular expression defining a rule for a valid blockchain address string.")
 		domainRenewFl       = fl.Duration("domain-renew", 0, "Domain renew time.")
+		domainGracePeriodFl = fl.Duration("domain-grace-period", 30*24*time.Hour, "Domain grace period.")
 	)
 	fl.Parse(args)
 
@@ -214,6 +215,7 @@ Create a transaction to change account extension configuration.
 			ValidBlockchainID:      *validBlockchainID,
 			ValidBlockchainAddress: *validBlockchainAddr,
 			DomainRenew:            weave.AsUnixDuration(*domainRenewFl),
+			DomainGracePeriod:      weave.AsUnixDuration(*domainGracePeriodFl),
 		},
 	}
 	if err := msg.Validate(); err != nil {
