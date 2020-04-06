@@ -1,6 +1,7 @@
 # Changelog
 
 ## HEAD
+- `feature/account`: A non owner can delete domain after grace period ends
 
 ## 1.0.1
 - `bnsd`: updated error messages to better reflect the account module spec

@@ -2453,7 +2453,7 @@ func TestUseCases(t *testing.T) {
 					WantErr:     nil,
 				},
 				{
-					Now:        now + 1001,
+					Now:        now + 1010, // now + valid until = 1010 <
 					Conditions: []weave.Condition{bobCond},
 					Tx: &weavetest.Tx{
 						Msg: &DeleteDomainMsg{
@@ -2484,7 +2484,7 @@ func TestUseCases(t *testing.T) {
 					WantErr:     nil,
 				},
 				{
-					Now:        now + 1002,
+					Now:        now + 1011, // now + valid
 					Conditions: []weave.Condition{bobCond},
 					Tx: &weavetest.Tx{
 						Msg: &DeleteDomainMsg{
@@ -2516,7 +2516,7 @@ func TestUseCases(t *testing.T) {
 				ValidBlockchainID:      `^[a-z0-9]{2,64}$`,
 				ValidBlockchainAddress: `^[a-z0-9]{3,128}$`,
 				DomainRenew:            1000,
-				DomainGracePeriod:      1,
+				DomainGracePeriod:      10,
 			}
 			if err := gconf.Save(db, "account", &config); err != nil {
 				t.Fatalf("cannot save configuration: %s", err)
