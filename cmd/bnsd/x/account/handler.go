@@ -489,9 +489,22 @@ func (h *deleteDomainHandler) validate(ctx weave.Context, db weave.KVStore, tx w
 	if !domain.HasSuperuser {
 		return nil, nil, errors.Wrap(errors.ErrState, "domain without a superuser cannot be deleted")
 	}
-	if !h.auth.HasAddress(ctx, domain.Admin) {
-		return nil, nil, errors.Wrap(errors.ErrUnauthorized, "only admin can delete a domain")
+	conf, err := loadConf(db)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "cannot load configuration")
 	}
+	now, err := weave.BlockTime(ctx)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "block time")
+	}
+	// if now > domain.ValidUntil + DomainGracePeriod then non owner can delete
+	// issue https://github.com/iov-one/weave/issues/1199
+	if !now.After(domain.ValidUntil.Add(conf.DomainGracePeriod.Duration()).Time()) {
+		if !h.auth.HasAddress(ctx, domain.Admin) {
+			return nil, nil, errors.Wrap(errors.ErrUnauthorized, "only admin can delete a domain")
+		}
+	}
+
 	return &domain, &msg, nil
 }
 

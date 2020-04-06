@@ -13,7 +13,8 @@
 				"valid_name": "^valid-name-rule$",
 				"valid_blockchain_id": "^valid-bl-id-rule$",
 				"valid_blockchain_address": "^valid-bl-address-rule$",
-				"domain_renew": 151711200
+				"domain_renew": 151711200,
+				"domain_grace_period": 2592000
 			}
 		}
 	}
