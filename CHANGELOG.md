@@ -1,6 +1,8 @@
 # Changelog
 
 ## HEAD
+
+## 1.0.2
 - `feature/account`: A non owner can delete domain after grace period ends
 
 ## 1.0.1
