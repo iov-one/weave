@@ -1,7 +1,7 @@
 # Changelog
 
 ## HEAD
-- `bug`: Fix renew domain handler renews empty account
+- `bug`: Fix renew domain handler renews empty string account
 
 ## 1.0.2
 - `feature/account`: A non owner can delete domain after grace period ends
