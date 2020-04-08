@@ -399,7 +399,7 @@ func (h *renewDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 		return nil, errors.Wrap(err, "cannot store domain")
 	}
 
-	// update domain's zero account
+	// update domain's empty account
 	var acc Account
 	if err := h.accounts.One(db, accountKey("", msg.Domain), &acc); err != nil {
 		return nil, errors.Wrap(err, "cannot get empty account entity")
