@@ -35,8 +35,9 @@ func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 		auth:     auth,
 	})
 	r.Handle(&RenewDomainMsg{}, &renewDomainHandler{
-		domains: domains,
-		auth:    auth,
+		domains:  domains,
+		accounts: accounts,
+		auth:     auth,
 	})
 	r.Handle(&DeleteDomainMsg{}, &deleteDomainHandler{
 		domains:  domains,
@@ -358,8 +359,9 @@ func (it *domainAccountIter) Next() (*Account, error) {
 }
 
 type renewDomainHandler struct {
-	auth    x.Authenticator
-	domains orm.ModelBucket
+	auth     x.Authenticator
+	domains  orm.ModelBucket
+	accounts orm.ModelBucket
 }
 
 func (h *renewDomainHandler) Check(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
@@ -396,6 +398,19 @@ func (h *renewDomainHandler) Deliver(ctx weave.Context, db weave.KVStore, tx wea
 	if _, err := h.domains.Put(db, []byte(msg.Domain), domain); err != nil {
 		return nil, errors.Wrap(err, "cannot store domain")
 	}
+
+	// update domain's zero account
+	var acc Account
+	if err := h.accounts.One(db, accountKey("", msg.Domain), &acc); err != nil {
+		return nil, errors.Wrap(err, "cannot get empty account entity")
+	}
+
+	// update empty account
+	acc.ValidUntil = weave.AsUnixTime(nextValidUntil)
+	if _, err := h.accounts.Put(db, accountKey("", msg.Domain), &acc); err != nil {
+		return nil, errors.Wrap(err, "cannot store account entity")
+	}
+
 	return &weave.DeliverResult{Data: nil}, nil
 }
 
