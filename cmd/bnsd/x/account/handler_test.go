@@ -2497,6 +2497,52 @@ func TestUseCases(t *testing.T) {
 				},
 			},
 		},
+		"renew domain handler renews empty account": {
+			Requests: []Request{
+				{
+					Now:        now,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterDomainMsg{
+							Metadata:     &weave.Metadata{Schema: 1},
+							Domain:       "wunderland",
+							Admin:        aliceCond.Address(),
+							HasSuperuser: true,
+							AccountRenew: 1000,
+						},
+					},
+					BlockHeight: 100,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 1,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &RenewDomainMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+						},
+					},
+					BlockHeight: 101,
+					WantErr:     nil,
+				},
+			},
+			AfterTest: func(t *testing.T, db weave.KVStore) {
+				b := NewDomainBucket()
+				var d Domain
+				if err := b.One(db, []byte("wunderland"), &d); err != nil {
+					t.Fatalf("cannot get wunderland domain: %s", err)
+				}
+				a := NewAccountBucket()
+				var acc Account
+				if err := a.One(db, accountKey("", d.Domain), &acc); err != nil {
+					t.Fatalf("cannot get wunderland empty account: %s", err)
+				}
+				if got, want := acc.ValidUntil, d.ValidUntil; want != got {
+					t.Fatalf("want valid till %s, got %s", want, got)
+				}
+			},
+		},
 	}
 
 	for testName, tc := range cases {
