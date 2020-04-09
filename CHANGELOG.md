@@ -2,6 +2,9 @@
 
 ## HEAD
 
+## 1.0.3
+- `bnsd`: include domain grace period in `make protoc` generated files
+
 ## 1.0.2
 - `feature/account`: A non owner can delete domain after grace period ends
 
