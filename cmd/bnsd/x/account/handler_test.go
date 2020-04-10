@@ -2543,6 +2543,93 @@ func TestUseCases(t *testing.T) {
 				}
 			},
 		},
+		"non-superuser domains cannot be flushed": {
+			Requests: []Request{
+				{
+					Now:        now,
+					Conditions: []weave.Condition{adminCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterDomainMsg{
+							Metadata:     &weave.Metadata{Schema: 1},
+							Domain:       "wunderland",
+							Admin:        aliceCond.Address(),
+							HasSuperuser: false,
+							AccountRenew: 1000,
+						},
+					},
+					BlockHeight: 100,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 1,
+					Conditions: []weave.Condition{bobCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterAccountMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Owner:    bobCond.Address(),
+							Domain:   "wunderland",
+							Name:     "bob",
+						},
+					},
+					BlockHeight: 101,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 2,
+					Conditions: []weave.Condition{charlieCond},
+					Tx: &weavetest.Tx{
+						Msg: &RegisterAccountMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Owner:    charlieCond.Address(),
+							Domain:   "wunderland",
+							Name:     "charlie",
+						},
+					},
+					BlockHeight: 102,
+					WantErr:     nil,
+				},
+				{
+					Now:        now + 3,
+					Conditions: []weave.Condition{adminCond},
+					Tx: &weavetest.Tx{
+						Msg: &FlushDomainMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+						},
+					},
+					BlockHeight: 103,
+					WantErr:     errors.ErrState,
+				},
+				{
+					Now:        now + 4,
+					Conditions: []weave.Condition{aliceCond},
+					Tx: &weavetest.Tx{
+						Msg: &FlushDomainMsg{
+							Metadata: &weave.Metadata{Schema: 1},
+							Domain:   "wunderland",
+						},
+					},
+					BlockHeight: 104,
+					WantErr:     errors.ErrState,
+				},
+			},
+			AfterTest: func(t *testing.T, db weave.KVStore) {
+				b := NewDomainBucket()
+				var d Domain
+				if err := b.One(db, []byte("wunderland"), &d); err != nil {
+					t.Fatalf("cannot get wunderland domain: %s", err)
+				}
+				a := NewAccountBucket()
+				var bobAcc Account
+				if err := a.One(db, accountKey("bob", d.Domain), &bobAcc); err != nil {
+					t.Fatalf("cannot get account: %s", err)
+				}
+				var charlieAcc Account
+				if err := a.One(db, accountKey("charlie", d.Domain), &charlieAcc); err != nil {
+					t.Fatalf("cannot get account: %s", err)
+				}
+			},
+		},
 	}
 
 	for testName, tc := range cases {
