@@ -2,6 +2,7 @@
 
 ## HEAD
 - `bug`: Fix renew domain handler renews empty string account
+- `feature/account`: Accounts in non super user domains cannot be flushed
 
 ## 1.0.3
 - `bnsd`: include domain grace period in `make protoc` generated files

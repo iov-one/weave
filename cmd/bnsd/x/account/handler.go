@@ -833,6 +833,9 @@ func (h *flushDomainHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 	if err := h.domains.One(db, []byte(msg.Domain), &domain); err != nil {
 		return nil, errors.Wrap(err, "cannot get domain")
 	}
+	if !domain.HasSuperuser {
+		return nil, errors.Wrap(errors.ErrState, "domains without a superuser cannot be flushed")
+	}
 	if !h.auth.HasAddress(ctx, domain.Admin) {
 		return nil, errors.Wrap(errors.ErrUnauthorized, "only owner can delete accounts")
 	}
