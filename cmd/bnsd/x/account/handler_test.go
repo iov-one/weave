@@ -2620,12 +2620,13 @@ func TestUseCases(t *testing.T) {
 					t.Fatalf("cannot get wunderland domain: %s", err)
 				}
 				a := NewAccountBucket()
-				var acc Account
-				if err := a.One(db, accountKey("", d.Domain), &acc); err != nil {
-					t.Fatalf("cannot get wunderland empty account: %s", err)
+				var bobAcc Account
+				if err := a.One(db, accountKey("bob", d.Domain), &bobAcc); err != nil {
+					t.Fatalf("cannot get account: %s", err)
 				}
-				if got, want := acc.ValidUntil, d.ValidUntil; want != got {
-					t.Fatalf("want valid till %s, got %s", want, got)
+				var charlieAcc Account
+				if err := a.One(db, accountKey("charlie", d.Domain), &charlieAcc); err != nil {
+					t.Fatalf("cannot get account: %s", err)
 				}
 			},
 		},
