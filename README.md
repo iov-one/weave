@@ -52,7 +52,7 @@ For more details on the design goals, see the
 
 * [Go](https://golang.org/doc/install)
 * [docker](https://docs.docker.com/install/)
-* [tendermint 0.31.11](https://github.com/tendermint/tendermint/tree/v0.31.11)
+* [tendermint 0.31.12](https://github.com/tendermint/tendermint/tree/v0.31.12)
   * [Installation](https://github.com/tendermint/tendermint/blob/master/docs/introduction/install.md)
 
 ## Instructions
