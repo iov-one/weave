@@ -1,6 +1,9 @@
 # Changelog
 
 ## HEAD
+
+## 1.0.4
+- `bnsd`: Upgrade Tendermint to v0.31.12.
 - `bug`: Fix renew domain handler renews empty string account
 - `feature/account`: Accounts in non super user domains cannot be flushed
 

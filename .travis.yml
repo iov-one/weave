@@ -33,7 +33,7 @@ go:
 env:
   global:
     - GO111MODULE=on
-    - TM_VERSION=v0.31.11
+    - TM_VERSION=v0.31.12
     - BUILD_VERSION=$(echo ${TRAVIS_COMMIT} | cut -c 1-10)
     - MAIN_GO_VERSION=1.12.14
     - GORACE="halt_on_error=1"
