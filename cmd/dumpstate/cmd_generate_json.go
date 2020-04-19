@@ -57,8 +57,7 @@ func cmdGenerateJson(input io.Reader, output io.Writer, args []string) error {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.Usage = func() {
 		fmt.Fprintln(flag.CommandLine.Output(), `
-Export state data. Pipe-in app version as input.
-`)
+Export state data. Pipe-in app version as input.`)
 		fl.PrintDefaults()
 	}
 	var (
@@ -155,11 +154,10 @@ func extractUsername(store *app.CommitStore) ([]tokenFormat, error) {
 				Owner:    token.Owner,
 			})
 		case errors.ErrIteratorDone.Is(err):
-			break
+			return out, nil
 		default:
 			return nil, err
 		}
-		break
 	}
 	return out, nil
 }
@@ -185,11 +183,10 @@ func extractEscrow(store *app.CommitStore) ([]escrowFormat, error) {
 				Amount:      coinage.GetCoins(),
 			})
 		case errors.ErrIteratorDone.Is(err):
-			break
+			return out, nil
 		default:
 			return nil, err
 		}
-		break
 	}
 	return out, nil
 }
