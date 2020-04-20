@@ -42,15 +42,14 @@ type escrowFormat struct {
 	Destination weave.Address  `json:"destination"`
 	Timeout     weave.UnixTime `json:"timeout"`
 	Amount      []*coin.Coin   `json:"amount"`
+	Address     weave.Address  `json:"address"`
 }
 
 type contractFormat struct {
-	Participants []struct {
-		Signature weave.Address   `json:"signature"`
-		Weight    multisig.Weight `json:"weight"`
-	} `json:"participants"`
-	ActivationThreshold multisig.Weight `json:"activation_threshold"`
-	AdminThreshold      multisig.Weight `json:"admin_threshold"`
+	Participants        []*multisig.Participant `json:"participants"`
+	ActivationThreshold multisig.Weight         `json:"activation_threshold"`
+	AdminThreshold      multisig.Weight         `json:"admin_threshold"`
+	Address             weave.Address           `json:"address"`
 }
 
 func cmdGenerateJson(input io.Reader, output io.Writer, args []string) error {
@@ -124,10 +123,15 @@ Export state data. Pipe-in app version as input.`)
 	if err != nil {
 		return fmt.Errorf("cannot extract escrows: %s", err)
 	}
+	contracts, err := extractContracts(store)
+	if err != nil {
+		return fmt.Errorf("cannot extract escrows: %s", err)
+	}
 
 	outJson := Out{
 		Username: usernames,
 		Escrow:   escrows,
+		Contract: contracts,
 	}
 	err = json.NewEncoder(outFile).Encode(outJson)
 	if err != nil {
@@ -163,24 +167,51 @@ func extractUsername(store *app.CommitStore) ([]tokenFormat, error) {
 }
 
 func extractEscrow(store *app.CommitStore) ([]escrowFormat, error) {
-	it := orm.IterAll("escrow")
+	it := orm.IterAll("esc")
 	wb := cash.NewBucket()
+
 	var out []escrowFormat
 	for {
 		var e escrow.Escrow
 		switch key, err := it.Next(store.CheckStore(), &e); {
 		case err == nil:
-			set, err := wb.Get(store.CheckStore(), key)
+			c, err := wb.Get(store.CheckStore(), key)
 			if err != nil {
 				return nil, err
 			}
-			coinage := cash.AsCoinage(set)
+			coins := cash.AsCoins(c)
 			out = append(out, escrowFormat{
+				Address:     e.Address,
 				Source:      e.Source,
 				Arbiter:     e.Arbiter,
 				Destination: e.Destination,
 				Timeout:     e.Timeout,
-				Amount:      coinage.GetCoins(),
+				Amount:      coins,
+			})
+		case errors.ErrIteratorDone.Is(err):
+			return out, nil
+		default:
+			return nil, err
+		}
+	}
+	return out, nil
+}
+
+func extractContracts(store *app.CommitStore) ([]contractFormat, error) {
+	it := orm.IterAll("contracts")
+	var out []contractFormat
+	for {
+		var e multisig.Contract
+		switch key, err := it.Next(store.CheckStore(), &e); {
+		case err == nil:
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, contractFormat{
+				Participants:        e.Participants,
+				ActivationThreshold: e.ActivationThreshold,
+				AdminThreshold:      e.AdminThreshold,
+				Address:             key,
 			})
 		case errors.ErrIteratorDone.Is(err):
 			return out, nil
