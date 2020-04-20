@@ -25,7 +25,7 @@ import (
 
 type Out struct {
 	Username []tokenFormat         `json:"username"`
-	Cash     []cash.GenesisAccount `json:"cash"`
+	Wallets  []cash.GenesisAccount `json:"cash"`
 	Escrow   []escrowFormat        `json:"escrow"`
 	Contract []contractFormat      `json:"contract"`
 }
@@ -125,13 +125,18 @@ Export state data. Pipe-in app version as input.`)
 	}
 	contracts, err := extractContracts(store)
 	if err != nil {
-		return fmt.Errorf("cannot extract escrows: %s", err)
+		return fmt.Errorf("cannot extract contracts: %s", err)
+	}
+	wallets, err := extractWallets(store)
+	if err != nil {
+		return fmt.Errorf("cannot extract wallets: %s", err)
 	}
 
 	outJson := Out{
 		Username: usernames,
 		Escrow:   escrows,
 		Contract: contracts,
+		Wallets:  wallets,
 	}
 	err = json.NewEncoder(outFile).Encode(outJson)
 	if err != nil {
@@ -212,6 +217,29 @@ func extractContracts(store *app.CommitStore) ([]contractFormat, error) {
 				ActivationThreshold: e.ActivationThreshold,
 				AdminThreshold:      e.AdminThreshold,
 				Address:             key,
+			})
+		case errors.ErrIteratorDone.Is(err):
+			return out, nil
+		default:
+			return nil, err
+		}
+	}
+	return out, nil
+}
+
+func extractWallets(store *app.CommitStore) ([]cash.GenesisAccount, error) {
+	it := orm.IterAll("cash")
+	var out []cash.GenesisAccount
+	for {
+		var w cash.Set
+		switch key, err := it.Next(store.CheckStore(), &w); {
+		case err == nil:
+			s := cash.Set{
+				Coins: w.Coins,
+			}
+			out = append(out, cash.GenesisAccount{
+				Address: key,
+				Set:     s,
 			})
 		case errors.ErrIteratorDone.Is(err):
 			return out, nil
