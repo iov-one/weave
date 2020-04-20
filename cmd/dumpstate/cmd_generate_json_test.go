@@ -53,3 +53,26 @@ func TestExtractEscrow(t *testing.T) {
 		fmt.Println(t)
 	}
 }
+
+func TestExtractContracts(t *testing.T) {
+	// create db store
+	kv, err := bnsd.CommitKVStore("/Users/orkunkl/.mainnet-db/bns.db")
+	if err != nil {
+		t.Fatalf("cannot initialize bnsd commit store: %s", err)
+	}
+	// set db version/height
+	version := 54397
+	err = kv.LoadVersion(int64(version))
+	if err != nil {
+		t.Fatalf("cannot load db version: %s", err)
+	}
+	store := app.NewCommitStore(kv)
+
+	esc, err := extractContracts(store)
+	if err != nil {
+		t.Fatalf("cannot extract usernames :%s", err)
+	}
+	for _, t := range esc {
+		fmt.Println(t)
+	}
+}
