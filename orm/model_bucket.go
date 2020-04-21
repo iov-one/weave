@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"bytes"
 	"reflect"
 
 	"github.com/iov-one/weave"
@@ -69,6 +70,70 @@ type ModelBucket interface {
 	// Register registers this buckets content to be accessible via query
 	// requests under the given name.
 	Register(name string, r weave.QueryRouter)
+}
+
+// IterAll returns an iterator instance that loops through all entities kept by
+// given bucket.
+// Returned iterator does not support schema migration. It always returns the
+// entity in version it is stored in the database.
+func IterAll(bucketName string) *ModelBucketIterator {
+	// This is how Bucket.DBKey is implemented.
+	dbkey := []byte(bucketName + ":")
+
+	start := []byte(bucketName + ":")
+	end := append([]byte(bucketName+":"), 255, 255, 255, 255, 255, 255, 255)
+
+	return &ModelBucketIterator{
+		dbprefix: len(dbkey),
+		cursor:   start,
+		end:      end,
+	}
+}
+
+// ModelBucketIterator allows for iteration over all entities of a single
+// bucket.
+type ModelBucketIterator struct {
+	dbprefix int
+	cursor   []byte
+	end      []byte
+	err      error
+}
+
+// Next returns the next item key. Loads the value of the item into the
+// provided model. For each call a new iterator is created so that a database
+// modification can be done between this method calls.
+func (it *ModelBucketIterator) Next(db weave.ReadOnlyKVStore, dest Model) ([]byte, error) {
+	if it.err != nil {
+		return nil, it.err
+	}
+
+	if bytes.Compare(it.cursor, it.end) >= 0 {
+		return nil, errors.ErrIteratorDone
+	}
+
+	iter, err := db.Iterator(it.cursor, it.end)
+	if err != nil {
+		return nil, errors.Wrap(err, "new iterator")
+	}
+	// Use iterator as a one time fetch, so that other database operations
+	// can be performed between Next method calls.
+	defer iter.Release()
+
+	key, value, err := iter.Next()
+	if err != nil {
+		return nil, errors.Wrap(err, "iterator next")
+	}
+
+	if err := dest.Unmarshal(value); err != nil {
+		return nil, errors.Wrap(err, "cannot unmarshal model value")
+	}
+
+	// Key was consumed. Iterator is inclusive, so we must use the very
+	// next possible key. Which is this very key with zero appended.
+	it.cursor = make([]byte, len(key)+1)
+	copy(it.cursor, key)
+
+	return key[it.dbprefix:], nil
 }
 
 // NewModelBucket returns a ModelBucket instance. This implementation relies on
