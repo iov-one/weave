@@ -149,11 +149,12 @@ func extractUsername(store *app.CommitStore) ([]tokenFormat, error) {
 				Owner:    token.Owner,
 			})
 		case errors.ErrIteratorDone.Is(err):
-			return out, nil
+			goto success
 		default:
 			return nil, err
 		}
 	}
+success:
 	return out, nil
 }
 
@@ -180,11 +181,12 @@ func extractEscrow(store *app.CommitStore) ([]escrowFormat, error) {
 				Amount:      coins,
 			})
 		case errors.ErrIteratorDone.Is(err):
-			return out, nil
+			goto success
 		default:
 			return nil, err
 		}
 	}
+success:
 	return out, nil
 }
 
@@ -205,11 +207,12 @@ func extractContracts(store *app.CommitStore) ([]contractFormat, error) {
 				Address:             key,
 			})
 		case errors.ErrIteratorDone.Is(err):
-			return out, nil
+			goto success
 		default:
 			return nil, err
 		}
 	}
+success:
 	return out, nil
 }
 
@@ -228,10 +231,11 @@ func extractWallets(store *app.CommitStore) ([]cash.GenesisAccount, error) {
 				Set:     s,
 			})
 		case errors.ErrIteratorDone.Is(err):
-			return out, nil
+			goto success
 		default:
 			return nil, err
 		}
 	}
+success:
 	return out, nil
 }
