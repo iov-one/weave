@@ -197,9 +197,6 @@ func extractContracts(store *app.CommitStore) ([]contractFormat, error) {
 		var e multisig.Contract
 		switch key, err := it.Next(store.CheckStore(), &e); {
 		case err == nil:
-			if err != nil {
-				return nil, err
-			}
 			out = append(out, contractFormat{
 				Participants:        e.Participants,
 				ActivationThreshold: e.ActivationThreshold,
