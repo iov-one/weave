@@ -20,26 +20,33 @@ import (
 	"github.com/iov-one/weave/x/multisig"
 )
 
+const prefix = "iov"
+
 type Out struct {
-	Username []tokenFormat         `json:"username"`
-	Wallets  []cash.GenesisAccount `json:"cash"`
-	Escrow   []escrowFormat        `json:"escrow"`
-	Contract []contractFormat      `json:"contract"`
+	Username []tokenFormat    `json:"username"`
+	Wallets  []genesisAccount `json:"cash"`
+	Escrow   []escrowFormat   `json:"escrow"`
+	Contract []contractFormat `json:"contract"`
+}
+
+type genesisAccount struct {
+	Address string `json:"address"`
+	cash.Set
 }
 
 type tokenFormat struct {
 	Username string
 	Targets  []username.BlockchainAddress
-	Owner    weave.Address
+	Owner    string
 }
 
 type escrowFormat struct {
-	Source      weave.Address  `json:"source"`
-	Arbiter     weave.Address  `json:"arbiter"`
-	Destination weave.Address  `json:"destination"`
+	Source      string         `json:"source"`
+	Arbiter     string         `json:"arbiter"`
+	Destination string         `json:"destination"`
 	Timeout     weave.UnixTime `json:"timeout"`
 	Amount      []*coin.Coin   `json:"amount"`
-	Address     weave.Address  `json:"address"`
+	Address     string         `json:"address"`
 }
 
 type contractFormat struct {
@@ -129,8 +136,9 @@ Export state data. Pipe-in app version as input.`)
 		Contract: contracts,
 		Wallets:  wallets,
 	}
-	err = json.NewEncoder(outFile).Encode(outJson)
-	if err != nil {
+	enc := json.NewEncoder(outFile)
+	enc.SetIndent("", "\t")
+	if err := enc.Encode(outJson); err != nil {
 		fmt.Printf("cannot write to file: %s\n", err)
 		os.Exit(1)
 	}
@@ -143,19 +151,21 @@ func extractUsername(store *app.CommitStore) ([]tokenFormat, error) {
 		var token username.Token
 		switch key, err := it.Next(store.CheckStore(), &token); {
 		case err == nil:
+			owner, err := token.Owner.Bech32String(prefix)
+			if err != nil {
+				return nil, err
+			}
 			out = append(out, tokenFormat{
 				Username: string(key),
 				Targets:  token.Targets,
-				Owner:    token.Owner,
+				Owner:    owner,
 			})
 		case errors.ErrIteratorDone.Is(err):
-			goto success
+			return out, nil
 		default:
 			return nil, err
 		}
 	}
-success:
-	return out, nil
 }
 
 func extractEscrow(store *app.CommitStore) ([]escrowFormat, error) {
@@ -172,22 +182,37 @@ func extractEscrow(store *app.CommitStore) ([]escrowFormat, error) {
 				return nil, err
 			}
 			coins := cash.AsCoins(c)
+
+			address, err := e.Address.Bech32String(prefix)
+			if err != nil {
+				return nil, err
+			}
+			source, err := e.Source.Bech32String(prefix)
+			if err != nil {
+				return nil, err
+			}
+			arbiter, err := e.Arbiter.Bech32String(prefix)
+			if err != nil {
+				return nil, err
+			}
+			destination, err := e.Destination.Bech32String(prefix)
+			if err != nil {
+				return nil, err
+			}
 			out = append(out, escrowFormat{
-				Address:     e.Address,
-				Source:      e.Source,
-				Arbiter:     e.Arbiter,
-				Destination: e.Destination,
+				Address:     address,
+				Source:      source,
+				Arbiter:     arbiter,
+				Destination: destination,
 				Timeout:     e.Timeout,
 				Amount:      coins,
 			})
 		case errors.ErrIteratorDone.Is(err):
-			goto success
+			return out, nil
 		default:
 			return nil, err
 		}
 	}
-success:
-	return out, nil
 }
 
 func extractContracts(store *app.CommitStore) ([]contractFormat, error) {
@@ -204,18 +229,16 @@ func extractContracts(store *app.CommitStore) ([]contractFormat, error) {
 				Address:             key,
 			})
 		case errors.ErrIteratorDone.Is(err):
-			goto success
+			return out, nil
 		default:
 			return nil, err
 		}
 	}
-success:
-	return out, nil
 }
 
-func extractWallets(store *app.CommitStore) ([]cash.GenesisAccount, error) {
+func extractWallets(store *app.CommitStore) ([]genesisAccount, error) {
 	it := orm.IterAll("cash")
-	var out []cash.GenesisAccount
+	var out []genesisAccount
 	for {
 		var w cash.Set
 		switch key, err := it.Next(store.CheckStore(), &w); {
@@ -223,16 +246,23 @@ func extractWallets(store *app.CommitStore) ([]cash.GenesisAccount, error) {
 			s := cash.Set{
 				Coins: w.Coins,
 			}
-			out = append(out, cash.GenesisAccount{
-				Address: key,
+			k := weave.NewAddress(key)
+			if err != nil {
+				return nil, err
+			}
+			address, err := k.Bech32String(prefix)
+			if err != nil {
+				return nil, err
+			}
+
+			out = append(out, genesisAccount{
+				Address: address,
 				Set:     s,
 			})
 		case errors.ErrIteratorDone.Is(err):
-			goto success
+			return out, nil
 		default:
 			return nil, err
 		}
 	}
-success:
-	return out, nil
 }
