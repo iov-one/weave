@@ -247,9 +247,6 @@ func extractWallets(store *app.CommitStore) ([]genesisAccount, error) {
 				Coins: w.Coins,
 			}
 			k := weave.NewAddress(key)
-			if err != nil {
-				return nil, err
-			}
 			address, err := k.Bech32String(prefix)
 			if err != nil {
 				return nil, err
