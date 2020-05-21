@@ -175,9 +175,9 @@ func extractEscrow(store *app.CommitStore) ([]escrowFormat, error) {
 	var out []escrowFormat
 	for {
 		var e escrow.Escrow
-		switch key, err := it.Next(store.CheckStore(), &e); {
+		switch _, err := it.Next(store.CheckStore(), &e); {
 		case err == nil:
-			c, err := wb.Get(store.CheckStore(), key)
+			c, err := wb.Get(store.CheckStore(), e.Address)
 			if err != nil {
 				return nil, err
 			}

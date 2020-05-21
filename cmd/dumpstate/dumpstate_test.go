@@ -88,37 +88,3 @@ func AssertJSONEqual(t testing.TB, want io.Reader, got interface{}) {
 		t.Fatal("unexpected result")
 	}
 }
-
-/*
-// create db store
-func TestGenerateGold(t *testing.T) {
-	kv, err := bnsd.CommitKVStore("./testdata/bns.db")
-	if err != nil {
-		t.Fatalf("cannot initialize bnsd commit store: %s", err)
-	}
-	// set db version/height
-	version := 54397
-	err = kv.LoadVersion(int64(version))
-	if err != nil {
-		t.Fatalf("cannot load db version: %s", err)
-	}
-	store := app.NewCommitStore(kv)
-
-	tokens, err := extractWallets(store)
-	if err != nil {
-		t.Fatalf("cannot extract usernames :%s", err)
-	}
-
-	outFile, err := os.Create("cash.gold.json")
-	if err != nil {
-		t.Fatalf("cannot extract usernames :%s", err)
-	}
-
-	enc := json.NewEncoder(outFile)
-	enc.SetIndent("", "\t")
-	if err := enc.Encode(tokens); err != nil {
-		fmt.Printf("cannot write to file: %s\n", err)
-		os.Exit(1)
-	}
-}
-*/
