@@ -53,7 +53,7 @@ type contractFormat struct {
 	Participants        []*multisig.Participant `json:"participants"`
 	ActivationThreshold multisig.Weight         `json:"activation_threshold"`
 	AdminThreshold      multisig.Weight         `json:"admin_threshold"`
-	Address             weave.Address           `json:"address"`
+	Address             string                  `json:"address"`
 }
 
 func main() {
@@ -222,11 +222,16 @@ func extractContracts(store *app.CommitStore) ([]contractFormat, error) {
 		var e multisig.Contract
 		switch key, err := it.Next(store.CheckStore(), &e); {
 		case err == nil:
+			k := weave.NewAddress(key)
+			a, err := k.Bech32String("iov")
+			if err != nil {
+				return nil, err
+			}
 			out = append(out, contractFormat{
 				Participants:        e.Participants,
 				ActivationThreshold: e.ActivationThreshold,
 				AdminThreshold:      e.AdminThreshold,
-				Address:             key,
+				Address:             a,
 			})
 		case errors.ErrIteratorDone.Is(err):
 			return out, nil
