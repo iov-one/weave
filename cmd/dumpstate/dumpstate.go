@@ -50,10 +50,15 @@ type escrowFormat struct {
 }
 
 type contractFormat struct {
-	Participants        []*multisig.Participant `json:"participants"`
-	ActivationThreshold multisig.Weight         `json:"activation_threshold"`
-	AdminThreshold      multisig.Weight         `json:"admin_threshold"`
-	Address             weave.Address           `json:"address"`
+	Participants        []participant   `json:"participants"`
+	ActivationThreshold multisig.Weight `json:"activation_threshold"`
+	AdminThreshold      multisig.Weight `json:"admin_threshold"`
+	Address             weave.Address   `json:"address"`
+}
+
+type participant struct {
+	Signature string          `json:"signature"`
+	Weight    multisig.Weight `json:"weight"`
 }
 
 func main() {
@@ -222,8 +227,19 @@ func extractContracts(store *app.CommitStore) ([]contractFormat, error) {
 		var e multisig.Contract
 		switch key, err := it.Next(store.CheckStore(), &e); {
 		case err == nil:
+			var pt []participant
+			for _, ep := range e.Participants {
+				s, err := ep.Signature.Bech32String("iov")
+				if err != nil {
+					return nil, err
+				}
+				pt = append(pt, participant{
+					Signature: s,
+					Weight:    ep.Weight,
+				})
+			}
 			out = append(out, contractFormat{
-				Participants:        e.Participants,
+				Participants:        pt,
 				ActivationThreshold: e.ActivationThreshold,
 				AdminThreshold:      e.AdminThreshold,
 				Address:             key,
