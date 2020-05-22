@@ -24,7 +24,7 @@
 		],
 		"activation_threshold": 3,
 		"admin_threshold": 3,
-		"address": "iov1e5nxy92wd4mt9v4e9ecvpjkren6nf7dhqvyfry"
+		"address": "0000000000000001"
 	},
 	{
 		"participants": [
@@ -51,7 +51,7 @@
 		],
 		"activation_threshold": 3,
 		"admin_threshold": 3,
-		"address": "iov1e5z2ga2ynrsxmddp830nw8clqnlk6frsp4jfg9"
+		"address": "0000000000000002"
 	},
 	{
 		"participants": [
@@ -78,7 +78,7 @@
 		],
 		"activation_threshold": 3,
 		"admin_threshold": 3,
-		"address": "iov1645g55k4tgpwcjh2tmq74hllu8y7pmn2xqflvc"
+		"address": "0000000000000003"
 	},
 	{
 		"participants": [
@@ -105,7 +105,7 @@
 		],
 		"activation_threshold": 3,
 		"admin_threshold": 3,
-		"address": "iov1sqzlqt2rlgrw05zct7mye9sa2l333vn655llhj"
+		"address": "0000000000000004"
 	},
 	{
 		"participants": [
@@ -132,6 +132,6 @@
 		],
 		"activation_threshold": 3,
 		"admin_threshold": 3,
-		"address": "iov1thhym4s0lrgt4xgql6g7jrsdeajlq4cdmz2ahd"
+		"address": "0000000000000005"
 	}
 ]
