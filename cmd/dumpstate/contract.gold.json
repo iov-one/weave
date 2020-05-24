@@ -1,0 +1,137 @@
+[
+	{
+		"participants": [
+			{
+				"signature": "iov15smrfwvs8l2l8q9px2436he6a8mg3nnege4yer",
+				"weight": 1
+			},
+			{
+				"signature": "iov1m0wuqpue4um5md9vn4z52rtp3rmksc6anfzk2p",
+				"weight": 1
+			},
+			{
+				"signature": "iov1u0hz05cr7ghgcnau2yx4j0arfqga6ue36waue0",
+				"weight": 1
+			},
+			{
+				"signature": "iov13kaqk95297fpqxnjvwp6le53yy29qu462l8msl",
+				"weight": 1
+			},
+			{
+				"signature": "iov1yw37h2w52yptndjl4q7fcyy5awelnnkvvdgjy4",
+				"weight": 1
+			}
+		],
+		"activation_threshold": 3,
+		"admin_threshold": 3,
+		"address": "0000000000000001"
+	},
+	{
+		"participants": [
+			{
+				"signature": "iov15smrfwvs8l2l8q9px2436he6a8mg3nnege4yer",
+				"weight": 1
+			},
+			{
+				"signature": "iov1m0wuqpue4um5md9vn4z52rtp3rmksc6anfzk2p",
+				"weight": 1
+			},
+			{
+				"signature": "iov1u0hz05cr7ghgcnau2yx4j0arfqga6ue36waue0",
+				"weight": 1
+			},
+			{
+				"signature": "iov13kaqk95297fpqxnjvwp6le53yy29qu462l8msl",
+				"weight": 1
+			},
+			{
+				"signature": "iov1yw37h2w52yptndjl4q7fcyy5awelnnkvvdgjy4",
+				"weight": 1
+			}
+		],
+		"activation_threshold": 3,
+		"admin_threshold": 3,
+		"address": "0000000000000002"
+	},
+	{
+		"participants": [
+			{
+				"signature": "iov15smrfwvs8l2l8q9px2436he6a8mg3nnege4yer",
+				"weight": 1
+			},
+			{
+				"signature": "iov1m0wuqpue4um5md9vn4z52rtp3rmksc6anfzk2p",
+				"weight": 1
+			},
+			{
+				"signature": "iov1u0hz05cr7ghgcnau2yx4j0arfqga6ue36waue0",
+				"weight": 1
+			},
+			{
+				"signature": "iov13kaqk95297fpqxnjvwp6le53yy29qu462l8msl",
+				"weight": 1
+			},
+			{
+				"signature": "iov1yw37h2w52yptndjl4q7fcyy5awelnnkvvdgjy4",
+				"weight": 1
+			}
+		],
+		"activation_threshold": 3,
+		"admin_threshold": 3,
+		"address": "0000000000000003"
+	},
+	{
+		"participants": [
+			{
+				"signature": "iov15smrfwvs8l2l8q9px2436he6a8mg3nnege4yer",
+				"weight": 1
+			},
+			{
+				"signature": "iov1m0wuqpue4um5md9vn4z52rtp3rmksc6anfzk2p",
+				"weight": 1
+			},
+			{
+				"signature": "iov1u0hz05cr7ghgcnau2yx4j0arfqga6ue36waue0",
+				"weight": 1
+			},
+			{
+				"signature": "iov13kaqk95297fpqxnjvwp6le53yy29qu462l8msl",
+				"weight": 1
+			},
+			{
+				"signature": "iov1yw37h2w52yptndjl4q7fcyy5awelnnkvvdgjy4",
+				"weight": 1
+			}
+		],
+		"activation_threshold": 3,
+		"admin_threshold": 3,
+		"address": "0000000000000004"
+	},
+	{
+		"participants": [
+			{
+				"signature": "iov15smrfwvs8l2l8q9px2436he6a8mg3nnege4yer",
+				"weight": 1
+			},
+			{
+				"signature": "iov1m0wuqpue4um5md9vn4z52rtp3rmksc6anfzk2p",
+				"weight": 1
+			},
+			{
+				"signature": "iov1u0hz05cr7ghgcnau2yx4j0arfqga6ue36waue0",
+				"weight": 1
+			},
+			{
+				"signature": "iov13kaqk95297fpqxnjvwp6le53yy29qu462l8msl",
+				"weight": 1
+			},
+			{
+				"signature": "iov1yw37h2w52yptndjl4q7fcyy5awelnnkvvdgjy4",
+				"weight": 1
+			}
+		],
+		"activation_threshold": 3,
+		"admin_threshold": 3,
+		"address": "0000000000000005"
+	}
+]
