@@ -259,6 +259,9 @@ func extractWallets(store *app.CommitStore) ([]genesisAccount, error) {
 		var w cash.Set
 		switch key, err := it.Next(store.CheckStore(), &w); {
 		case err == nil:
+			if w.Coins == nil {
+				continue
+			}
 			s := cash.Set{
 				Coins: w.Coins,
 			}
