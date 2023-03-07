@@ -8,7 +8,7 @@ require (
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/gogo/protobuf v1.2.1
 	github.com/google/btree v1.0.0
-	github.com/gorilla/websocket v1.4.0 // indirect
+	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/lib/pq v1.1.1 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
